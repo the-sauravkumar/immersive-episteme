@@ -1,10 +1,3 @@
-/**
- * Study photographs load straight from the licence-gated figure route, never through the Next
- * image optimiser (final review knowledge-05; DR-037). The optimiser keeps its own copy for at
- * least minimumCacheTTL and re-serves a stale copy when /figures/<id> starts answering 404, so a
- * withdrawn or expired photograph would stay fetchable at /_next/image. Both conditions render the
- * same KnowledgeFigure, so one test covers both.
- */
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";

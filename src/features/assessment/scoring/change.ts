@@ -1,16 +1,3 @@
-/**
- * Pre/post graph change between two submissions of the same participant (e.g. pre and post
- * phase, or two revisions). Concept-id based and independent of any reference map:
- *
- *   unchanged  : same labelled key in both maps
- *   retyped    : same concept pair and direction, different type (paired in key order)
- *   reoriented : same concept pair, different direction / directedness (type may also differ)
- *   added      : present only after;  removed : present only before
- *
- * Edges are canonicalised with the same configuration as scoring (so synonym rules apply);
- * edges touching a free node (or joining a concept to itself) are excluded and listed. When a reference is given, both maps are scored
- * and each metric's delta (post − pre; null if either is null) is reported.
- */
 import { cmp, configParameters, resolveConfig, type ScoringConfig, type ScoringConfigInput } from "./config";
 import { keptEdges, prepareParticipant } from "./match";
 import { scoreItem } from "./metrics/registry";

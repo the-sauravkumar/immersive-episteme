@@ -1,8 +1,4 @@
 "use server";
-/**
- * Server actions for the public demo session. (Staff sign-in/out go through Better Auth's HTTP
- * router at /api/auth so that its rate limiting and origin checks apply.)
- */
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -16,19 +12,9 @@ import { DEMO_SESSION_TTL_SECONDS, signDemoSession } from "./demo-session";
 import { resolveParticipantSession } from "./learning-decision";
 import { getStudySessionLookup } from "./study-session-port";
 
-/**
- * Start (or refresh) a non-experimental demo and open the chosen condition.
- *  - A browser holding a LIVE participant session is sent back to its session, so a
- *    participant cannot use /explore to reach the condition they were not assigned.
- *  - A dead participant cookie (ended, withdrawn, tampered, expired) is deleted here instead of
- *    blocking the demo until it expires.
- *  - The server-side demo policy (./demo-policy.ts) is checked last; it is what stops a
- *    participant in another browser while a real study is running.
- */
 export async function startPublicDemo(formData: FormData): Promise<void> {
   const condition = formData.get("condition");
   if (!isLearningCondition(condition)) redirect("/explore");
-  // Invite gate, server side (S11): a demo session opens the learning conditions.
   await requireSiteAccess("/explore");
 
   const jar = await cookies();

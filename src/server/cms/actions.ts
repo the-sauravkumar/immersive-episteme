@@ -1,9 +1,5 @@
 "use server";
 
-/**
- * Server actions for knowledge authoring, review and release publishing. Each one:
- * permission (assertPermission via runAction) -> Zod -> service (re-checks, writes, audits).
- */
 import { z } from "zod";
 
 import type { ActionState } from "@/components/cms/action-state";

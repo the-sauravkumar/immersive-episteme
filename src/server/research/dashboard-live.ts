@@ -1,17 +1,3 @@
-/**
- * Push channel of the research dashboard: ONE shared `LISTEN ie_dashboard` connection per server
- * process (migration 0014 sends one NOTIFY per changed study per statement, at commit), fanned
- * out to in-process subscribers (the SSE streams of /api/research/dashboard/stream).
- *
- *  - The connection is a dedicated pg Client OUTSIDE the request pool, created lazily on the
- *    first subscription and kept on globalThis (dev hot reload must not open more).
- *  - It reconnects with exponential backoff (0.5 s doubling to 30 s). A reconnect starts a new
- *    `epoch` and wakes every subscribed study, because notifications sent while disconnected are
- *    lost.
- *  - `version(studyId)` = epoch + per-study notification count, or null while disconnected. The
- *    request coalescer (./dashboard-cache.ts) only memoises under a non-null version, so a memo
- *    entry is valid exactly as long as no notification for its study has arrived since.
- */
 import { Client } from "pg";
 
 import type { PgConnectionConfig } from "@/server/db/connection-config";
@@ -27,17 +13,14 @@ export class DashboardNotifier {
   private backoffMs = 500;
   private readonly subs = new Map<string, Set<Listener>>();
   private readonly generations = new Map<string, number>();
-  /** Incremented on every successful (re)connect. */
   epoch = 0;
   connected = false;
 
   constructor(
-    /** DATABASE_URL, or the TLS-pinned settings from pgConnectionConfig (source change S3). */
     private readonly connection: string | PgConnectionConfig,
     private readonly log: Pick<Console, "error" | "warn"> = console,
   ) {}
 
-  /** Opens the shared connection if it is not open or opening. */
   ensure(): void {
     if (this.client || this.connecting || this.closed) return;
     this.connecting = true;
@@ -65,7 +48,6 @@ export class DashboardNotifier {
       this.connected = true;
       this.epoch++;
       this.backoffMs = 500;
-      // Anything may have changed while we were not listening.
       for (const studyId of this.subs.keys()) this.bump(studyId);
     } catch (err) {
       this.log.warn("[dashboard-live] LISTEN connection failed; retrying", (err as Error).message);
@@ -102,7 +84,6 @@ export class DashboardNotifier {
     }
   }
 
-  /** Calls `listener` after every committed change of the study. Returns the unsubscribe function. */
   subscribe(studyId: string, listener: Listener): () => void {
     this.ensure();
     const set = this.subs.get(studyId) ?? this.subs.set(studyId, new Set()).get(studyId)!;
@@ -113,7 +94,6 @@ export class DashboardNotifier {
     };
   }
 
-  /** Coalescing token: changes with every notification for the study; null while not listening. */
   version(studyId: string): string | null {
     return this.connected ? `${this.epoch}:${this.generations.get(studyId) ?? 0}` : null;
   }
@@ -124,7 +104,6 @@ export class DashboardNotifier {
     return n;
   }
 
-  /** Resolves once listening (tests), or after `timeoutMs`. */
   async ready(timeoutMs = 5_000): Promise<boolean> {
     this.ensure();
     const t0 = Date.now();
@@ -143,7 +122,6 @@ export class DashboardNotifier {
 
 type LiveGlobal = typeof globalThis & { __episteme_dashboard_notifier?: DashboardNotifier };
 
-/** The process-wide notifier (DATABASE_URL), created lazily. */
 export function getDashboardNotifier(connection: string | PgConnectionConfig): DashboardNotifier {
   const g = globalThis as LiveGlobal;
   g.__episteme_dashboard_notifier ??= new DashboardNotifier(connection);

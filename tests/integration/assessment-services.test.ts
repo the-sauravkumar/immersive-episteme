@@ -1,9 +1,3 @@
-/**
- * Assessment services against a fresh database: participant concept-map save/load with the
- * edit log, phase selection, cross-participant isolation, expert reference maps (agreement,
- * consensus, ties flagged and adjudicated), typed/directed scoring through the library,
- * published-definition immutability, rubric ratings with agreement, keyed items.
- */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { emptyState, reduceMap, toPayload, type EditorRules, type MapAction, type MapState } from "@/components/assessment/map-state";
@@ -53,7 +47,6 @@ async function expectError(p: Promise<unknown>, code: AssessmentError["code"]) {
   await expect(p).rejects.toMatchObject({ name: "AssessmentError", code });
 }
 
-/** Publishes a snapshot whose payload carries the given concepts and relationship types. */
 async function publishTestSnapshot(label: string, conceptKeys: string[], typeCodes: string[]): Promise<string> {
   const concepts = (await t.pool.query<{ id: string; key: string; title: string; category: string }>("SELECT id, key, title, category_code AS category FROM concepts WHERE key = ANY($1::text[])", [conceptKeys])).rows;
   const types = (await t.pool.query<{ code: string; label: string; directed: boolean }>("SELECT code, label, directed FROM relationship_types WHERE code = ANY($1::text[])", [typeCodes])).rows;
@@ -90,7 +83,6 @@ run("assessment services", () => {
     raterB = await createUser(t.pool);
     adjudicator = await createUser(t.pool);
     const g = await createRealGraph(t.pool, { prefix: "asv" });
-    // Two more concepts in other categories (structure only; titles are test labels).
     for (const [name, type, cat] of [
       ["mat-1", "material", "materials"],
       ["out-1", "outcome", "production_outcomes"],
@@ -121,7 +113,6 @@ run("assessment services", () => {
       scoring: { validityLevel: "directed_labelled" },
     });
     await publishAssessment(t.pool, researcher, assessmentId);
-    // A published snapshot that carries the concept set (sessions read labels from it).
     const snapshotId = await publishTestSnapshot("v-assess", keys, ["PRECEDES", "USES", "SIMILAR_TO"]);
     const manifestId = await createPublishedManifest(t.pool, snapshotId);
     const s = await createStudy(t.pool, { slug: "assess-svc", snapshotId, manifestId, allowUnverified: true });
@@ -173,7 +164,6 @@ run("assessment services", () => {
       { edge_key: "e2", source_node_key: "c3", target_node_key: "c2", relationship_type_code: "PRECEDES", directed: true },
     ]);
 
-    // A save that rewrites history (e.g. a stale second tab) is refused.
     const stale = { ...toPayload(s), editLog: s.editLog.slice(0, 1) };
     await expectError(saveParticipantMap(t.pool, p1, { itemId, payload: stale, final: false }), "conflict");
 
@@ -183,7 +173,6 @@ run("assessment services", () => {
     const revs = await t.pool.query<{ revision: number; is_final: boolean }>("SELECT revision, is_final FROM concept_map_revisions WHERE concept_map_id = $1 ORDER BY revision", [done.conceptMapId]);
     expect(revs.rows.map((r) => r.revision)).toEqual([1, 2, 3]);
     expect(revs.rows.at(-1)?.is_final).toBe(true);
-    // The raw graph is stored, never just a score.
     const scores = await t.pool.query("SELECT 1 FROM derived_scores WHERE concept_map_id = $1", [done.conceptMapId]);
     expect(scores.rowCount).toBe(0);
   });
@@ -206,12 +195,10 @@ run("assessment services", () => {
     await expectError(loadReconstructionTask(t.pool, forged), "forbidden");
     const s = await blankState();
     await expectError(saveParticipantMap(t.pool, forged, { itemId, payload: toPayload(s), final: false }), "forbidden");
-    // p2's own save never touches p1's (final) map.
     const before = await one<{ revision: number }>(t.pool, "SELECT revision FROM concept_maps WHERE session_id = $1 AND phase = 'pre'", [p1.sessionId]);
     const task2 = await loadReconstructionTask(t.pool, p2);
     if (task2.kind !== "task" || !task2.map) throw new Error("expected p2 map");
     expect(task2.map.payload.nodes.every((n) => n.label !== "Injected")).toBe(true);
-    // Same task for both conditions (p1 is 2D, p2 is 3D): the editor input does not depend on the condition.
     const task1 = await loadReconstructionTask(t.pool, p1);
     if (task1.kind !== "task") throw new Error("expected p1 task");
     expect(task2.set).toEqual(task1.set);
@@ -226,7 +213,6 @@ run("assessment services", () => {
     if (task.kind !== "task") throw new Error("expected task");
     expect(task.phase).toBe("post");
     expect(task.map).toBeNull();
-    // Post map: c1 PRECEDES c2 (correct), c3 PRECEDES c2 (direction reversed vs c2 PRECEDES c3), c2 USES c3 (wrong type), c3 SIMILAR_TO c4.
     const s = build(emptyState(task.set.concepts), [
       { type: "add_edge", source: "c1", target: "c2", relationshipType: "PRECEDES", via: "form" },
       { type: "add_edge", source: "c3", target: "c2", relationshipType: "PRECEDES", via: "form" },
@@ -234,8 +220,6 @@ run("assessment services", () => {
       { type: "add_edge", source: "c4", target: "c3", relationshipType: "SIMILAR_TO", via: "form" },
     ]);
     expect(s.edges.find((e) => e.relationshipType === "SIMILAR_TO")?.directed).toBe(false);
-    // Step gate (security-03): while learning (no reconstruction step current) or from a stale
-    // pre-test tab, the post map can be neither created nor submitted; nothing is written.
     for (const current of [null, "pre"] as const) {
       await expectError(saveParticipantMap(t.pool, p1, { itemId, payload: toPayload(s), final: true }, { currentPhase: async () => current }), "conflict");
     }
@@ -259,14 +243,12 @@ run("assessment services", () => {
       [v2],
     );
     expect(row).toEqual({ version: 2, status: "draft", n: "1" });
-    // A draft version has no fixed concept set yet: no reference map.
     await expectError(createReferenceMap(t.pool, researcher, v2, { title: "Too early" }), "invalid");
   });
 
   it("builds a consensus reference map, flags ties for adjudication and records the adjudicator", async () => {
     const refId = await createReferenceMap(t.pool, researcher, assessmentId, { title: "Expert map" });
     const base = await blankState();
-    // Both raters: c1 PRECEDES c2 (expected), c2 PRECEDES c3 (expected). Only rater A: c2 USES c3 -> 1 of 2 = tie.
     const a = build(base, [
       { type: "add_edge", source: "c1", target: "c2", relationshipType: "PRECEDES", via: "form", required: true },
       { type: "add_edge", source: "c2", target: "c3", relationshipType: "PRECEDES", via: "form", required: true },
@@ -310,7 +292,6 @@ run("assessment services", () => {
     );
     expect(adj.submission.adjudications).toMatchObject([{ decision: "excluded", adjudicatorId: adjudicator }]);
 
-    // Scoring: typed + directed edges through the library, against the adjudicated reference.
     const run1 = await scoreConceptMaps(t.pool, researcher, refId);
     expect(run1).toMatchObject({ maps: 2, changePairs: 1, alreadyStored: 0 });
     expect(run1.inserted).toBeGreaterThan(0);
@@ -330,7 +311,6 @@ run("assessment services", () => {
     expect(breakdown.mismatches).toEqual([]);
     expect(Object.fromEntries(breakdown.result.participantEdges.map((e) => [e.edgeKey, e.class]))).toEqual({ e1: "correct", e2: "wrong_direction", e3: "wrong_type", e4: "unsupported" });
     expect(breakdown.change?.scores.find((s) => s.metricName === "cmap.change.added")?.value).toBe(2);
-    // Same numbers as calling the library directly on the stored raw map.
     const postTask = await loadReconstructionTask(t.pool, p1);
     if (postTask.kind !== "task" || !postTask.map) throw new Error("expected post map");
     const direct = scoreConceptMap(postTask.map.payload, breakdown.reference.input, { validityLevel: "directed_labelled" }, { conceptCategories: breakdown.set.categories });
@@ -381,7 +361,7 @@ run("assessment services", () => {
         [who.sessionId, who.participantId, tid, choiceItem, JSON.stringify({ optionId: choice })],
       );
     }
-    await expectError(rateResponse(t.pool, raterA, rubricId, responses[0]!, 2), "invalid"); // rubric not yet published
+    await expectError(rateResponse(t.pool, raterA, rubricId, responses[0]!, 2), "invalid");
     await lockRubric(t.pool, researcher, rubricId);
     await rateResponse(t.pool, raterA, rubricId, responses[0]!, 2);
     await rateResponse(t.pool, raterA, rubricId, responses[1]!, 1);

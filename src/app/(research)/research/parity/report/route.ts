@@ -1,4 +1,3 @@
-/** GET /research/parity/report?id=<uuid>: one stored parity report as JSON (parity.run). */
 import { authorizeRequest } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 import { getParityReport } from "@/server/research/parity/store";

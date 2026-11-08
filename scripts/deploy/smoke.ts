@@ -1,32 +1,3 @@
-/**
- * Post-deploy smoke test against a deployed URL. Read-only: GET/HEAD requests, plus two POSTs to
- * the telemetry endpoint that carry no session and are refused before any database write
- * (src/app/api/telemetry/batch/route.ts checks the origin and the session first).
- *
- *   npx tsx scripts/deploy/smoke.ts --url https://<domain> [--env-file <production env>]
- *        [--invite-path /invite] [--use-invite] [--no-browser] [--no-gpu]
- *
- * Optional environment (never printed):
- *   SMOKE_INVITE_CODE    a valid invite code. Only used with --use-invite, because redeeming a
- *                        code increments its use count (a write); create a "Smoke test" code with
- *                        a small usage limit for this.
- *   SMOKE_BYPASS_SECRET  Vercel "Protection Bypass for Automation" secret, for protected PREVIEW
- *                        deployments; sent as `x-vercel-protection-bypass` (docs: https://vercel.com/
- *                        docs/deployment-protection/methods-to-bypass-deployment-protection/
- *                        protection-bypass-automation).
- *
- * Checks: pages respond; security headers and CSP (with the media store origin, AWS S3 or
- * Cloudflare R2, when --env-file is given);
- * the invite gate redirects every gated page and refuses an invalid code; staff sign-in, the auth
- * API and static assets stay reachable without an invite; staff areas redirect to sign-in; the
- * dashboard stream refuses anonymous callers; telemetry rejects bad input; every walkthrough
- * asset is served with the right size; and, in headless Chromium on the discrete
- * GPU (args from playwright.config.ts), the sign-in form renders with no CSP violation.
- *
- * Invite-gate contract assumed here (source change S11, docs/deploy/RUNBOOK.md "Invite-only
- * access"): visitors without the invite cookie or a staff session are redirected to
- * --invite-path (default /invite); `?invite=<code>` sets the cookie.
- */
 import { execFileSync } from "node:child_process";
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
@@ -76,7 +47,6 @@ const loc = (r: Response): string | null => {
 };
 const err = (e: unknown) => `${(e as Error).name}: ${(e as Error).message}`.slice(0, 160);
 
-// ---- Reachability ------------------------------------------------------------------------------
 try {
   const r = await req("/");
   report.add("reach", "GET /", r.status < 500 ? "PASS" : "FAIL", `HTTP ${r.status}${loc(r) ? ` -> ${loc(r)}` : ""}`);
@@ -86,7 +56,6 @@ try {
   process.exit(1);
 }
 
-// ---- Invite gate -------------------------------------------------------------------------------
 for (const path of ["/", "/explore", "/study", "/about", "/learn/2d", "/learn/immersive"]) {
   try {
     const r = await req(path);
@@ -132,7 +101,6 @@ if (!args["use-invite"]) {
   }
 }
 
-// ---- Always reachable without an invite ------------------------------------------------------
 let signInCsp: string | null = null;
 try {
   const r = await req("/sign-in");
@@ -181,7 +149,6 @@ try {
   report.add("staff", "dashboard stream anonymous", "FAIL", err(e));
 }
 
-// ---- Telemetry rejects bad input (no session => refused before any write) ---------------------
 try {
   const r = await req("/api/telemetry/batch", { method: "POST", headers: { "content-type": "application/json", origin: ORIGIN }, body: "{not json" });
   report.add("telemetry", "no session -> 401", r.status === 401 ? "PASS" : "FAIL", `HTTP ${r.status}`);
@@ -201,7 +168,6 @@ try {
   report.add("telemetry", "GET -> 405", "FAIL", err(e));
 }
 
-// ---- Walkthrough assets (the local tree is the deployed commit's tree) -----------------------
 const assetsUnder = (dir: string): { path: string; bytes: number }[] =>
   readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const full = join(dir, entry.name);
@@ -236,7 +202,6 @@ for (const a of assets) {
 }
 report.add("walkthrough", `${assets.length} assets served`, assets.length > 0 && assetFails === 0 ? "PASS" : "FAIL", `${assets.length - assetFails}/${assets.length} with the expected size, no invite needed`);
 
-// ---- Headless browser ------------------------------------------------------------------------
 if (args["no-browser"]) {
   report.add("browser", "sign-in renders", "SKIP", "--no-browser");
 } else {
@@ -245,7 +210,6 @@ if (args["no-browser"]) {
 
 async function browserChecks(): Promise<void> {
   const { chromium } = await import("@playwright/test");
-  // Same launch as the "chromium" project of playwright.config.ts (DR-056): full Chromium, ANGLE on D3D11, discrete GPU.
   const gpu = !args["no-gpu"];
   let browser;
   try {

@@ -1,24 +1,4 @@
-/**
- * Provider-neutral deploy topology: which database and media store the production env file
- * configures, and the Vercel function region that must go with them. The deployer chooses the
- * providers (Neon or Amazon RDS; Cloudflare R2 or AWS S3); preflight detects the choice from the
- * file and checks it as it is, then prints the single `regions` value vercel.json must carry.
- *
- * Rules:
- *  - RDS: the instance in ap-south-1 (Mumbai), functions in bom1, DATABASE_CA_PEM set (the RDS
- *    root CA is not in Node's default store).
- *  - Neon: functions in the Vercel region of the Neon region (sin1 for aws-ap-southeast-1;
- *    Neon has no region in India), DATABASE_URL_UNPOOLED set (the pooler has no LISTEN/NOTIFY).
- *  - R2: MEDIA_S3_REGION=auto and path-style addressing.
- *  - AWS S3: the bucket in the database's AWS region, so study data stay in one region next to
- *    the functions.
- *
- * Pure functions: preflight.ts reports the rows, tests/unit/deploy-topology.test.ts covers them.
- */
-
-/** Vercel function region next to each supported AWS region (https://vercel.com/docs/regions). */
 export const FUNCTION_REGION_FOR: Readonly<Record<string, string>> = { "ap-south-1": "bom1", "ap-southeast-1": "sin1" };
-/** RDS is supported in Mumbai only (the aws-provision skill and docs/deploy/aws-resources.md). */
 export const RDS_REGION = "ap-south-1";
 
 export type DbProvider = "neon" | "rds" | "other";
@@ -27,7 +7,6 @@ export type MediaProvider = "r2" | "s3" | "s3-compatible" | "none";
 export interface DbTopology {
   provider: DbProvider;
   host: string;
-  /** The AWS region in the host name, or null when it carries none. */
   awsRegion: string | null;
 }
 
@@ -35,14 +14,12 @@ export interface TopologyRow {
   check: string;
   ok: boolean;
   detail: string;
-  /** rule: FAIL in production when not ok; warn: WARN in production; info: always INFO. */
   level: "rule" | "warn" | "info";
 }
 
 export interface Topology {
   db: DbTopology | null;
   media: MediaProvider;
-  /** The one function region this setup needs, or null when it cannot be derived. */
   functionRegion: string | null;
   rows: TopologyRow[];
 }
@@ -74,12 +51,10 @@ export function detectMedia(env: Env): MediaProvider {
   }
 }
 
-/** The checks for the configured database, media store and vercel.json `regions`. */
 export function topologyChecks(env: Env, vercelRegions: readonly string[] | undefined): Topology {
   const rows: TopologyRow[] = [];
   const add = (check: string, ok: boolean, detail: string, level: TopologyRow["level"] = "rule") => rows.push({ check, ok, detail, level });
 
-  // Database.
   const db = detectDatabase(env.DATABASE_URL);
   let functionRegion: string | null = null;
   if (db?.provider === "rds") {
@@ -101,7 +76,6 @@ export function topologyChecks(env: Env, vercelRegions: readonly string[] | unde
     add("database provider recognised", false, `${db.host} is neither Neon (*.neon.tech) nor Amazon RDS (*.rds.amazonaws.com): no function region can be derived`);
   }
 
-  // Function region in vercel.json: one value, the one the database needs.
   const current = vercelRegions?.length ? vercelRegions.join(",") : "(unset: Vercel defaults to iad1)";
   if (functionRegion) {
     const ok = vercelRegions?.length === 1 && vercelRegions[0] === functionRegion;
@@ -114,7 +88,6 @@ export function topologyChecks(env: Env, vercelRegions: readonly string[] | unde
     add("vercel.json regions", false, `vercel.json has ${current}; cannot check it without a supported database region`);
   }
 
-  // Media store.
   const media = detectMedia(env);
   const endpointHttps = (() => {
     try {

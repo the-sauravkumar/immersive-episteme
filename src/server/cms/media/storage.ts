@@ -1,27 +1,3 @@
-/**
- * Media object storage.
- *
- *  - S3-compatible (production): selected when MEDIA_S3_BUCKET is set. Browsers upload directly
- *    with a short-lived presigned PUT that signs the object's SHA-256 (`x-amz-checksum-sha256`),
- *    so the store itself refuses bytes that do not match the checksum the server recorded.
- *    Stores that do not return a single-part SHA-256 on HeadObject (Cloudflare R2 lists SHA-256
- *    only for multipart uploads: https://developers.cloudflare.com/r2/api/s3/api/) are checked by
- *    hashing the stored object on the server instead (`storedSha256`).
- *  - Local disk (development fallback): MEDIA_LOCAL_DIR, default `.data/media` under the working
- *    directory. Refused in production unless MEDIA_LOCAL_DIR is set explicitly.
- *
- * Keys are content-addressed (`sha256/<2 hex>/<sha256>.<ext>`), so a key can never be chosen by
- * the client and identical bytes share one object.
- *
- * Environment (validated here; not part of src/lib/env.ts yet):
- *   MEDIA_S3_BUCKET, MEDIA_S3_REGION (default us-east-1; "auto" for R2), MEDIA_S3_ENDPOINT
- *   (optional: MinIO, or https://<account-id>.r2.cloudflarestorage.com for Cloudflare R2),
- *   MEDIA_S3_ACCESS_KEY_ID, MEDIA_S3_SECRET_ACCESS_KEY (optional outside production: default AWS
- *   credential chain; required in production, see assertExplicitS3Credentials),
- *   MEDIA_S3_FORCE_PATH_STYLE ("true" for MinIO-style endpoints), MEDIA_LOCAL_DIR.
- *
- * Not `server-only` (integration tests use the local store).
- */
 import { createHash } from "node:crypto";
 import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve, sep } from "node:path";
@@ -60,7 +36,6 @@ export function parseMediaEnv(source: Record<string, string | undefined> = proce
   return r.data;
 }
 
-/** Content-addressed key for a stored original. */
 export function storageKeyFor(sha256: string, mime: AllowedMime): string {
   if (!SHA_RE.test(sha256)) throw new CmsError("invalid_checksum", "Expected a lowercase hex SHA-256.", 400);
   return `sha256/${sha256.slice(0, 2)}/${sha256}.${ALLOWED_MEDIA[mime].extension}`;
@@ -72,14 +47,12 @@ export const base64ToHex = (b64: string) => Buffer.from(b64, "base64").toString(
 export interface PresignedUpload {
   url: string;
   method: "PUT";
-  /** Headers the browser must send exactly (they are part of the signature). */
   headers: Record<string, string>;
   expiresInSeconds: number;
 }
 
 export interface StoredObjectInfo {
   byteSize: number;
-  /** Lowercase hex SHA-256 as reported by the store, when it keeps one. */
   sha256: string | null;
 }
 
@@ -97,14 +70,12 @@ export interface S3MediaStorage {
   presignPut(key: string, opts: { mime: string; byteSize: number; sha256: string }): Promise<PresignedUpload>;
   head(key: string): Promise<StoredObjectInfo | null>;
   readHead(key: string, bytes?: number): Promise<Uint8Array>;
-  /** SHA-256 (lowercase hex) of the stored object, computed here; refuses objects over `maxBytes`. */
   sha256Of(key: string, maxBytes: number): Promise<string>;
   presignGet(key: string, opts: { mime: string; disposition: string }): Promise<string>;
 }
 
 export type MediaStorage = LocalMediaStorage | S3MediaStorage;
 
-/** Local-disk store rooted at `root`; keys never escape the root. */
 export function createLocalStorage(root: string): LocalMediaStorage {
   const base = resolve(root);
   const pathOf = (key: string) => {
@@ -147,7 +118,6 @@ export function createS3Storage(env: MediaEnv): S3MediaStorage {
       env.MEDIA_S3_ACCESS_KEY_ID && env.MEDIA_S3_SECRET_ACCESS_KEY
         ? { accessKeyId: env.MEDIA_S3_ACCESS_KEY_ID, secretAccessKey: env.MEDIA_S3_SECRET_ACCESS_KEY }
         : undefined,
-    // Only the SHA-256 we sign ourselves; no SDK-added CRC the browser would have to reproduce.
     requestChecksumCalculation: "WHEN_REQUIRED",
     responseChecksumValidation: "WHEN_REQUIRED",
   });
@@ -200,11 +170,6 @@ export function createS3Storage(env: MediaEnv): S3MediaStorage {
   };
 }
 
-/**
- * The stored object's SHA-256: the store's own single-part checksum when it reports one (AWS S3,
- * MinIO), otherwise a hash of the stored bytes computed on the server (Cloudflare R2), so the
- * upload is still verified byte for byte. `maxBytes` bounds the download (the type's size limit).
- */
 export async function storedSha256(
   storage: Pick<S3MediaStorage, "sha256Of">,
   key: string,
@@ -216,15 +181,6 @@ export async function storedSha256(
   return storage.sha256Of(key, maxBytes);
 }
 
-/**
- * Production must name its S3 credentials (source change S5; docs/deploy/RESEARCH.md s9). Without
- * the MEDIA_S3_* keys the SDK falls back to the default credential chain, which on Vercel reads
- * the platform's placeholder AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY ("not usable as AWS
- * credentials"), so uploads and figures would fail at request time with a confusing signature
- * error. Refuse instead, with a message that names the fix. OIDC (`AWS_ROLE_ARN` with
- * @vercel/oidc-aws-credentials-provider) is not wired yet: it is a new dependency that needs the
- * lead's approval, so `AWS_ROLE_ARN` alone does not satisfy this check.
- */
 export function assertExplicitS3Credentials(env: MediaEnv, source: Record<string, string | undefined> = process.env): void {
   if (env.NODE_ENV !== "production") return;
   if (env.MEDIA_S3_ACCESS_KEY_ID && env.MEDIA_S3_SECRET_ACCESS_KEY) return;
@@ -236,7 +192,6 @@ export function assertExplicitS3Credentials(env: MediaEnv, source: Record<string
 
 let cached: MediaStorage | undefined;
 
-/** The configured store (memoised). */
 export function getMediaStorage(source: Record<string, string | undefined> = process.env): MediaStorage {
   if (cached && source === process.env) return cached;
   const env = parseMediaEnv(source);
@@ -249,14 +204,12 @@ export function getMediaStorage(source: Record<string, string | undefined> = pro
       throw new Error("Media storage: set MEDIA_S3_BUCKET (or MEDIA_LOCAL_DIR explicitly) in production");
     }
     const dir = env.MEDIA_LOCAL_DIR ?? join(".data", "media");
-    // A runtime data directory, never part of the build output.
     storage = createLocalStorage(isAbsolute(dir) ? dir : join(/*turbopackIgnore: true*/ process.cwd(), dir));
   }
   if (source === process.env) cached = storage;
   return storage;
 }
 
-/** Safe description of the store for the UI and the admin health page (no secrets). */
 export function describeMediaStorage(storage: MediaStorage): { mode: "local" | "s3"; location: string } {
   return storage.mode === "s3" ? { mode: "s3", location: `bucket ${storage.bucket}` } : { mode: "local", location: storage.root };
 }

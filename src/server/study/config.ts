@@ -1,15 +1,3 @@
-/**
- * Study-engine view of `studies.config` (protocol as data). Pure and client-safe.
- *
- * The fields live in the shared contract (`studyConfigSchema`, src/features/study/contracts.ts),
- * so the research console preserves them when it saves a study. This module adds what a schema
- * of independent fields cannot express: the rules on the ORDER of the journey, the allocation
- * point and stratification, the questionnaire steps and familiarisation, and the defaults of
- * the adopted study decisions (docs/research/study-decisions.md D3, D5, D7, D8).
- *
- * Wording (information sheet, consent, onboarding) always comes from the study config or the
- * condition config, written by the researchers. The engine never supplies it.
- */
 import { TASK_TEXT } from "@/features/learning/strings";
 import { STUDY_STEPS, studyConfigSchema, type InstrumentRef, type StudyConfig, type StudyStep } from "@/features/study/contracts";
 import type { LearningCondition } from "@/lib/permissions/learning";
@@ -87,7 +75,6 @@ export class StudyConfigError extends Error {
   }
 }
 
-/** Rules on the order of the journey and on the fields that depend on it. Pure. */
 export function protocolIssues(config: StudyConfig, steps: readonly StudyStep[]): string[] {
   const issues: string[] = [];
   const at = (s: StudyStep) => steps.indexOf(s);
@@ -101,9 +88,7 @@ export function protocolIssues(config: StudyConfig, steps: readonly StudyStep[])
   for (const s of ["questionnaire_post_learning", "post_test", "transfer", "reconstruction", "layout_sketch", "questionnaire_end", "delayed_test"] as const) {
     if (has(s) && learning >= 0 && at(s) < learning) issues.push(`steps: ${s} must come after learning`);
   }
-  // Starting the task from the onboarding page starts the learning clock: nothing in between.
   if (has("onboarding") && learning >= 0 && at("onboarding") !== learning - 1) issues.push("steps: onboarding must come immediately before learning");
-  // D8: the load, sickness and presence ratings come straight after learning (context effects).
   if (has("questionnaire_post_learning") && learning >= 0 && at("questionnaire_post_learning") !== learning + 1) {
     issues.push("steps: nothing may come between learning and questionnaire_post_learning");
   }
@@ -145,7 +130,6 @@ export function consentChangeIssue(before: Partial<ConsentFields> | null | undef
   return `The ${textChanged ? "consent text" : "participant information sheet"} changed but the consent version is still ${after.consent.version}. Give the changed text a new consent version.`;
 }
 
-/** Parses and validates the raw `studies.config`. Throws StudyConfigError (the protocol is broken, not the participant). */
 export function parseStudyProtocol(raw: unknown): StudyProtocol {
   const parsed = studyConfigSchema.safeParse(raw ?? {});
   if (!parsed.success) throw new StudyConfigError(parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`));
@@ -156,7 +140,6 @@ export function parseStudyProtocol(raw: unknown): StudyProtocol {
   return { config, steps, questionnaires: config.questionnaires ?? DEFAULT_QUESTIONNAIRES };
 }
 
-/** The instrument refs of a questionnaire step that apply to a condition (null = before allocation: all unrestricted ones). */
 export function instrumentsFor(protocol: StudyProtocol, step: QuestionnaireStep, condition: LearningCondition | null): { code: string; version?: number }[] {
   return protocol.questionnaires[QUESTIONNAIRE_CONFIG_KEY[step]]
     .map((r) => (typeof r === "string" ? { code: r } : r))
@@ -164,7 +147,6 @@ export function instrumentsFor(protocol: StudyProtocol, step: QuestionnaireStep,
     .map((r) => ({ code: r.code, ...("version" in r && r.version ? { version: r.version } : {}) }));
 }
 
-/** Route of the page that delivers each step (learning goes to the assigned condition). */
 export const STEP_ROUTE: Record<Exclude<StudyStep, "learning" | "familiarisation">, string> = {
   questionnaire_pre: "/study/questionnaire/before",
   pre_test: "/study/pre-test",
@@ -179,12 +161,10 @@ export const STEP_ROUTE: Record<Exclude<StudyStep, "learning" | "familiarisation
   delayed_test: "/study/delayed-test",
 };
 
-/** Practice route of the familiarisation step (D5). */
 export function practiceRoute(condition: LearningCondition): string {
   return condition === "2d" ? "/learn/2d/practice" : "/learn/immersive/practice";
 }
 
-/** Step names shown to the participant as titles (Title Case). */
 export const STEP_LABEL: Record<StudyStep, string> = Object.fromEntries(
   (
     [
@@ -193,7 +173,6 @@ export const STEP_LABEL: Record<StudyStep, string> = Object.fromEntries(
       ["entrance", "Entrance"],
       ["familiarisation", "Practice with the controls"],
       ["onboarding", "Introduction to the learning task"],
-      // The learning route shows this name too: one string for both (the shared table, P20).
       ["learning", TASK_TEXT.label],
       ["questionnaire_post_learning", "Questions about the learning task"],
       ["post_test", "Questions after learning"],

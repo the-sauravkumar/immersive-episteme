@@ -1,11 +1,3 @@
-/**
- * Integration: media library service against a throwaway database (schema-harness) and a local
- * store in a temp directory. Includes the figure governance (DESIGN.md 9.9, 16; DR-018, DR-020,
- * DR-118): the public-plate flag, the alt-text and caption rules, illustration anchors (one per
- * concept), and what the learner figure route may serve, with no licence cap, expiry or term.
- * Final review fixes (DR-037): link changes are reviewed, every author is barred from verifying,
- * and a released study shows only the figures frozen into its release (withdrawals are deviations).
- */
 import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -39,7 +31,6 @@ import { createLocalStorage, type LocalMediaStorage } from "../../src/server/cms
 import { TEST_URL, addSnapshotItem, createPublishedManifest, createRealGraph, createSnapshot, createStudy, createTestDatabase, createUser, one, publishSnapshot, type TestDb } from "./schema-harness";
 
 const be32 = (n: number) => [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
-/** A PNG header with a given size plus `salt` bytes, so each test file has its own checksum. */
 function png(w: number, h: number, salt: number): Uint8Array {
   return new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, ...be32(13), 73, 72, 68, 82, ...be32(w), ...be32(h), 8, 2, 0, 0, 0, 0, 0, 0, 0, salt]);
 }
@@ -118,7 +109,6 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     expect(await up({ ...META, sourceUrl: "" }, 4)).toBe("invalid_input");
     expect(await up(META, 5, "image/jpeg")).toBe("mime_mismatch");
     expect(await up(META, 6, "image/svg+xml")).toBe("mime_not_allowed");
-    // Decorative images may have empty alt text, but only explicitly.
     expect(await up({ ...META, altText: "", decorative: "on" }, 7)).toBe("ok");
     const n = await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM assets");
     expect(n.n).toBe(2);
@@ -143,12 +133,10 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     const audit = await one<{ after: { evidenceChecked: string[] } }>(t.pool, "SELECT after FROM audit_log WHERE action = 'media.asset_reviewed' AND entity_id = $1", [asset.id]);
     expect(audit.after.evidenceChecked).toEqual([...all]);
 
-    // Editing a verified asset sends it back to review.
     const r = await updateAssetMetadata(t.pool, editor, { assetId: asset.id, metadata: { ...META, caption: "Changed caption" } });
     expect(r.returnedToReview).toBe(true);
     const row = await one<{ verification_state: string; caption: string }>(t.pool, "SELECT verification_state, caption FROM assets WHERE id = $1", [asset.id]);
     expect(row).toEqual({ verification_state: "under_review", caption: "Changed caption" });
-    // The editor now last edited it, so they could not verify it even with the permission; curator (uploader) still cannot.
     expect(await code(reviewAsset(t.pool, curator, { assetId: asset.id, to: "verified", evidenceChecked: [...all] }))).toBe("self_verification");
   });
 
@@ -197,7 +185,6 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     expect(await code(linkAssetToConcept(t.pool, editor, { assetId: a.id, conceptId: g.conceptIds[0], role: "illustration", position: 1 }))).toBe("anchor_claim");
     expect(await code(linkAssetToConcept(t.pool, editor, { assetId: a.id, conceptId: g.conceptIds[0], role: "illustration", position: 0 }))).toBe("ok");
     expect(await code(linkAssetToConcept(t.pool, editor, { assetId: b.id, conceptId: g.conceptIds[0], role: "illustration", position: 0 }))).toBe("one_figure_per_concept");
-    // Other roles are not study figures; re-linking the same asset updates its anchor.
     expect(await code(linkAssetToConcept(t.pool, editor, { assetId: b.id, conceptId: g.conceptIds[0], role: "primary", position: 0 }))).toBe("ok");
     expect(await code(linkAssetToConcept(t.pool, editor, { assetId: a.id, conceptId: g.conceptIds[0], role: "illustration", position: 0 }))).toBe("ok");
     const links = (await listIllustrationLinks(t.pool)).filter((l) => l.conceptId === g.conceptIds[0]);
@@ -208,27 +195,23 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
   it("serves learner figures only when approved and an illustration of a real concept or public", async () => {
     const g = await createRealGraph(t.pool, { prefix: "mfig", acceptBy: curator2.userId });
     const fig = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(2500, 1910, 50), declaredMime: "image/png", metadata: META });
-    expect(await loadLearnerFigure(t.pool, fig.id)).toBeNull(); // draft
+    expect(await loadLearnerFigure(t.pool, fig.id)).toBeNull();
     await submitAssetForReview(t.pool, editor, { assetId: fig.id });
     await reviewAsset(t.pool, curator2, { assetId: fig.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
-    expect(await loadLearnerFigure(t.pool, fig.id)).toBeNull(); // approved but used nowhere
-    // A new link on an accepted asset is new learner-facing text: back to review, then verified again.
+    expect(await loadLearnerFigure(t.pool, fig.id)).toBeNull();
     expect(await linkAssetToConcept(t.pool, editor, { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0 })).toEqual({ returnedToReview: true });
-    expect(await loadLearnerFigure(t.pool, fig.id)).toBeNull(); // under review again
+    expect(await loadLearnerFigure(t.pool, fig.id)).toBeNull();
     await reviewAsset(t.pool, curator2, { assetId: fig.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
     expect(await loadLearnerFigure(t.pool, fig.id)).toMatchObject({ id: fig.id, mimeType: "image/png", width: 2500, height: 1910 });
     const preview = await createSnapshot(t.pool, { label: "mfig-draft-1", createdBy: curator.userId });
     expect(await listSnapshotPhotoLinks(t.pool, preview)).toEqual(expect.arrayContaining([expect.objectContaining({ assetId: fig.id, src: `/figures/${fig.id}`, width: 2500, height: 1910 })]));
     expect(await loadLearnerFigure(t.pool, "not-a-uuid")).toBeNull();
 
-    // The parity loader and the Figure Balance read the printed metadata; the link's caption override wins.
     const [link] = (await listIllustrationLinks(t.pool)).filter((l) => l.assetId === fig.id);
     expect(link).toMatchObject({ credit: META.credit, caption: META.caption, altText: META.altText });
     await t.pool.query("UPDATE asset_links SET caption_override = 'Override caption' WHERE asset_id = $1", [fig.id]);
     expect((await listIllustrationLinks(t.pool)).find((l) => l.assetId === fig.id)?.caption).toBe("Override caption");
 
-    // An approved figure that lacks its credit, caption or alt text (approved before they were
-    // required) is never served, so no learner sees a figure without its credit line.
     for (const column of ["credit", "caption", "alt_text"]) {
       await t.pool.query(`UPDATE assets SET ${column} = '' WHERE id = $1`, [fig.id]);
       expect(await loadLearnerFigure(t.pool, fig.id)).toBeNull();
@@ -236,14 +219,12 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     }
     expect(await loadLearnerFigure(t.pool, fig.id)).toMatchObject({ id: fig.id });
 
-    // A public plate needs no study bundle, but still needs approval.
     const plate = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(1600, 1000, 51), declaredMime: "image/png", metadata: { ...META, publicPlate: "on" } });
     expect(await loadLearnerFigure(t.pool, plate.id)).toBeNull();
     await submitAssetForReview(t.pool, editor, { assetId: plate.id });
     await reviewAsset(t.pool, curator2, { assetId: plate.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
     expect(await loadLearnerFigure(t.pool, plate.id)).toMatchObject({ id: plate.id });
 
-    // The cache lifetime is short, so a withdrawal reaches every cache within minutes.
     expect(FIGURE_MAX_AGE).toBe(300);
   });
 
@@ -252,15 +233,13 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     await t.pool.query("INSERT INTO concept_claims (concept_id, position, text) VALUES ($1, 1, 'Second claim')", [g.conceptIds[0]]);
     const a = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(768, 512, 60), declaredMime: "image/png", metadata: META });
     const link = (extra: Record<string, unknown> = {}) => linkAssetToConcept(t.pool, editor, { assetId: a.id, conceptId: g.conceptIds[0], role: "illustration", position: 0, ...extra });
-    // The override obeys the caption rules: at most 180 characters, never the alt text.
     expect(await code(link({ captionOverride: "x".repeat(181) }))).toBe("caption_rule");
     expect(await code(link({ captionOverride: META.altText }))).toBe("caption_rule");
-    expect(await link()).toEqual({ returnedToReview: false }); // a draft asset is reviewed later anyway
+    expect(await link()).toEqual({ returnedToReview: false });
     await submitAssetForReview(t.pool, editor, { assetId: a.id });
     await reviewAsset(t.pool, curator2, { assetId: a.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
     const state = async () => (await one<{ s: string }>(t.pool, "SELECT verification_state::text AS s FROM assets WHERE id = $1", [a.id])).s;
 
-    // Re-saving the same link changes nothing; a new caption or a new anchor sends the asset back.
     expect(await link()).toEqual({ returnedToReview: false });
     expect(await state()).toBe("verified");
     expect(await link({ captionOverride: "Points to the second claim." })).toEqual({ returnedToReview: true });
@@ -282,7 +261,6 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     await updateAssetMetadata(t.pool, editor, { assetId: a.id, metadata: { ...META, caption: "Caption written by the first curator." } });
     await submitAssetForReview(t.pool, editor, { assetId: a.id });
     const verify = (actor: Actor) => code(reviewAsset(t.pool, actor, { assetId: a.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] }));
-    // `curator` is neither the uploader (curator3) nor the last editor (editor), but wrote the caption.
     expect(await verify(curator)).toBe("self_verification");
     expect(await verify(curator3)).toBe("self_verification");
     expect(await verify(curator2)).toBe("ok");
@@ -294,7 +272,6 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     await linkAssetToConcept(t.pool, editor, { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0 });
     await submitAssetForReview(t.pool, editor, { assetId: fig.id });
     await reviewAsset(t.pool, curator2, { assetId: fig.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
-    // A second approved image, linked to the other concept only AFTER the release is published.
     const late = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(768, 512, 81), declaredMime: "image/png", metadata: META });
     await submitAssetForReview(t.pool, editor, { assetId: late.id });
     await reviewAsset(t.pool, curator2, { assetId: late.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
@@ -306,26 +283,21 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     const frozen = { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0, caption: META.caption, altText: META.altText, credit: META.credit, licence: META.licence, width: 768, height: 512 };
     expect(await listSnapshotPhotoLinks(t.pool, snap)).toEqual([expect.objectContaining(frozen)]);
 
-    // The frozen rows cannot be added to, changed or removed once the release is published.
     await expect(t.pool.query("UPDATE snapshot_figures SET caption = 'x' WHERE snapshot_id = $1", [snap])).rejects.toThrow(/immutable/);
     await expect(t.pool.query("DELETE FROM snapshot_figures WHERE snapshot_id = $1", [snap])).rejects.toThrow(/immutable/);
     await expect(freezeReleaseFigures(t.pool, snap)).rejects.toThrow(/draft release snapshot/);
 
-    // Live edits do not reach the release: a new link, a new caption and anchor, an unlink.
     await linkAssetToConcept(t.pool, editor, { assetId: late.id, conceptId: g.conceptIds[1], role: "illustration", position: 0 });
     await reviewAsset(t.pool, curator2, { assetId: late.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
     expect(await linkAssetToConcept(t.pool, editor, { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0, captionOverride: "An unreviewed caption." })).toEqual({ returnedToReview: true });
     await t.pool.query("UPDATE assets SET caption = 'Changed live caption' WHERE id = $1", [fig.id]);
     expect(await listSnapshotPhotoLinks(t.pool, snap)).toEqual([expect.objectContaining(frozen)]);
-    // ...and the route still serves the frozen figure while the edit awaits review.
     expect(await loadLearnerFigure(t.pool, fig.id)).toMatchObject({ id: fig.id });
-    // The parity input is the frozen figure too (what participants will see).
     expect(await listSnapshotFigureAssets(t.pool, snap)).toEqual([expect.objectContaining({ assetId: fig.id, caption: META.caption, verificationState: "published" })]);
     const linkId = (await one<{ id: string }>(t.pool, "SELECT id FROM asset_links WHERE asset_id = $1", [late.id])).id;
     await unlinkAsset(t.pool, editor, { linkId });
     expect((await listSnapshotPhotoLinks(t.pool, snap)).map((l) => l.assetId)).toEqual([fig.id]);
 
-    // A study pinned to the release is collecting data; a reviewer withdraws the photograph.
     const study = await createStudy(t.pool, { slug: "mfrz-study", snapshotId: snap, manifestId: await createPublishedManifest(t.pool, snap, { by: curator.userId }) });
     await t.pool.query("UPDATE studies SET status = 'active' WHERE id = $1", [study.studyId]);
     await reviewAsset(t.pool, curator2, { assetId: fig.id, to: "rejected", reason: "The museum asked us to stop using this image." });
@@ -338,7 +310,6 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     );
     expect(dev).toMatchObject({ category: "content", severity: "major", reported_by: curator2.userId });
     expect(dev.description).toMatch(/withdrawn during data collection.*rejected.*The museum asked us/);
-    // Rejecting it again later records nothing new: it is no longer shown.
     const n = await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM protocol_deviations WHERE study_id = $1", [study.studyId]);
     expect(n.n).toBe(1);
   });

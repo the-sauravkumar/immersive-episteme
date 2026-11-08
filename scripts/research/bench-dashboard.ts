@@ -1,20 +1,3 @@
-/**
- * Research-dashboard benchmark (docs/research/design-process/modules/research-dashboard.md).
- *
- *   npx tsx scripts/research/bench-dashboard.ts [--sessions 100] [--events 3000] [--active 5] [--runs 5] [--out file.json] [--keep]
- *
- * Creates a throwaway database on TEST_DATABASE_URL (tests/integration/schema-harness.ts), builds
- * the load fixture (./dashboard-fixture.ts) and measures, with the dashboard code as it is:
- *  - loadDashboard: first (cold) run, then the median of `runs` warm runs; statements, rows
- *    transferred and the slowest statements;
- *  - cold-after-append: 50 events appended to each of 3 active sessions, then one load;
- *  - dashboardFingerprint: median of `runs`;
- *  - EXPLAIN (ANALYZE, BUFFERS) of the slowest dashboard statements and of the fingerprint;
- *  - the database time of one 100-event ingest INSERT (row and statement triggers included);
- *  - push path: NOTIFY delivery time (commit → listener callback), a coalesced refresh with no
- *    change (memo hit) and 10 concurrent viewers after a change (computations started).
- * Prints a JSON summary; `--out` also writes the full plans. The database is dropped unless --keep.
- */
 import { writeFileSync } from "node:fs";
 import { parseArgs } from "node:util";
 
@@ -33,7 +16,6 @@ interface Stmt {
   rows: number;
 }
 
-/** A Q that records every statement (text, params, wall time, rows returned). */
 export function recordingQ(pool: Pool) {
   const log: Stmt[] = [];
   const q = {
@@ -54,11 +36,6 @@ const median = (xs: number[]) => {
 };
 const r1 = (x: number) => Math.round(x * 10) / 10;
 
-/**
- * EXPLAIN (ANALYZE, BUFFERS). `noSeqScan` plans with enable_seqscan = off (inside a rolled-back
- * transaction): on a small fixture the planner rightly seq-scans tables of a few pages, so this
- * shows which index path it takes once the tables are large.
- */
 async function explain(pool: Pool, s: Pick<Stmt, "text" | "params">, noSeqScan = false) {
   const c = await pool.connect();
   let r!: QueryResult;
@@ -89,13 +66,11 @@ async function explain(pool: Pool, s: Pick<Stmt, "text" | "params">, noSeqScan =
 
 export async function bench(pool: Pool, f: Fixture, runs: number) {
   const { q, log, reset } = recordingQ(pool);
-  // Cold (first) load.
   reset();
   let t0 = performance.now();
   await loadDashboard(q, f.studyId);
   const cold = performance.now() - t0;
   const coldStmts = log.length;
-  // Warm runs.
   const warm: number[] = [];
   let warmLog: Stmt[] = [];
   for (let i = 0; i < runs; i++) {
@@ -107,7 +82,6 @@ export async function bench(pool: Pool, f: Fixture, runs: number) {
   }
   const rows = warmLog.reduce((n, s) => n + s.rows, 0);
   const slowest = [...warmLog].sort((a, b) => b.ms - a.ms).slice(0, 4);
-  // Fingerprint.
   const fp: number[] = [];
   for (let i = 0; i < runs; i++) {
     reset();
@@ -116,14 +90,12 @@ export async function bench(pool: Pool, f: Fixture, runs: number) {
     fp.push(performance.now() - t0);
   }
   const fpStmts = [...log];
-  // Cold after append: 50 events to each of 3 active sessions, then one load.
   for (let i = 0; i < Math.min(3, f.active.length); i++) await appendEvents(pool, f, i, 50);
   reset();
   t0 = performance.now();
   await loadDashboard(q, f.studyId);
   const afterAppend = performance.now() - t0;
   const afterAppendRows = log.reduce((n, s) => n + s.rows, 0);
-  // One 100-event ingest INSERT (database time, triggers included).
   const a = f.active[0];
   let ingest: unknown = null;
   if (a) {
@@ -164,7 +136,6 @@ export async function bench(pool: Pool, f: Fixture, runs: number) {
   return { summary, plans };
 }
 
-/** Push path and request coalescing (needs the database's own URL for LISTEN). */
 export async function benchLive(pool: Pool, f: Fixture, url: string, runs: number) {
   const notifier = new DashboardNotifier(url, { error: () => {}, warn: () => {} });
   try {
@@ -174,7 +145,6 @@ export async function benchLive(pool: Pool, f: Fixture, url: string, runs: numbe
       load: (id, fp) => loadDashboard(pool, id, { fingerprint: fp }),
       version: (id) => notifier.version(id),
     });
-    // NOTIFY delivery: commit of a 20-event append → callback.
     const delivery: number[] = [];
     for (let i = 0; i < runs; i++) {
       let t0 = 0;
@@ -198,14 +168,13 @@ export async function benchLive(pool: Pool, f: Fixture, url: string, runs: numbe
       delivery.push(await got);
     }
     await new Promise((r) => setTimeout(r, 100));
-    await coalescer.get(f.studyId); // computed (after the appends)
+    await coalescer.get(f.studyId);
     const hits: number[] = [];
     for (let i = 0; i < runs; i++) {
       const t0 = performance.now();
       const s = await coalescer.get(f.studyId);
       if (s.source === "memo") hits.push(performance.now() - t0);
     }
-    // 10 concurrent viewers right after a change.
     await appendEvents(pool, f, 1, 50);
     await new Promise((r) => setTimeout(r, 100));
     const before = coalescer.computations;

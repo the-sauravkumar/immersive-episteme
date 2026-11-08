@@ -1,9 +1,3 @@
-/**
- * Which export scope a staff member may receive. Identified exports need
- * `exports.identified` (principal investigator only); everyone else with `exports.create`
- * (researchers, analysts) receives the pseudonymised scope. Pure, so it is unit-tested against
- * the permission matrix.
- */
 import { can, type Subject } from "@/lib/permissions/can";
 
 import type { ExportScope } from "./build";

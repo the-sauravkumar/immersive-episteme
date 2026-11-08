@@ -1,21 +1,3 @@
-/**
- * Adjudicated consensus reference map from several expert raters (labelled level).
- *
- * For each candidate edge (union of all raters' canonical labelled edges), with K raters,
- * support s = raters who include it and x = raters who include it as expected (a rater edge is
- * expected when status = "expected", or required = true, or required is false and
- * nonRequiredReferenceEdgeStatus = "expected"):
- *
- *   2x > K                    -> expected
- *   2s > K and 2x = K         -> disputed (expected vs optional: exact tie)
- *   2s > K                    -> optional
- *   2s = K                    -> disputed (include vs exclude: exact tie)
- *   otherwise                 -> excluded
- *
- * Disputed edges stay disputed until an adjudication decides them; the consensus is complete
- * only when no dispute is left. Adjudications may also override majority decisions; every
- * override is recorded. `agreement` = s / K (reference_map_edges.agreement).
- */
 import { ScoringInputError, uniqSorted } from "./canonical";
 import { cmp, configParameters, resolveConfig, type ScoringConfigInput } from "./config";
 import { canonicalRaterEdges, type RaterMapInput } from "./agreement";
@@ -25,7 +7,6 @@ import type { ReferenceEdgeInput, ReferenceMapInput } from "./types";
 export type ConsensusDecision = "expected" | "optional" | "excluded" | "disputed";
 
 export interface Adjudication {
-  /** Canonical labelled key of the edge, as listed in the consensus result. */
   key: string;
   decision: Exclude<ConsensusDecision, "disputed">;
   adjudicatorId: string;
@@ -56,7 +37,6 @@ export interface ConsensusResult {
   edges: ConsensusEdge[];
   unresolved: string[];
   isComplete: boolean;
-  /** Ready to score; disputed edges are kept as "disputed" so scoring refuses by default. */
   referenceMap: ReferenceMapInput;
 }
 

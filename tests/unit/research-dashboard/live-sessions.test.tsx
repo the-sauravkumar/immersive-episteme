@@ -1,9 +1,3 @@
-/**
- * Research dashboard live path (step 3 open item research-dashboard-live): a `change` event from
- * the stream updates the per-session telemetry table in place from a rows fetch, without waiting
- * for router.refresh() (a whole-page transition that committed 2.2-4.0 s after the insert on the
- * production build), and older data can never replace newer data.
- */
 import { act, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -84,7 +78,6 @@ describe("live per-session table", () => {
     });
     await vi.waitFor(() => expect(eventsCell()).toHaveTextContent("8"));
     expect(fetchMock.mock.calls[0]![0]).toContain("include=sessions");
-    // The whole-page refresh is still scheduled for the other figures, but the table did not wait for it.
     expect(router.refresh).not.toHaveBeenCalled();
   });
 });

@@ -8,10 +8,8 @@ import { titleCase } from "@/lib/text/title-case";
 
 export const metadata: Metadata = { title: titleCase("Final Questionnaire") };
 
-/** May block: access is verified against the participant session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
-/** Study step `questionnaire_end`: the last step (D8: SUS). Instruments from `config.questionnaires.end` (study battery). */
 export default function Page() {
   return (
     <>

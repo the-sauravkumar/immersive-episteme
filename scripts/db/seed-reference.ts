@@ -1,19 +1,3 @@
-/**
- * Loads ONLY the reference data a fresh database needs, never the demo dataset:
- *   - knowledge categories, relationship types and telemetry event types (db/seeds/reference.ts;
- *     idempotent upserts). telemetry_events.event_type_code references event_types, so without
- *     these rows no telemetry can be recorded; the content importer needs the relationship types;
- *   - questionnaire instrument definitions (src/server/study/instruments.ts): real, source-cited
- *     instruments, not demo and not craft content; INSERT ... ON CONFLICT DO NOTHING, so a
- *     definition the researchers have since locked or edited is never touched.
- * No users, no participants, no studies, no content.
- *
- *   npm run db:seed:reference             -> DATABASE_URL_UNPOOLED, else DATABASE_URL
- *   npm run db:seed:reference -- --test   -> TEST_DATABASE_URL
- *   production: npx tsx scripts/deploy/with-env.ts --env-file <file> -- npm run db:seed:reference
- *
- * Each part runs in one transaction; a second run changes nothing. Prints the row counts.
- */
 import { drizzle } from "drizzle-orm/node-postgres";
 
 import { seedReferenceData } from "../../db/seeds/reference";

@@ -28,7 +28,7 @@ describe("parseServerEnv", () => {
 });
 
 describe("BETTER_AUTH_SECRET hardening", () => {
-  const strong = "Q3v9-Zt_x1LmP0aRk7sWdB4nYc8eHfGjU2oViK5lTqE"; // 43 chars, high variety (test value only)
+  const strong = "Q3v9-Zt_x1LmP0aRk7sWdB4nYc8eHfGjU2oViK5lTqE";
 
   it.each([
     ["the .env.example placeholder", "replace-with-at-least-32-random-characters"],
@@ -44,7 +44,6 @@ describe("BETTER_AUTH_SECRET hardening", () => {
     expect(() => parseServerEnv({ ...valid, NODE_ENV: "production", BETTER_AUTH_SECRET: "x".repeat(64) })).toThrow(/too weak for production/);
     expect(() => parseServerEnv({ ...valid, NODE_ENV: "production", BETTER_AUTH_SECRET: strong.slice(0, 40) })).toThrow(/too weak for production/);
     expect(parseServerEnv({ ...valid, NODE_ENV: "production", BETTER_AUTH_SECRET: strong }).BETTER_AUTH_SECRET).toBe(strong);
-    // Development only enforces length and the placeholder list.
     expect(parseServerEnv({ ...valid, BETTER_AUTH_SECRET: "x".repeat(32) }).NODE_ENV).toBe("development");
   });
 });

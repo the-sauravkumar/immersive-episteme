@@ -1,33 +1,3 @@
-/**
- * RELEASE snapshots: the immutable, publishable knowledge bundle a study pins.
- *
- * Scope: the same rows as the review snapshot (src/server/content/review-snapshot.ts
- * loadModelFromDb: every non-demo tradition, source, concept and relationship in the review
- * pipeline — under_review, needs_evidence, verified, published; draft, rejected and archived
- * rows are out). A release is therefore refused while anything in the pipeline is unaccepted:
- * curators either verify it or take it out of the pipeline (reject / archive / withdraw). Taking
- * a TRADITION out of the pipeline means taking its concepts out too (REL005), and a source out
- * of the pipeline must first stop being cited (REL004).
- *
- * Built with the existing snapshot builder (buildSnapshot kind "publishable", which refuses
- * with SNAP001 error-level integrity issues, SNAP002 unaccepted content, SNAP003 invalid bundle,
- * SNAP004 demo content). Added checks (CMS codes):
- *   REL001 a tradition row (traditions table) is not accepted (the database re-checks every
- *          snapshot item against its live row at publication);
- *   REL002 a claim or relationship citation lacks its page/locator or verbatim quotation;
- *   REL004 a claim or relationship in the pipeline cites a source outside it (draft, rejected or
- *          archived): the loader cannot resolve that citation, so the release would silently
- *          drop it (final review knowledge-03; cms-admin.md C7 "Nothing is silently omitted");
- *   REL005 a concept in the pipeline belongs to a tradition outside it: the bundle would hold it
- *          with no tradition, and the spatial compiler and the metrics would count it as shared
- *          knowledge (final review knowledge-12).
- * Publication, in ONE transaction: verified → published for the included rows, rebuild the
- * bundle from the database (bound to database ids, with citation locators and quotations),
- * insert `content_snapshots` (kind release) + `snapshot_items` as draft, freeze the study
- * photographs servable now into `snapshot_figures` (DR-037: a study shows exactly these, never a
- * later caption, anchor, link or file), then UPDATE to published — the 0005 trigger re-checks
- * payload vs items vs live rows and freezes it, and the 0019 trigger freezes its figures.
- */
 import type { Pool, PoolClient } from "pg";
 
 import { knowledgeBundleSchema, type KnowledgeBundle, type SnapshotItem } from "@/features/knowledge/contracts";
@@ -47,10 +17,8 @@ export interface ReleaseReadiness {
   ok: boolean;
   refusals: SnapshotRefusal[];
   integrity: { error: number; warning: number; info: number };
-  /** Error-level issues (first 50) so curators can fix them. */
   errors: IntegrityIssue[];
   counts: { traditions: number; concepts: number; relationships: number; sources: number; claims: number };
-  /** Unaccepted rows still in the pipeline, by kind (first 50 each). */
   pending: { kind: string; id: string; label: string; state: string }[];
 }
 
@@ -99,11 +67,6 @@ async function pendingRows(q: Q): Promise<ReleaseReadiness["pending"]> {
   return r.rows;
 }
 
-/**
- * REL004 and REL005: pipeline content that depends on rows outside the pipeline. The review
- * snapshot loader keeps only pipeline rows, so without these checks a release would silently drop
- * a citation (knowledge-03) or release a tradition's concepts with no tradition (knowledge-12).
- */
 async function outsideDependencies(q: Q): Promise<SnapshotRefusal[]> {
   const r = await q.query<{ claims: number; rels: number; orphans: number }>(
     `SELECT
@@ -142,7 +105,6 @@ async function citationGaps(q: Q): Promise<SnapshotRefusal[]> {
   return out;
 }
 
-/** Can a release be published now? Read-only. */
 export async function releaseReadiness(q: Q): Promise<ReleaseReadiness> {
   const registry = await relationshipRegistry(q);
   const { model } = await loadModelFromDb(q, nodeSha256);
@@ -172,10 +134,6 @@ export async function releaseReadiness(q: Q): Promise<ReleaseReadiness> {
   };
 }
 
-/**
- * Replaces the builder's name-based ids by the database ids.
- * Adapted from src/server/content/review-snapshot.ts bindToDbIds (not exported there).
- */
 function bindToDbIds(bundle: KnowledgeBundle, map: ReadonlyMap<string, string>): KnowledgeBundle {
   const swap = (id: string) => map.get(id) ?? id;
   const byId = <T extends { id: string }>(a: T, b: T) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
@@ -195,7 +153,6 @@ function bindToDbIds(bundle: KnowledgeBundle, map: ReadonlyMap<string, string>):
   };
 }
 
-/** Fills each citation's page/locator (and relationship quotations) from the database. */
 async function withCitationDetail(q: Q, bundle: KnowledgeBundle): Promise<KnowledgeBundle> {
   const cs = await q.query<{ claim_id: string; source_id: string; locator: string | null }>(
     "SELECT claim_id::text, source_id::text, locator FROM concept_claim_sources WHERE claim_id = ANY($1::uuid[])",
@@ -263,7 +220,6 @@ export async function publishRelease(pool: Pool, actor: Actor, input: ReleaseInp
       throw new CmsError("release_refused", "The release was refused; nothing was published.", 422, readiness.refusals);
     }
 
-    // verified -> published for every included row (all rows in the pipeline are accepted now).
     const promote = async (table: string) =>
       (await c.query(`UPDATE ${table} SET verification_state = 'published' WHERE NOT is_demo AND verification_state = 'verified'`)).rowCount ?? 0;
     await setChangeReason(c, `published in release ${input.versionLabel}`);
@@ -301,7 +257,6 @@ export async function publishRelease(pool: Pool, actor: Actor, input: ReleaseInp
          FROM jsonb_to_recordset($2::jsonb) AS x(item_kind text, entity_ref text, entity_key text, item_sha256 text)`,
       [id, JSON.stringify(items.map((i) => ({ item_kind: i.itemKind, entity_ref: i.entityRef, entity_key: i.entityKey ?? null, item_sha256: i.itemSha256 })))],
     );
-    // DR-037: the study photographs are part of what the study pins (frozen before publication).
     const figures = await freezeReleaseFigures(c, id);
     const pub = await c.query<{ payload_sha256: string; item_count: number }>(
       "UPDATE content_snapshots SET status = 'published', published_by = $2 WHERE id = $1 RETURNING payload_sha256, item_count",

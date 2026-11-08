@@ -1,7 +1,3 @@
-/**
- * Integration: POST /api/telemetry/batch logic (src/server/telemetry/ingest.ts) and the study
- * mode of the learning context, against a throwaway database with an active study.
- */
 import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -51,7 +47,6 @@ describe.skipIf(!TEST_URL)("telemetry ingestion", () => {
     s2d = await createSession(t.pool, real.studyId, real.conditionIds.c2d, "P-ING01", 0);
     s3d = await createSession(t.pool, real.studyId, real.conditionIds.c3d, "P-ING02", 1);
 
-    // A demo study may run on a real published snapshot; its sessions are never experimental.
     const demo = await createStudy(t.pool, { slug: "demo-ingest", snapshotId, manifestId, isDemo: true });
     await t.pool.query("UPDATE studies SET status = 'active' WHERE id = $1", [demo.studyId]);
     sDemo = await createSession(t.pool, demo.studyId, demo.conditionIds.c2d, "D-ING01", 0);
@@ -108,7 +103,6 @@ describe.skipIf(!TEST_URL)("telemetry ingestion", () => {
     const b = await ingest(who(s2d), body);
     expect(a.status === 200 && a.body.accepted).toBe(2);
     expect(b.status === 200 && b.body).toMatchObject({ replayed: true, accepted: 2, batchId: a.status === 200 ? a.body.batchId : "" });
-    // Same events under a new key (e.g. resent after a page-exit beacon): duplicates, not new rows.
     const c = await ingest(who(s2d), batch(s2d, events));
     expect(c.status === 200 && c.body).toMatchObject({ replayed: false, accepted: 0, duplicates: 2 });
     expect(await count("SELECT count(*)::int AS n FROM telemetry_events WHERE session_id = $1 AND seq IN (2, 3)", [s2d.sessionId])).toBe(2);
@@ -126,11 +120,11 @@ describe.skipIf(!TEST_URL)("telemetry ingestion", () => {
 
   it("quarantines invalid events instead of dropping them", async () => {
     const bad = [
-      ev(s2d, 9, "page_entered", { metadata: { email: "x@example.org" } }), // not in the metadata allowlist
-      ev(s2d, 10, "room_entered"), // 3D-only event in a 2D session (database rule)
-      ev(s2d, 0), // seq already used by another event
-      { ...ev(s2d, 11), sessionId: s3d.sessionId }, // event of another session
-      ev(s2d, 12, "concept_encountered", { conceptId: randomUUID(), metadata: { mode: "seen" } }), // concept not in the snapshot
+      ev(s2d, 9, "page_entered", { metadata: { email: "x@example.org" } }),
+      ev(s2d, 10, "room_entered"),
+      ev(s2d, 0),
+      { ...ev(s2d, 11), sessionId: s3d.sessionId },
+      ev(s2d, 12, "concept_encountered", { conceptId: randomUUID(), metadata: { mode: "seen" } }),
       ev(s2d, 13),
     ];
     const r = await ingest(who(s2d), batch(s2d, bad));
@@ -152,10 +146,8 @@ describe.skipIf(!TEST_URL)("telemetry ingestion", () => {
   it("rejects cross-session writes and never trusts client identity", async () => {
     const cross = await ingest(who(s3d), batch(s2d, [ev(s2d, 50)]));
     expect(cross).toMatchObject({ status: 403, body: { error: "session_mismatch" } });
-    // A forged principal whose participant does not own the session.
     const forged = await ingest({ kind: "participant", participantId: s3d.participantId, sessionId: s2d.sessionId }, batch(s2d, [ev(s2d, 51)]));
     expect(forged).toMatchObject({ status: 401, body: { error: "unauthenticated" } });
-    // Re-using another session's idempotency key.
     const key = `b:${s2d.sessionId}:stolen`;
     await ingest(who(s2d), batch(s2d, [ev(s2d, 60)], key));
     const stolen = await ingest(who(s3d), batch(s3d, [ev(s3d, 0, "room_entered")], key));

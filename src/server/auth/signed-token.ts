@@ -1,14 +1,3 @@
-/**
- * Compact HMAC-SHA256 signed tokens over WebCrypto (no extra dependency).
- *
- * Format: `v1.<base64url(JSON payload)>.<base64url(signature)>`; the signature covers
- * `v1.<payload>`. Each use ("purpose") gets its own key derived from the master secret with
- * HKDF-SHA256, so a token minted for one purpose (e.g. the demo cookie) can never verify as
- * another (e.g. a participant session), even though both use BETTER_AUTH_SECRET.
- *
- * Verification uses `crypto.subtle.verify` (constant time). Payloads are not encrypted: never
- * put secrets or identifying data in them.
- */
 const VERSION = "v1";
 const SALT = new TextEncoder().encode("immersive-episteme/signed-token");
 
@@ -54,7 +43,6 @@ export async function signToken(payload: unknown, secret: string, purpose: strin
 
 export type VerifyFailure = "malformed" | "bad_signature";
 
-/** Returns the parsed (still untyped) payload, or the failure reason. */
 export async function verifyToken(
   token: string,
   secret: string,

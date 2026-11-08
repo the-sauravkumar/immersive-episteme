@@ -1,9 +1,3 @@
-/**
- * Audit-log reader for /admin/audit. audit_log is append-only (UPDATE/DELETE/TRUNCATE are
- * rejected by triggers, migration 0003), so this module only reads.
- *
- * Not `server-only` (tests call it with their own pool).
- */
 import type { Pool } from "pg";
 import { z } from "zod";
 
@@ -56,12 +50,10 @@ export interface AuditPage {
   filter: AuditFilter;
 }
 
-/** Escapes LIKE wildcards so filters match literally. */
 function likePrefix(s: string): string {
   return s.replace(/[\\%_]/g, (m) => `\\${m}`);
 }
 
-/** Search params (any shape) -> validated filter (invalid values are dropped, never thrown). */
 export function parseAuditFilter(params: Record<string, string | string[] | undefined>): AuditFilter {
   const flat = Object.fromEntries(Object.entries(params).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v]));
   const r = auditFilterSchema.safeParse(flat);
@@ -110,7 +102,6 @@ export async function queryAuditLog(pool: Pool, actor: Actor, filter: AuditFilte
   return { rows, page: filter.page, hasNext: r.rows.length > AUDIT_PAGE_SIZE, filter };
 }
 
-/** Distinct entities present (for the filter's select). */
 export async function auditEntities(pool: Pool, actor: Actor): Promise<string[]> {
   ensure(actor, "admin.audit");
   const r = await pool.query<{ entity: string }>("SELECT DISTINCT entity FROM audit_log ORDER BY entity");

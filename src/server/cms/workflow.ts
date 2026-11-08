@@ -1,23 +1,3 @@
-/**
- * Review and publishing workflow for traditions, concepts, relationships and sources.
- *
- *   draft ──submit──▶ under_review ──verify──▶ verified ──release──▶ published
- *                        │  ▲                     │                    │
- *              needs_evidence / rejected     reopen / archive    reopen / archive
- *
- * Who may do what (src/lib/permissions/matrix.ts):
- *  - submit (draft|needs_evidence → under_review), withdraw (under_review → draft),
- *    restore (rejected|archived → draft): content.draft / content.edit (editors, curators);
- *  - verify (under_review → verified): content.verify (curators, PI) — never one's own work
- *    (separation of duties), with an evidence checklist and a complete citation for every claim;
- *  - needs_evidence / rejected / reopen (verified|published → under_review): content.review,
- *    with a reason;
- *  - archive (→ archived): content.verify, with a reason;
- *  - published: never set by hand; only a RELEASE publication (./release.ts) moves verified
- *    content to published, together with the immutable snapshot that contains it.
- * State changes run in an actor transaction, so verification_records (trigger) gets the actor
- * and reason; an audit_log row adds the evidence checklist.
- */
 import type { Pool } from "pg";
 
 import { canTransition } from "@/features/knowledge/contracts";
@@ -36,14 +16,12 @@ const TABLE: Record<CmsEntityKind, string> = {
   source: "sources",
 };
 
-/** Actions on an entity that count as authoring it (review decisions do not). */
 const AUTHORING_ACTIONS: Record<CmsEntityKind, string> = {
   tradition: "cms.tradition.",
   concept: "cms.concept.",
   relationship: "cms.relationship.",
   source: "cms.source.",
 };
-/** Curator notes are editorial, not learner content: editing them does not make you an author. */
 const NON_AUTHORING = ["cms.concept.notes_saved"];
 
 export type TransitionKind = "submit" | "withdraw" | "restore" | "verify" | "needs_evidence" | "reject" | "reopen" | "archive";
@@ -73,7 +51,6 @@ export const TRANSITION_PERMISSION: Record<TransitionKind, readonly Permission[]
 
 const REASON_REQUIRED: readonly TransitionKind[] = ["verify", "needs_evidence", "reject", "reopen", "archive"];
 
-/** Users who authored the entity: created/last updated it, or ran an authoring CMS action on it. */
 export async function authorsOf(q: Q, kind: CmsEntityKind, id: string): Promise<Set<string>> {
   const table = TABLE[kind];
   const row = await q.query<{ created_by: string | null; updated_by: string | null }>(`SELECT created_by, updated_by FROM ${table} WHERE id = $1`, [id]);
@@ -88,7 +65,6 @@ export async function authorsOf(q: Q, kind: CmsEntityKind, id: string): Promise<
   return out;
 }
 
-/** The review pipeline (review-snapshot.ts REVIEW_SNAPSHOT_STATES): only these rows reach a snapshot. */
 const PIPELINE_SQL = "('under_review','needs_evidence','verified','published')";
 const PIPELINE_STATES: readonly VerificationState[] = ["under_review", "needs_evidence", "verified", "published"];
 
@@ -97,10 +73,6 @@ export interface CitationProblem {
   message: string;
 }
 
-/**
- * Citation completeness (docs/research/citation-policy.md): what must be true before the entity
- * can be verified. Returned as a list so the review screen can show it in advance.
- */
 export async function citationProblems(q: Q, kind: CmsEntityKind, id: string): Promise<CitationProblem[]> {
   const out: CitationProblem[] = [];
   if (kind === "concept") {
@@ -120,15 +92,9 @@ export async function citationProblems(q: Q, kind: CmsEntityKind, id: string): P
       const n = c.position + 1;
       if (c.n_sources === 0) out.push({ code: "claim_no_source", message: `Claim ${n} cites no source.` });
       if (c.n_missing_locator > 0) out.push({ code: "claim_no_locator", message: `Claim ${n}: ${c.n_missing_locator} citation(s) without a page or locator.` });
-      // Every citation needs its own verbatim quote (FORMAT.md "Claim evidence", citation-policy.md
-      // item 3): the located passages imported from content/, or one entered for that citation in
-      // the CMS. The claim's own quote stands in only for a claim with ONE source, because that is
-      // the only case the learner view can attach it to (view.ts; final review knowledge-06).
       if (c.n_without_passage > 0 && (c.n_sources > 1 || !c.quote?.trim())) {
         out.push({ code: "claim_no_quote", message: `Claim ${n}: ${c.n_without_passage} citation(s) without a verbatim evidence passage of their own.` });
       }
-      // A citation of a source outside the review pipeline would be dropped from every snapshot
-      // without a trace (final review knowledge-03), so it blocks verification.
       if (c.unusable?.length) {
         out.push({ code: "claim_source_unusable", message: `Claim ${n} cites a source that is not in review or accepted: ${c.unusable.join(", ")}. Submit that source for review or remove the citation.` });
       }
@@ -184,7 +150,6 @@ export async function transition(pool: Pool, actor: Actor, input: TransitionInpu
     throw new CmsError("publish_via_release", "Content becomes published only by publishing a release snapshot (Dataset versions).", 409);
   }
   const table = TABLE[input.entityKind];
-  // Authorisation that does not depend on the current state is checked before reading anything.
   ensure(actor, ["content.draft", "content.edit", "content.review", "content.verify"]);
   return inActorTx(pool, actor, input.reason, async (c) => {
     const r = await c.query<{ verification_state: VerificationState; is_demo: boolean }>(`SELECT verification_state, is_demo FROM ${table} WHERE id = $1 FOR UPDATE`, [input.entityId]);
@@ -239,13 +204,6 @@ export async function transition(pool: Pool, actor: Actor, input: TransitionInpu
   });
 }
 
-/**
- * A source that leaves the review pipeline (rejected, archived or withdrawn to draft) no longer
- * supports what cites it: every accepted concept and relationship citing it goes back to review
- * (final review knowledge-03, mirroring ie_evidence_changed), so no release can carry a claim
- * whose citation it would drop. Runs in the transition's transaction; the verification_records
- * trigger records each reopening with the transition's actor and reason.
- */
 async function reopenCitingContent(c: Q, sourceId: string): Promise<{ concepts: number; relationships: number }> {
   const concepts = await c.query(
     `UPDATE concepts SET verification_state = 'under_review'
@@ -262,7 +220,6 @@ async function reopenCitingContent(c: Q, sourceId: string): Promise<{ concepts: 
   return { concepts: concepts.rowCount ?? 0, relationships: relationships.rowCount ?? 0 };
 }
 
-/** Which transitions the actor may attempt from `from` (for rendering buttons; the server re-checks). */
 export function availableTransitions(actor: Actor, from: VerificationState, isAuthor: boolean): { to: VerificationState; kind: TransitionKind }[] {
   const targets: VerificationState[] = ["under_review", "draft", "verified", "needs_evidence", "rejected", "archived"];
   return targets
@@ -283,7 +240,6 @@ const OPTION_LABEL: Record<TransitionKind, string> = {
   archive: "Archive",
 };
 
-/** Everything the review panel needs for one entity and actor (the server re-checks on submit). */
 export async function reviewOptions(q: Q, actor: Actor, kind: CmsEntityKind, id: string, state: VerificationState) {
   const authors = await authorsOf(q, kind, id);
   const isAuthor = authors.has(actor.userId);

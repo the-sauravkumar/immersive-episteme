@@ -1,24 +1,3 @@
-/**
- * Builds the public demo in a PRODUCTION (or any) database, the same way dev:bootstrap
- * does locally, minus everything that must never reach production:
- *
- *   npx tsx scripts/deploy/with-env.ts --env-file <file> -- npm run content:bootstrap:remote -- --i-understand-this-is-remote
- *
- * Steps (scripts/content/public-demo.ts, shared with dev:bootstrap):
- *  1. import content/ (src/server/content/import-content.ts);
- *  2. build the REVIEW snapshot (kind 'review', draft, never publishable);
- *  3. create or update the demo study `demo-review-walkthrough` (is_demo, non-experimental, draft).
- *
- * Never: migrations (run `db:migrate` first, through with-env), the test database, the demo seed,
- * staff or test users, passwords, participants. It refuses to start when migrations are pending or
- * the reference data is missing (run `npm run db:seed:reference` first).
- *
- * Target: DATABASE_URL_UNPOOLED, else DATABASE_URL (scripts/db/_shared.ts resolveDatabaseUrl). It
- * prints the target host and database first; a non-local host needs --i-understand-this-is-remote
- * (scripts/content/remote-guard.ts). Idempotent: a second run over unchanged content/ changes no
- * content, snapshot, manifest or study row (the importer's bookkeeping still records the run: one
- * audit_log row and content_packages.imported_at).
- */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -32,7 +11,6 @@ const log = (msg: string) => console.log(`[content:bootstrap:remote] ${msg}`);
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
-  // Empty argv: --test (TEST_DATABASE_URL) is never honoured here; the guard refuses it as unknown.
   const { url } = resolveDatabaseUrl([]);
   const decision = decideBootstrapTarget(url, argv);
   log(decision.message);

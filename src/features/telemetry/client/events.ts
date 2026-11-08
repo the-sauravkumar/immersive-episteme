@@ -1,12 +1,3 @@
-/**
- * Typed event helpers for every type in EVENT_TYPE_REGISTRY except the interval (timing) events,
- * which only the time accountant (./timing.ts) emits.
- * Metadata types are inferred from EVENT_METADATA_SCHEMAS (strict objects), so an unknown or
- * mistyped metadata key is a compile error, and the same schema validates at runtime.
- *
- * `createEventHelpers(track)` returns one camelCase helper per event code, e.g.
- * `pageEntered`, `roomEntered`, `exhibitSelected`, `relationshipFollowed`, `conceptEncountered`.
- */
 import type { z } from "zod";
 
 import {
@@ -18,7 +9,6 @@ import {
   type TimingEventTypeCode,
 } from "@/features/telemetry/contracts";
 
-/** Event types callers may emit directly. Interval events go through the time accountant only. */
 export type PublicEventTypeCode = Exclude<EventTypeCode, TimingEventTypeCode>;
 
 export function isTimingEventType(code: string): code is TimingEventTypeCode {
@@ -28,14 +18,11 @@ import type { KnowledgeCategoryCode } from "@/lib/validation/enums";
 
 export type EventMetadata<T extends EventTypeCode> = z.input<(typeof EVENT_METADATA_SCHEMAS)[T]>;
 
-/** Where the event happened / what it is about. Participant, study and condition are never sent. */
 export interface EventContext {
   conceptId?: string;
   category?: KnowledgeCategoryCode;
   traditionId?: string;
-  /** Room id (3D) or page/route id (2D). */
   roomOrPageId?: string;
-  /** Interaction target: element id, link id, button id. */
   target?: string;
 }
 
@@ -49,13 +36,8 @@ export type TrackArgs<T extends EventTypeCode> = HasRequiredMetadata<T> extends 
   ? [fields: TrackFields<T>]
   : [fields?: TrackFields<T>];
 
-/**
- * Enqueue one event. Resolves to the stored event, or null when it failed client-side
- * validation (counted in `stats.invalid` and reported through `onDrop`, never silently lost).
- */
 export type TrackFn = <T extends PublicEventTypeCode>(type: T, ...args: TrackArgs<T>) => Promise<TelemetryEvent | null>;
 
-/** Unrestricted variant used internally by the tracker and the time accountant. */
 export type RawTrackFn = <T extends EventTypeCode>(type: T, ...args: TrackArgs<T>) => Promise<TelemetryEvent | null>;
 
 type CamelCase<S extends string> = S extends `${infer H}_${infer R}` ? `${H}${Capitalize<CamelCase<R>>}` : S;

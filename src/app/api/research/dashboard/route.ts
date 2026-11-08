@@ -1,16 +1,3 @@
-/**
- * GET /api/research/dashboard?study=<uuid>: live-update probe of the research dashboard
- * (/research/dashboard). Returns the server time and the study's change fingerprint
- * (src/server/research/dashboard.ts, one index-backed statement); the page re-renders from the
- * database only when the fingerprint changes. Same permission as the page (`analytics.view`),
- * checked on every request. Never cached.
- *
- * `&include=sessions` adds the per-session telemetry rows (`{ generatedAt, sessions }`) from the
- * same coalesced computation as the page (serveDashboard): the live stream updates that table in
- * place without waiting for a full page refresh (dashboard/_components/live-sessions.tsx).
- *
- * 200 { serverTime, fingerprint, generatedAt?, sessions? } | 400 invalid_study | 401 | 403 | 404 not_found.
- */
 import { authorizeRequest } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 import { dashboardFingerprint, dashboardStudy } from "@/server/research/dashboard";

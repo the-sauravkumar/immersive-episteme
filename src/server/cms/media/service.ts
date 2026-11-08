@@ -1,36 +1,3 @@
-/**
- * Media library service: upload (local or S3 presigned + finalize), metadata, review, concept
- * links and imported media candidates.
- *
- * Rules
- *  - Every stored asset has a checksum (sha256 of the exact bytes), a sniffed MIME type, and for
- *    images the pixel width/height read from the file header (the 3D condition keeps aspect).
- *  - Licence and provenance (a provenance kind plus a source URL or a cited source) are required
- *    on upload; images need alt text ("" only when explicitly marked decorative).
- *  - Review: uploaders submit (media.upload); reviewers (media.review) verify, ask for evidence or
- *    reject. Nobody verifies an asset they uploaded, edited or linked. Editing a verified asset sends
- *    it back to under_review (assets have no database trigger for this, unlike concepts).
- *  - Every mutation runs in `inActorTx` (verification_records get the actor) with an audit_log row.
- *  - Figure governance (DESIGN.md 9.9, 11.10, 16; DR-018, DR-020, DR-118): images carry the
- *    public-plate flag. Image alt text is about 15 words and never repeats the caption; captions are at most 180
- *    characters (rules in src/features/media/contracts.ts). An `illustration` link's position is
- *    the anchor claim index, must point at an existing claim, and a concept has at most one.
- *  - The learner and public figure route (src/app/figures/[assetId]/route.ts) serves an asset
- *    only through `loadLearnerFigure`: approved, with its credit, caption and alt text, and an
- *    illustration of a real concept, or flagged for public plates.
- *  - Frozen study figures (DR-037; migration 0019): `publishRelease` freezes every servable
- *    illustration of the release's concepts into `snapshot_figures` (`freezeReleaseFigures`), and
- *    a released snapshot's photographs are read only from there (`listSnapshotPhotoLinks`), so no
- *    caption, anchor, link or file change reaches a running study. Only removals stay live: a
- *    reviewer's needs-evidence, rejection or archive decision. A removal from the snapshot of an ACTIVE study is recorded as
- *    a protocol deviation of that study in the same transaction (`recordFigureWithdrawals`).
- *  - A link is learner-facing text (its caption override and anchor claim): creating or changing
- *    one on an accepted asset sends the asset back to review, and the override obeys the caption
- *    rules. Everyone who uploaded, edited or linked an asset is one of its authors and cannot
- *    verify it (`assetAuthors`, the media counterpart of workflow.ts `authorsOf`).
- *
- * Not `server-only`: integration tests call it with their own pool and a local store.
- */
 import { createHash } from "node:crypto";
 
 import type { Pool } from "pg";
@@ -65,7 +32,6 @@ const checkbox = z
   .nullable()
   .transform((v) => v === true || v === "on" || v === "true");
 
-/** Descriptive metadata required for every asset (upload and edit). */
 export const assetMetadataSchema = z
   .object({
     title: z.string().trim().min(1, "Give the asset a title").max(300),
@@ -96,10 +62,6 @@ export const assetMetadataSchema = z
   });
 export type AssetMetadata = z.infer<typeof assetMetadataSchema>;
 
-/**
- * Alt text and caption rules for images: alt text required (empty only when marked decorative),
- * about 15 words and different from the caption; captions at most 180 characters (DESIGN.md 9.9).
- */
 function checkAlt(kind: string, m: Pick<AssetMetadata, "altText" | "decorative" | "caption">): string | null {
   if (kind !== "image" && kind !== "texture") return m.altText || null;
   const caption = captionProblem(m.caption);
@@ -189,7 +151,6 @@ async function insertAsset(
   });
 }
 
-/** Local store: validates and stores the bytes, then records the asset. */
 export async function createAssetFromBytes(
   pool: Pool,
   actor: Actor,
@@ -214,10 +175,8 @@ export const presignRequestSchema = z.object({
   sha256: z.string().regex(/^[0-9a-f]{64}$/, "Expected a lowercase hex SHA-256"),
 });
 
-/** S3: checks type/size, refuses duplicates and returns a presigned PUT bound to the checksum. */
 export async function presignAssetUpload(pool: Pool, actor: Actor, storage: S3MediaStorage, input: z.infer<typeof presignRequestSchema>) {
   ensure(actor, "media.upload");
-  // The bytes are not here yet: check type and size now; the finalize step sniffs the stored bytes.
   const declared = declaredAllowedMime(input.declaredMime);
   const limit = ALLOWED_MEDIA[declared];
   if (input.byteSize > limit.maxBytes) {
@@ -230,7 +189,6 @@ export async function presignAssetUpload(pool: Pool, actor: Actor, storage: S3Me
   return { storageKey, upload };
 }
 
-/** S3: verifies the uploaded object (size, store checksum, sniffed bytes) and records the asset. */
 export async function finalizeAssetUpload(
   pool: Pool,
   actor: Actor,
@@ -243,7 +201,6 @@ export async function finalizeAssetUpload(
   const storageKey = storageKeyFor(input.sha256, declared);
   const info = await storage.head(storageKey);
   if (!info) throw new CmsError("upload_missing", "The upload did not reach storage. Upload the file again.", 422);
-  // R2 reports no single-part SHA-256: hash the stored bytes instead (bounded by the type's limit).
   const stored = await storedSha256(storage, storageKey, info, ALLOWED_MEDIA[declared].maxBytes);
   if (stored !== input.sha256) throw new CmsError("checksum_mismatch", "Storage did not confirm the file's SHA-256 checksum.", 422);
   const head = await storage.readHead(storageKey);
@@ -293,7 +250,6 @@ const metaOf = (a: AssetRow) => ({
   provenanceKind: a.provenance_kind, verificationState: a.verification_state,
 });
 
-/** Edits descriptive metadata. An accepted asset returns to under_review (acceptance covered the old text). */
 export async function updateAssetMetadata(pool: Pool, actor: Actor, input: { assetId: string; metadata: unknown }): Promise<{ returnedToReview: boolean }> {
   ensure(actor, "media.upload");
   const meta = assetMetadataSchema.parse(input.metadata);
@@ -319,7 +275,6 @@ export async function updateAssetMetadata(pool: Pool, actor: Actor, input: { ass
   });
 }
 
-/** Uploader hands the asset to reviewers. */
 export async function submitAssetForReview(pool: Pool, actor: Actor, input: { assetId: string }): Promise<void> {
   ensure(actor, "media.upload");
   await inActorTx(pool, actor, "submitted for review", async (tx) => {
@@ -358,15 +313,8 @@ export const assetReviewSchema = z
     }
   });
 
-/** Audit actions that make a user an author of an asset (its file, its text, or a link's text and anchor). */
 const ASSET_AUTHORING_ACTIONS = ["media.asset_uploaded", "media.asset_updated", "media.asset_linked"];
 
-/**
- * Everyone who authored asset `a` (final review knowledge-10): its uploader and last editor, plus
- * every user with an authoring audit row on it (an earlier edit, or a link that set its anchor or
- * caption override). The media counterpart of workflow.ts `authorsOf`, so an earlier editor cannot
- * verify the text they wrote just because someone else edited after them.
- */
 export async function assetAuthors(q: Q, a: Pick<AssetRow, "id" | "created_by" | "updated_by">): Promise<Set<string>> {
   const out = new Set<string>();
   for (const v of [a.created_by, a.updated_by]) if (v) out.add(v);
@@ -380,7 +328,6 @@ export async function assetAuthors(q: Q, a: Pick<AssetRow, "id" | "created_by" |
   return out;
 }
 
-/** Reviewer decision on an asset under review. */
 export async function reviewAsset(pool: Pool, actor: Actor, raw: z.input<typeof assetReviewSchema>): Promise<void> {
   ensure(actor, "media.review");
   const input = assetReviewSchema.parse(raw);
@@ -397,9 +344,7 @@ export async function reviewAsset(pool: Pool, actor: Actor, raw: z.input<typeof 
       const missing: string[] = [];
       if (!a.licence) missing.push("licence");
       if ((a.kind === "image" || a.kind === "texture") && a.alt_text === null) missing.push("alt text");
-      // Every figure carries a credit line and a caption (DESIGN.md 9.9, 11.10, R-H5; honesty rule 13.3).
       if ((a.kind === "image" || a.kind === "texture") && !a.credit?.trim()) missing.push("credit");
-      // A decorative image (explicitly empty alt text) is never a figure, so it needs no caption.
       if (a.kind === "image" && a.alt_text !== "" && !a.caption?.trim()) missing.push("caption");
       if (!a.source_url && !a.source_id) missing.push("source URL or cited source");
       if (a.provenance_kind === "unverified") missing.push("a provenance kind other than 'unverified'");
@@ -409,7 +354,6 @@ export async function reviewAsset(pool: Pool, actor: Actor, raw: z.input<typeof 
         if (rule) throw new CmsError("evidence_missing", `Cannot verify: ${rule}`, 422);
       }
     }
-    // Needs-evidence and rejection withdraw a figure frozen into a running study (DR-037).
     await recordFigureWithdrawals(tx, actor, a.id, `a reviewer decided "${input.to}" (${reason ?? "no reason given"})`, () =>
       tx.query("UPDATE assets SET verification_state = $2::verification_state WHERE id = $1", [a.id, input.to]),
     );
@@ -432,19 +376,6 @@ export const assetLinkSchema = z.object({
   captionOverride: optionalText(2000),
 });
 
-/**
- * Links an asset to a concept. For an `illustration`, the position is the anchor claim index: it
- * must name an existing claim of the concept, and a concept takes at most one illustration (12.3
- * rule 9), so a second one is refused until the first link is removed.
- *
- * A link is learner-facing (final review knowledge-02, security-02): its caption override is
- * printed under the figure and its anchor decides which claim the figure illustrates. So the
- * override obeys the caption rules (at most 180 characters, never the alt text), and creating a
- * link, moving its anchor or changing its override on an ACCEPTED asset sends the asset back to
- * review: the review's "caption restates its anchor claim" check covered the old link only. Until
- * it is verified again, no new release freezes it; releases already published keep their frozen
- * figure (DR-037).
- */
 export async function linkAssetToConcept(pool: Pool, actor: Actor, raw: z.input<typeof assetLinkSchema>): Promise<{ returnedToReview: boolean }> {
   ensure(actor, "media.upload");
   const input = assetLinkSchema.parse(raw);
@@ -526,7 +457,6 @@ export const candidateReviewSchema = z
     if (r.status === "rejected" && !r.notes) ctx.addIssue({ code: "custom", path: ["notes"], message: "Say why the candidate is rejected" });
   });
 
-/** Licence decision on an imported media candidate (the file itself is never downloaded here). */
 export async function reviewMediaCandidate(pool: Pool, actor: Actor, raw: z.input<typeof candidateReviewSchema>): Promise<void> {
   ensure(actor, "media.review");
   const input = candidateReviewSchema.parse(raw);
@@ -579,10 +509,6 @@ export async function recordCandidateImport(pool: Pool, actor: Actor, raw: z.inp
   });
 }
 
-// -----------------------------------------------------------------------------------------
-// Reads
-// -----------------------------------------------------------------------------------------
-
 export interface AssetListItem {
   id: string;
   kind: string;
@@ -617,7 +543,6 @@ export interface AssetListItem {
     traditionName: string | null;
     role: string;
     position: number;
-    /** The anchor claim's text (illustrations), or null when the position names no claim. */
     anchorClaim: string | null;
     captionOverride: string | null;
   }[];
@@ -733,7 +658,6 @@ export async function listMediaCandidates(q: Q, opts: { status?: string | null }
   }));
 }
 
-/** Sources and concepts offered in the metadata / link forms. */
 export async function listMediaFormOptions(q: Q): Promise<{ sources: { id: string; label: string }[]; concepts: { id: string; label: string }[] }> {
   const s = await q.query<{ id: string; title: string; author: string | null; year: number | null }>(
     "SELECT id, title, author, year FROM sources WHERE NOT is_demo AND verification_state NOT IN ('rejected', 'archived') ORDER BY title LIMIT 1000",
@@ -747,7 +671,6 @@ export async function listMediaFormOptions(q: Q): Promise<{ sources: { id: strin
   };
 }
 
-/** The caption a learner sees under an illustration: the link's override, else the asset's caption. */
 export const FIGURE_CAPTION_SQL = "COALESCE(NULLIF(btrim(l.caption_override), ''), a.caption)";
 
 export async function listIllustrationLinks(q: Q): Promise<

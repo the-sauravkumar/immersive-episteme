@@ -1,9 +1,3 @@
-/**
- * The review decision form starts with no decision chosen (WP6 review): on an item under review
- * the first option is "Withdraw to draft", so a pre-selected option would let a slip of Enter
- * withdraw it. The confirm button stays focusable but aria-disabled, with the reason as its
- * description, until a decision is chosen.
- */
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -25,7 +19,7 @@ describe("TransitionPanel", () => {
     const button = screen.getByRole("button", { name: "Confirm decision" });
     expect(button).toHaveAttribute("aria-disabled", "true");
     expect(button).toHaveAccessibleDescription("Choose a decision first.");
-    expect(button).not.toBeDisabled(); // still focusable, so the reason can be read
+    expect(button).not.toBeDisabled();
 
     await userEvent.click(button);
     expect(transitionAction).not.toHaveBeenCalled();

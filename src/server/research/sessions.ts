@@ -1,17 +1,3 @@
-/**
- * Participants and sessions (research console): pseudonymous lists, session integrity,
- * annotations, protocol deviations and exclusion flags.
- *
- * Privacy: participants are identified only by their pseudonymous study code. No query here
- * returns consent records or access-token hashes; identifying linkage is the separate
- * `participants.identify` / `exports.identified` path (exports, principal investigator).
- *
- * Researcher free text (exclusion detail, annotation bodies, deviation descriptions and
- * resolutions) may name a participant, so, as in the pseudonymised export, it reaches only
- * identified-scope viewers (`participantDataScope` = "identified"); other roles get the category
- * or kind and see their OWN notes. The SQL leaves the text out, so it never reaches the RSC
- * payload (final review security-05). Callers that pass no viewer get the redacted form.
- */
 import { z } from "zod";
 
 import { protocolDeviationInputSchema, sessionAnnotationInputSchema } from "@/features/study/contracts";
@@ -19,7 +5,6 @@ import { protocolDeviationInputSchema, sessionAnnotationInputSchema } from "@/fe
 import { audit, inTransaction, ResearchActionError, type Actor, type Q } from "./db";
 import type { Pool, PoolClient } from "pg";
 
-/** Who reads the free text: identified scope, and the staff user (their own notes stay visible). */
 export interface FreeTextViewer {
   identified: boolean;
   userId: string | null;
@@ -74,7 +59,6 @@ export interface SessionIntegrity {
   device: Record<string, unknown>;
   withdrawn: boolean;
   excluded: boolean;
-  /** "category: detail" for identified-scope viewers; the category alone otherwise. */
   exclusionReason: string | null;
   nonExperimental: boolean;
   events: number;
@@ -88,7 +72,6 @@ export interface SessionIntegrity {
   appBuild: string;
 }
 
-// $2 = the viewer may read free text (identified scope).
 const SESSION_SELECT = `
   SELECT ss.id, ss.study_id AS "studyId", st.slug AS "studySlug", p.code AS "participantCode", sc.code AS "conditionCode",
          sc.interface::text AS "conditionInterface", ss.period, ss.status::text AS status,
@@ -125,7 +108,6 @@ export async function getSession(q: Q, sessionId: string, viewer: FreeTextViewer
   return r.rows[0] ?? null;
 }
 
-/** Data-quality flags for a session, worded for the console. */
 export function integrityFlags(s: SessionIntegrity): { level: "error" | "warning" | "info"; text: string }[] {
   const out: { level: "error" | "warning" | "info"; text: string }[] = [];
   if (s.nonExperimental) out.push({ level: "info", text: "Non-experimental (demo or pilot study): exclude from analysis." });
@@ -145,7 +127,6 @@ export function integrityFlags(s: SessionIntegrity): { level: "error" | "warning
 export interface AnnotationRow {
   id: string;
   kind: string;
-  /** Null when the viewer may not read it (not identified scope and not the author). */
   body: string | null;
   authorId: string;
   createdAt: string;
@@ -160,7 +141,6 @@ export async function listAnnotations(q: Q, sessionId: string, viewer: FreeTextV
   return r.rows;
 }
 
-/** Deviations; description and resolution are null when the viewer may not read them (see the header). */
 export async function listDeviations(q: Q, opts: { sessionId?: string; studyId?: string; viewer?: FreeTextViewer }) {
   const viewer = opts.viewer ?? REDACTED;
   const r = await q.query<{ id: string; category: string; severity: string; description: string | null; resolution: string | null; reportedAt: string; sessionId: string | null }>(
@@ -193,7 +173,6 @@ export async function addDeviation(q: Q, actor: Actor, input: z.input<typeof pro
   );
 }
 
-/** Structured exclusion reasons; the free-text detail is appended. */
 export const EXCLUSION_CATEGORIES = [
   "technical_failure",
   "protocol_deviation",
@@ -209,7 +188,6 @@ export const exclusionSchema = z.object({
   detail: z.string().trim().min(3).max(2000),
 });
 
-/** Flags a session as excluded from analysis (raw data is kept; exports carry the flag). */
 export async function excludeSession(pool: Pool | PoolClient, actor: Actor, input: z.input<typeof exclusionSchema>): Promise<void> {
   const e = exclusionSchema.parse(input);
   await inTransaction(pool, async (c) => {
@@ -218,8 +196,6 @@ export async function excludeSession(pool: Pool | PoolClient, actor: Actor, inpu
     if (r.rows[0].excluded) throw new ResearchActionError("The session is already excluded.");
     const reason = `${e.category}: ${e.detail}`;
     await c.query("UPDATE study_sessions SET excluded = true, exclusion_reason = $2, excluded_by = $3, excluded_at = now() WHERE id = $1", [e.sessionId, reason, actor.userId]);
-    // The audit log (read by platform admins, who have no identifying access) keeps the category
-    // only; the full reason stays in study_sessions.exclusion_reason, which is scoped (security-05).
     await audit(c, actor, "session.exclude", "study_session", e.sessionId, { after: { excluded: true, category: e.category }, reason: e.category });
   });
 }

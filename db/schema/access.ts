@@ -1,18 +1,3 @@
-/**
- * Site access: invite codes (deployment source change S11, DR "Invite-only site access").
- *
- * The site is always invite-only. An administrator creates codes in Admin -> Access; a visitor
- * redeems one once (`?invite=<code>` on any URL, or the /invite form) and receives a signed,
- * httpOnly cookie (src/server/access/invite-cookie.ts). Staff pass by signing in.
- *
- *  - Only a SHA-256 of the normalised code is stored (`code_hash`); the code itself is shown
- *    once, when it is created. `code_hint` keeps its last four characters so a row can be told
- *    apart in the list. Codes carry 100 random bits, so an unsalted hash is enough.
- *  - `use_count` counts redemptions (cookies issued). It never exceeds `max_uses` (check), and a
- *    redemption is one conditional UPDATE, so concurrent redemptions cannot overshoot the limit.
- *  - Revocation is a timestamp, never a delete, so the use history stays.
- *  - `study_id` (optional) only records which study's participant link the code was made for.
- */
 import { sql } from "drizzle-orm";
 import { check, index, integer, pgTable, text, uuid } from "drizzle-orm/pg-core";
 

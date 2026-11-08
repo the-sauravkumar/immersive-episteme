@@ -60,7 +60,6 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
     s.P04 = await createSession(t.pool, studyId, c3d, "P04", 3);
     await t.pool.query("UPDATE participants SET stratum = 'low' WHERE code IN ('P01', 'P03') AND study_id = $1", [studyId]);
 
-    // Concept maps (pre, post) with stored cmap.recall.dl scores.
     const map = await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ('dash-map', 1, 'reconstruction', 'Map') RETURNING id");
     const item = await one<{ id: string }>(
       t.pool,
@@ -128,7 +127,6 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
       );
     }
 
-    // Knowledge pre-test totals.
     const kt = await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ('dash-kt', 1, 'pretest', 'Pre-test') RETURNING id");
     for (const [who, v] of [["P01", 3], ["P02", 5]] as const) {
       await t.pool.query(
@@ -137,8 +135,6 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
       );
     }
 
-    // Questionnaires: SUS (P01 all 3 → 50; P03 5/1 alternating → 100) and SSQ pre/post for P01
-    // (all 0 → 0; all 1 → each Kennedy column sums to 7, TS = 21 × 3.74 = 78.54).
     const instrument = async (code: string, keys: string[]) => {
       const a = await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ($1, 2, 'questionnaire', $1) RETURNING id", [code]);
       const ids: Record<string, string> = {};
@@ -180,8 +176,6 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
       [s.P03!.sessionId],
     );
 
-    // Data quality: an open gap (seq 3–4 of P01), a seq_conflict quarantine (P03), P02 interrupted twice,
-    // P03's device check asked for a retry, P04 excluded.
     await t.pool.query("INSERT INTO sequence_gaps (session_id, kind, from_seq, to_seq) VALUES ($1, 'gap', 3, 4)", [s.P01!.sessionId]);
     await t.pool.query("INSERT INTO telemetry_quarantine (session_id, reason, raw) VALUES ($1, 'seq_conflict: seq 2 is already used by another event of this session', '{}')", [s.P03!.sessionId]);
     await t.pool.query("UPDATE study_sessions SET interrupted = true, interruption_count = 2 WHERE id = $1", [s.P02!.sessionId]);
@@ -213,7 +207,6 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
   });
 
   it("the Analytics page keeps each administration apart and leaves item rows out (final review scoring-07)", async () => {
-    // A post-test total for P01 and two per-item rows (one per response) of the same submission.
     const post = await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ('dash-kt2', 1, 'posttest', 'Post-test') RETURNING id");
     await t.pool.query(
       "INSERT INTO derived_scores (session_id, participant_id, assessment_id, metric_name, metric_version, value, pipeline_version) VALUES ($1, $2, $3, 'assessment.key_match_total', '1.0.0', 4, 'test')",
@@ -235,9 +228,6 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
   });
 
   it("reads concept-map scores against the analysis reference and the current metric version only (final review scoring-04)", async () => {
-    // A newer pre score for P01 against another reference, and a newer post score at an old
-    // metric version: neither may replace the analysed values (pre 0.2, post 0.6). The CSV test
-    // below reloads the dashboard after these rows exist.
     const curator = await createUser(t.pool);
     const mapId = (await one<{ id: string }>(t.pool, "SELECT id FROM assessments WHERE code = 'dash-map'")).id;
     const other = await one<{ id: string }>(
@@ -282,7 +272,6 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
     await t.pool.query("UPDATE reference_maps SET status = 'locked' WHERE id = $1", [r1]);
     await ref(2, true);
     await ref(3, false);
-    // The locked v1 wins over the newer finalised v2 and the draft v3.
     expect(await analysisReferences(t.pool, st.studyId)).toEqual([{ assessmentId: a.id, referenceMapId: r1, version: 1, basis: "locked" }]);
   });
 
@@ -363,8 +352,6 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
   });
 
   describe("route handlers", () => {
-    // Import (and compile) the route modules once, outside the per-test timeout: a cold import
-    // under a loaded parallel run was the cause of an intermittent timeout here.
     let csvRoute: typeof CsvRoute;
     let probeRoute: typeof ProbeRoute;
     beforeAll(async () => {

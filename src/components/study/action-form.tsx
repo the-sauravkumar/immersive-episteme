@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * A form bound to a study server action through useActionState: shows the action's error in an
- * alert (announced to screen readers) and ignores a second submit while the first is pending, so a
- * double click cannot submit twice. The submit button is never natively disabled (useStudyFormGuard).
- *
- * The action row follows DESIGN.md 11.7: 44 px buttons, the primary action on the right and last
- * in DOM and tab order; an optional `back` control (outline) sits on the left.
- */
 import { CircleAlert } from "lucide-react";
 import { useActionState, useEffect, useRef, type FormEvent, type ReactNode } from "react";
 
@@ -18,10 +10,6 @@ import type { FormState } from "@/server/study/actions";
 
 export type StudyAction = (prev: FormState, formData: FormData) => Promise<FormState>;
 
-/**
- * The action row: `back` on the left, the primary action on the right (last in DOM order). Under
- * 520 px the buttons stack at full width in DOM order, so neither is left dangling on a second line.
- */
 export function StudyActions({ back, children }: { back?: ReactNode; children: ReactNode }) {
   return (
     <div
@@ -34,7 +22,6 @@ export function StudyActions({ back, children }: { back?: ReactNode; children: R
   );
 }
 
-/** An action's refusal: the word "Error", an icon and the message (never colour alone, R-A4). */
 export function FormErrorAlert({ message }: { message?: string }) {
   if (!message) return null;
   return (
@@ -46,23 +33,6 @@ export function FormErrorAlert({ message }: { message?: string }) {
   );
 }
 
-/**
- * Keyboard focus for a study form (WCAG 2.4.3; DESIGN.md 9.1 "aria-disabled and focusable").
- *
- *  - While the action runs, the submit button keeps focus: it carries `aria-disabled`, never the
- *    native `disabled` attribute, which drops a focused button's focus to <body> (the next Tab then
- *    started from the end of the page). `onSubmit` ignores a second submit while the first is
- *    pending: React does not run a form action whose submit event was default-prevented.
- *  - After a refusal with a field error, focus moves to the first invalid control (the study code,
- *    the consent or withdrawal confirmation), which names its error through aria-describedby. A
- *    form-level error leaves focus on the button the participant pressed; its alert is announced.
- *  - Nothing the participant entered is lost on a refusal. React 19 resets a form after every
- *    completed form action, refusals included, by calling form.reset(); its `reset` event is
- *    cancelable, so `onReset` cancels it. Without this a refused entry wiped the typed code and a
- *    refused withdrawal silently put the chosen reason back to "I prefer not to say". A study
- *    form has no reset button, and a successful action navigates away.
- */
-/** Cancels React's automatic form reset after a form action (see useStudyFormGuard). */
 export function keepEnteredValues(event: FormEvent<HTMLFormElement>) {
   event.preventDefault();
 }
@@ -116,7 +86,6 @@ export function ActionForm({
   );
 }
 
-/** Field error text linked from the control through aria-describedby: an icon and the words (DESIGN.md 9.5). */
 export function FieldErrorText({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return <FieldError id={id}>{message}</FieldError>;

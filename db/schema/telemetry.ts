@@ -1,22 +1,3 @@
-/**
- * Telemetry: one event contract for both conditions.
- *
- * - event_types: registry of raw event types. Each maps to a shared `analytic_concept`
- *   (e.g. `room_entered` (3D) and `page_entered` (2D) both map to
- *   `knowledge_domain_accessed`), so the conditions remain comparable.
- * - telemetry_batches: client upload batches; `idempotency_key` is UNIQUE, so a retried
- *   upload is recognised instead of double-counted.
- * - telemetry_events: raw events, append-only (UPDATE always rejected; DELETE only inside an
- *   explicit, reasoned purge, see migration 0003). `event_id` (client uuid) is UNIQUE and
- *   (session_id, seq) is UNIQUE, so duplicates are impossible and ordering is reconstructible.
- *   A composite FK pins study/participant/condition to the session's own values.
- * - telemetry_quarantine: unknown types / invalid events are kept, never silently dropped.
- * - sequence_gaps: detected gaps, duplicates and out-of-order arrivals per session.
- * - derived_metrics: versioned computations, kept apart from the raw events.
- * - session_telemetry_rollups: per-session read model of the research dashboard (stage time,
- *   stops visited, revisits, back-steps, sources opened, pauses), recomputed from the raw events only when a session has new events
- *   (src/server/research/dashboard-rollups.ts). A cache of derived values, never source data.
- */
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -52,13 +33,10 @@ export const eventTypes = pgTable(
     code: text().primaryKey(),
     label: text().notNull(),
     description: text().notNull(),
-    /** Requirement ids this type serves (EVT-01 .. EVT-14). */
     requirementRefs: text().array().notNull().default(sql`'{}'::text[]`),
-    /** Shared analytical concept used to compare the two conditions. */
     analyticConcept: text().notNull(),
     scope: eventScopeEnum().notNull().default("both"),
     schemaVersion: smallint().notNull().default(1),
-    /** Lifecycle/technical events (not learner behaviour) are excluded from behaviour metrics. */
     isTechnical: boolean().notNull().default(false),
     active: boolean().notNull().default(true),
     createdAt: createdAt(),
@@ -99,7 +77,6 @@ export const telemetryBatches = pgTable(
       sql`${t.payloadSha256} IS NULL OR ${t.payloadSha256} ~ ${sql.raw(`'${SHA256_HEX_RE}'`)}`,
     ),
     index("telemetry_batches_session_idx").on(t.sessionId, t.receivedAt),
-    /** Research dashboard: the few batches that carried duplicates, without scanning all batches. */
     index("telemetry_batches_duplicates_idx").on(t.sessionId).where(sql`${t.duplicateCount} > 0`),
   ],
 );
@@ -108,7 +85,6 @@ export const telemetryEvents = pgTable(
   "telemetry_events",
   {
     id: pk(),
-    /** Client-generated uuid; globally unique (deduplication key). */
     eventId: uuid().notNull().unique(),
     batchId: uuid().references(() => telemetryBatches.id, { onDelete: "restrict" }),
     schemaVersion: smallint().notNull(),
@@ -117,10 +93,8 @@ export const telemetryEvents = pgTable(
     sessionId: uuid().notNull(),
     conditionId: uuid().notNull(),
     clientTs: tsz().notNull(),
-    /** performance.now() at emission: monotonic within a page load. */
     clientMonoMs: doublePrecision(),
     serverTs: tsz().notNull().defaultNow(),
-    /** Per-session monotonically increasing sequence number assigned by the client. */
     seq: integer().notNull(),
     eventTypeCode: text()
       .notNull()
@@ -131,13 +105,10 @@ export const telemetryEvents = pgTable(
       onUpdate: "cascade",
     }),
     traditionId: uuid().references(() => traditions.id, { onDelete: "restrict" }),
-    /** Room id (3D) or page/route id (2D). */
     roomOrPageId: text(),
-    /** Interaction target (exhibit/element id, link id, button id). */
     target: text(),
     metadata: jsonb().notNull().default(sql`'{}'::jsonb`),
     appBuild: text().notNull(),
-    /** Content snapshot version label the client was rendering. */
     contentVersion: text().notNull(),
     snapshotId: uuid().references(() => contentSnapshots.id, { onDelete: "restrict" }),
     compilerVersion: text(),
@@ -159,12 +130,10 @@ export const telemetryEvents = pgTable(
     index("telemetry_events_study_type_idx").on(t.studyId, t.eventTypeCode),
     index("telemetry_events_concept_idx").on(t.conceptId),
     index("telemetry_events_server_ts_idx").on(t.serverTs),
-    /** Research dashboard change detection: latest event of a study in O(log n). */
     index("telemetry_events_study_server_ts_idx").on(t.studyId, t.serverTs),
   ],
 );
 
-/** Events that could not be accepted (unknown type, schema violation, seq conflict). */
 export const telemetryQuarantine = pgTable(
   "telemetry_quarantine",
   {
@@ -201,7 +170,6 @@ export const sequenceGaps = pgTable(
   ],
 );
 
-/** Versioned behavioural metrics, recomputable from the raw events. */
 export const derivedMetrics = pgTable(
   "derived_metrics",
   {
@@ -215,7 +183,6 @@ export const derivedMetrics = pgTable(
     value: doublePrecision(),
     details: jsonb().notNull().default(sql`'{}'::jsonb`),
     inputEventCount: integer().notNull(),
-    /** sha256 over the ordered (event_id, seq) list used, to detect stale metrics. */
     inputSha256: text().notNull(),
     pipelineVersion: text().notNull(),
     computedAt: tsz().notNull().defaultNow(),
@@ -238,12 +205,6 @@ export const derivedMetrics = pgTable(
   ],
 );
 
-/**
- * Research-dashboard rollup of one session's telemetry (src/server/research/dashboard-rollups.ts).
- * Derived, recomputable from telemetry_events at any time with the same pure function; a row is
- * current when `metrics_version` matches, the session's max(seq) equals `last_seq` and, for a
- * session still open, its event count equals `event_count`.
- */
 export const sessionTelemetryRollups = pgTable(
   "session_telemetry_rollups",
   {
@@ -252,9 +213,7 @@ export const sessionTelemetryRollups = pgTable(
       .references(() => studySessions.id, { onDelete: "restrict" }),
     studyId: uuid().notNull(),
     metricsVersion: text().notNull(),
-    /** Session status when computed: an ended session with unchanged max(seq) is never recomputed. */
     sessionStatus: text().notNull(),
-    /** max(seq) of the session's events when computed; -1 when it had none. */
     lastSeq: integer().notNull(),
     eventCount: integer().notNull(),
     stageMs: doublePrecision().notNull(),

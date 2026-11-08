@@ -1,14 +1,3 @@
-/**
- * Adapter: content/FORMAT.md v1 files -> `KnowledgeGraphModel`.
- *
- * Each file is checked with the canonical `contentPackageFileSchema` (contracts.ts); a file
- * that fails it contributes KG100 issues and no entities. Source ids are resolved to global
- * refs. The comparisons file re-declares tradition sources as `<slug>:<id>`; when the origin
- * file declares that id, the reference resolves to the origin's source (one source, cited from
- * two files) and the copy is checked against it (KG410).
- *
- * Pure: callers supply file contents (see `load-content-dir.ts` for the filesystem reader).
- */
 import { contentPackageFileSchema, importedState, type ContentPackageFile } from "@/features/knowledge/contracts";
 
 import { RULES } from "./rules";
@@ -25,19 +14,15 @@ import {
 
 
 export interface ContentFileInput {
-  /** Repository-relative path, forward slashes (e.g. `content/traditions/bagru/tradition.json`). */
   path: string;
-  /** Raw file text; or pass `data` directly. */
   text?: string;
   data?: unknown;
-  /** sha256 of the file bytes, when known. */
   sha256?: string | null;
 }
 
 export interface LoadResult {
   model: KnowledgeGraphModel;
   issues: IntegrityIssue[];
-  /** Files that parsed and were loaded. */
   loadedPaths: string[];
 }
 
@@ -59,7 +44,6 @@ export function loadContentFiles(inputs: readonly ContentFileInput[]): LoadResul
   const issues: IntegrityIssue[] = [];
   const parsed: ParsedFile[] = [];
 
-  // Stable processing order regardless of how the caller listed the files.
   const ordered = [...inputs].sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
 
   for (const input of ordered) {
@@ -93,7 +77,6 @@ export function loadContentFiles(inputs: readonly ContentFileInput[]): LoadResul
     parsed.push({ input, file: result.data, raw: data as Record<string, unknown> });
   }
 
-  // Duplicate slugs: keep the first file (by path) and report the rest.
   const bySlug = new Map<string, ParsedFile>();
   for (const p of parsed) {
     const prev = bySlug.get(p.file.slug);
@@ -110,11 +93,9 @@ export function loadContentFiles(inputs: readonly ContentFileInput[]): LoadResul
   }
   const files = [...bySlug.values()];
 
-  // Local source declarations per package.
   const declared = new Map<string, Map<string, ContentPackageFile["sources"][number]>>();
   for (const { file } of files) declared.set(file.slug, new Map(file.sources.map((s) => [s.id, s])));
 
-  /** Resolve a file-local id to a global ref (qualified ids resolve to their origin file). */
   const resolve = (fileSlug: string, id: string): string => {
     const colon = id.indexOf(":");
     if (colon > 0) {
@@ -173,7 +154,6 @@ export function loadContentFiles(inputs: readonly ContentFileInput[]): LoadResul
     for (const s of file.sources) {
       const ref = resolve(file.slug, s.id);
       if (ref !== sourceRef(file.slug, s.id)) {
-        // Re-declared copy of another file's source: check it, keep the origin.
         const origin = declared.get(ref.slice(0, ref.indexOf("#")))!.get(ref.slice(ref.indexOf("#") + 1))!;
         const diffs: string[] = [];
         if ((origin.url ?? null) !== (s.url ?? null)) diffs.push("url");

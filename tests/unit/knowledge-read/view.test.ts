@@ -1,7 +1,3 @@
-/**
- * Knowledge read view (src/features/knowledge/read/view.ts) over a bundle built from the
- * placeholder fixtures (no craft facts).
- */
 import { describe, expect, it } from "vitest";
 
 import { buildBundle } from "../../../src/features/knowledge/graph/snapshot";

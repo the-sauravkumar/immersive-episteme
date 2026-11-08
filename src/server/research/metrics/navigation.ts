@@ -1,42 +1,3 @@
-/**
- * Navigation metrics v1 (concept note CN-20; spec §10.3). Pure and deterministic: the same
- * ordered raw events always give the same values, so every stored `derived_metrics` row can be
- * recomputed from an export (see ../exports/validate.ts).
- *
- * OBSERVATIONAL ONLY. These describe how a participant moved through the content. They are not
- * learning outcomes and imply nothing causal: "do not equate frequent interaction, longer dwell
- * time, or more visited exhibits with better learning without supporting evidence" (spec §10.3).
- *
- * Unit of analysis: the VISIT SEQUENCE. A visit is a content-exposure interval
- * (`exposure_started`, emitted by the shared time accountant in both conditions: 2D
- * concept page shown, 3D information panel open; one rule, DR-050), so both conditions are measured on
- * the same definition. Consecutive exposures of the same concept (e.g. switching layers inside
- * one panel or scrolling within one page) collapse into one visit.
- *
- * Definitions (all over one session, technical events ignored):
- *  nav.path_length              number of visits (after collapsing consecutive repeats)
- *  nav.breadth                  distinct concepts visited; details: distinct traditions, categories
- *  nav.depth                    mean number of distinct content layers (overview, artisan, process,
- *                               science, comparison) opened per visited concept; details: max,
- *                               per-layer counts
- *  nav.revisit_rate             (visits - distinct concepts) / visits; null with no visits
- *  nav.cross_domain_transitions consecutive visits whose tradition differs (traditionless shared
- *                               and comparison concepts count as the domain "shared");
- *                               details: cross-category transitions, share of transitions
- *  nav.science_layer_engagement science-layer exposure ms / all exposure ms (completed intervals);
- *                               null when no exposure; details: science intervals, concepts,
- *                               knowledge_layer_selected(science) count
- *  nav.path_entropy             conditional entropy H(next | current) in bits of the first-order
- *                               concept transition counts (0 = fully predictable route); null with
- *                               fewer than 2 transitions; details: visit-distribution entropy H(V)
- *                               and the number of distinct transitions. PROVISIONAL definition
- *                               (spec: "path entropy where an appropriate definition is established").
- *  nav.sequence_patterns        number of distinct analytic-concept bigrams; details: the 10 most
- *                               frequent bigrams and trigrams of the condition-neutral analytic
- *                               concept sequence (event_types.analytic_concept), so 2D and 3D raw
- *                               types that mean the same thing compare
- *  nav.relationships_followed   relationship_followed events; details: distinct relationships
- */
 import { EVENT_TYPE_REGISTRY } from "@/features/telemetry/contracts";
 
 export const NAVIGATION_METRICS_VERSION = "1";
@@ -84,7 +45,6 @@ export interface Visit {
   seq: number;
 }
 
-/** The visit sequence of a session (see module doc). */
 export function visitSequence(events: readonly NavEvent[]): Visit[] {
   const sorted = [...events].sort((a, b) => a.seq - b.seq);
   const out: Visit[] = [];
@@ -123,7 +83,6 @@ export function computeNavigationMetrics(events: readonly NavEvent[], concepts: 
   const domainOf = (id: string) => concepts.get(id)?.traditionId ?? "shared";
   const categoryOf = (id: string) => concepts.get(id)?.category ?? "unknown";
 
-  // depth: distinct layers per concept, from all exposure starts (not only visit heads)
   const layers = new Map<string, Set<string>>();
   const layerTotals: Record<string, number> = {};
   let exposureMs = 0;
@@ -158,7 +117,6 @@ export function computeNavigationMetrics(events: readonly NavEvent[], concepts: 
   }
   const layerCounts = [...layers.values()].map((s) => s.size);
 
-  // transitions
   let crossDomain = 0;
   let crossCategory = 0;
   const transitions = new Map<string, number>();
@@ -185,7 +143,6 @@ export function computeNavigationMetrics(events: readonly NavEvent[], concepts: 
   const visitCounts = new Map<string, number>();
   for (const v of visits) visitCounts.set(v.conceptId, (visitCounts.get(v.conceptId) ?? 0) + 1);
 
-  // analytic-concept sequence patterns (behavioural events only)
   const seq = sorted.filter((e) => ANALYTIC.has(e.type) && !ANALYTIC.get(e.type)!.technical).map((e) => ANALYTIC.get(e.type)!.concept);
   const bigrams = new Map<string, number>();
   const trigrams = new Map<string, number>();

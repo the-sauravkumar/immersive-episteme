@@ -1,8 +1,3 @@
-/**
- * Integration: the demo seed runs on a fresh database, is idempotent, flags every row as demo
- * and covers every concept type and relationship semantics class. Its snapshot payload
- * satisfies the knowledge-bundle contract.
- */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { DEMO_SNAPSHOT_LABEL, DEMO_STUDY_SLUG, seedDemo } from "../../db/seeds/demo";
@@ -16,7 +11,7 @@ describe.skipIf(!TEST_URL)("schema: demo seed", () => {
   beforeAll(async () => {
     t = await createTestDatabase("seed");
     await seedDemo(t.db);
-    await seedDemo(t.db); // idempotent
+    await seedDemo(t.db);
   }, 60_000);
 
   afterAll(async () => {

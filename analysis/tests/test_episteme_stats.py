@@ -1,9 +1,3 @@
-"""Tests for analysis/episteme_stats (stdlib unittest).
-
-Run from the analysis directory:
-    cd analysis && python -B -m unittest discover -s tests
-"""
-
 from __future__ import annotations
 
 import json
@@ -27,7 +21,6 @@ FIXTURES = Path(__file__).parent / "fixtures"
 
 class PowerTests(unittest.TestCase):
     def test_reproduces_the_planned_sample_facts(self) -> None:
-        # docs/research/technical-requirements.md §4: power at 20 per group and n for 80%.
         for d, _src, power20, n80 in PLANNED_SAMPLE_FACTS:
             self.assertAlmostEqual(round(power_two_sample(d, 20), 3), power20, places=3, msg=f"d={d}")
             self.assertEqual(n_for_power(d, 0.80), n80, msg=f"d={d}")
@@ -37,8 +30,6 @@ class PowerTests(unittest.TestCase):
         self.assertAlmostEqual(power_ancova(0.0, 30), 0.05, places=6)
 
     def test_reproduces_the_d4_ancova_plan(self) -> None:
-        # docs/research/study-decisions.md D4 (rho = 0.6): n per group 51 / 29 / 17 for d = .45 / .60 / .80;
-        # power 0.410 at 20 per group for d = .45; minimum detectable d 0.73 at 20 per group.
         self.assertEqual((PLANNED_N_PER_GROUP, PLANNED_RHO), (51, 0.6))
         for d, n in D4_FACTS:
             self.assertEqual(n_for_power_ancova(d, 0.80, 0.6), n, msg=f"d={d}")
@@ -46,7 +37,6 @@ class PowerTests(unittest.TestCase):
         self.assertAlmostEqual(round(minimum_detectable_d(20, 0.80, 0.6), 2), D4_MDE_AT_20, places=2)
 
     def test_report_reference_is_the_preregistered_plan(self) -> None:
-        # Final review scoring-10: the report's power reference was the concept note's t-test at n = 20.
         t = planned_sample_table()
         self.assertIn("D4", t["plan"])
         row = next(r for r in t["rows"] if r["d"] == 0.45)
@@ -83,7 +73,7 @@ class CompareTests(unittest.TestCase):
         self.assertLess(r["hedges_g_ci_low_exact"], r["hedges_g"])
         self.assertGreater(r["hedges_g_ci_high_exact"], r["hedges_g"])
         self.assertLess(r["difference_ci_low"], r["mean_difference"])
-        self.assertEqual(r, compare_groups(self.a, self.b))  # seeded bootstrap: reproducible
+        self.assertEqual(r, compare_groups(self.a, self.b))
 
     def test_too_small_groups_are_reported_not_computed(self) -> None:
         self.assertIn("note", compare_groups([1.0], [2.0, 3.0]))
@@ -174,8 +164,6 @@ class BundleAndTableTests(unittest.TestCase):
         self.assertEqual(values(t, "immersive"), [5.0])
 
     def test_unallocated_session_is_valid_and_counted_not_fatal(self) -> None:
-        # Final review scoring-02: a consented participant who stopped before allocation (D3) keeps
-        # condition_id null; the bundle is valid and the participant is counted as unallocated.
         b = _bundle()
         b["tables"]["participants"].append({"participant_code": "P4"})
         b["tables"]["sessions"].append(_session("s4", "P4", None, status="abandoned"))
@@ -186,8 +174,6 @@ class BundleAndTableTests(unittest.TestCase):
         self.assertEqual(sorted(r.participant_code for r in t.rows), ["P1", "P2"])
 
     def test_reassigned_participant_is_one_row_in_the_analysed_condition(self) -> None:
-        # Final review scoring-03: after a WebGL reassignment the pre map stays on the abandoned
-        # immersive period-1 session and the post map is on the 2D period-2 session.
         b = _bundle()
         t = b["tables"]
         t["participants"].append({"participant_code": "P5"})
@@ -201,14 +187,12 @@ class BundleAndTableTests(unittest.TestCase):
         self.assertEqual(len(p5), 1)
         self.assertEqual((p5[0].condition, p5[0].session_id, p5[0].outcomes), ("conventional", "s5b", {"baseline": 0.1, "outcome": 0.6}))
         self.assertEqual(tab.excluded["superseded_sessions"], 1)
-        self.assertEqual(values(tab, "immersive", "baseline"), [])  # no phantom immersive pre-test
+        self.assertEqual(values(tab, "immersive", "baseline"), [])
         m = missing_report(b, tab)
         self.assertEqual(m["per_condition"]["immersive"], {"participants": 1, "outcome_missing": 0, "baseline_missing": 1, "not_completed": 0})
         self.assertEqual(m["per_condition"]["conventional"]["participants"], 2)
 
     def test_pre_and_post_come_from_the_analysis_reference_and_current_version(self) -> None:
-        # Final review scoring-04: pre@R1 (newest) and post@R2 must not be paired; only the study's
-        # analysis reference (R2) and the current metric version are used.
         b = _bundle()
         t = b["tables"]
         t["derived_scores"] = [
@@ -227,8 +211,6 @@ class BundleAndTableTests(unittest.TestCase):
         self.assertEqual(tab.metric_version, "1")
 
     def test_mismatched_references_are_never_paired(self) -> None:
-        # An older bundle without analysis references: a baseline scored against another reference
-        # than the outcome is dropped and counted, not paired.
         b = _bundle()
         b["tables"]["derived_scores"] = [_score("s1", "m0", 0.9, ref="R1"), _score("s1", "m1", 0.8, ref="R2")]
         _rehash(b)

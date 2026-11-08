@@ -1,15 +1,3 @@
-/**
- * Clear the per-account sign-in lock of a staff account (final review security-09).
- *
- *   npx tsx scripts/unlock-account.ts --email pi@example.org --by admin@example.org --reason "locked out by repeated guesses" [--test]
- *
- * The lock (src/server/auth/account-throttle.ts) is applied after 10 attempts in 15 minutes from
- * any address; a stranger who knows the email can trigger it. The owner's own browser normally
- * still gets in (known-device bucket); this script is for a new browser or a known browser that
- * is locked too. `--by` must be an active platform administrator (permission admin.users); the
- * clearance is written to the audit log with the reason. Nothing else about the account changes.
- * --test targets TEST_DATABASE_URL instead of DATABASE_URL.
- */
 import { parseArgs } from "node:util";
 
 import { drizzle } from "drizzle-orm/node-postgres";

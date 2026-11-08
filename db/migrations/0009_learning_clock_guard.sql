@@ -1,13 +1,3 @@
--- 0009 learning clock (custom SQL, hand-written). Same conventions: "ie: " messages, 23514.
---
--- Lead requirement: both conditions get the same learning exposure by design. The learning
--- phase of a session is timed by the SERVER: study_sessions.learning_started_at is stamped once
--- (src/server/learning/context-data.ts, on the first learning-page request), the budget is copied
--- from the study's frozen config (exposure.mode = 'fixed_time' -> exposure.minutes * 60; NULL
--- for self-paced studies) and learning_ends_at = start + budget. All four learning columns are
--- set-once. These are protocol timestamps on the session, not learning outcomes: outcome tables
--- (responses, concept maps, derived_scores) never hold exposure or navigation time.
-
 CREATE OR REPLACE FUNCTION ie_study_sessions_learning_clock()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -39,7 +29,6 @@ BEGIN
   END IF;
 
   IF NEW.learning_started_at IS NOT NULL THEN
-    -- Budget always comes from the study config, whatever the caller sent.
     SELECT config INTO cfg FROM studies WHERE id = NEW.study_id;
     IF cfg #>> '{exposure,mode}' = 'fixed_time' THEN
       minutes := (cfg #>> '{exposure,minutes}')::numeric;
@@ -64,8 +53,5 @@ CREATE TRIGGER study_sessions_learning_clock BEFORE INSERT OR UPDATE ON study_se
   FOR EACH ROW EXECUTE FUNCTION ie_study_sessions_learning_clock();
 --> statement-breakpoint
 
--- Exposure, navigation, pause and citation timings are behavioural telemetry. They live in
--- telemetry_events and derived_metrics (src/features/telemetry/metrics.ts), never among the
--- learning-outcome scores.
 ALTER TABLE derived_scores ADD CONSTRAINT derived_scores_no_timing_ck
   CHECK (metric_name !~ '^(time|timing|exposure|navigation|pause|citation)[._]');

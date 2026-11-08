@@ -1,11 +1,5 @@
 "use server";
 
-/**
- * Research-console Server Actions. Each one re-checks the caller's permission on the server
- * (`assertPermission`), validates its input with Zod in the service, and reports the outcome as
- * an ActionState; database refusals (frozen protocol, activation preconditions) are shown
- * verbatim.
- */
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -165,10 +159,6 @@ export async function closeStudyAction(studyId: string, _: ActionState, d: FormD
   }
 }
 
-/**
- * Removes one participant's research data on their request (DR-030): the facilitator passes on
- * the participant code; the principal investigator runs the removal with the reason.
- */
 export async function purgeParticipantAction(studyId: string, _: ActionState, d: FormData): Promise<ActionState> {
   try {
     const p = await assertPermission("participants.purge");
@@ -181,7 +171,6 @@ export async function purgeParticipantAction(studyId: string, _: ActionState, d:
   }
 }
 
-/** Removes the data of every participant whose retention period has passed (DR-030). */
 export async function purgeRetentionAction(studyId: string, _: ActionState, d: FormData): Promise<ActionState> {
   try {
     const p = await assertPermission("participants.purge");

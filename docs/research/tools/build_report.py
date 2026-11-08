@@ -1,5 +1,3 @@
-"""Build docs/research/technical-requirements.{md,json} from verified extractions.
-Every quotation is copied from the JSON (already verified verbatim); nothing is retyped."""
 import json, glob, os, sys, re
 sys.stdout.reconfigure(encoding="utf-8")
 R = os.path.dirname(os.path.abspath(__file__))
@@ -22,7 +20,6 @@ CITE = {
 }
 SHORT = {"krokos": "Krokos et al. 2019", "yang2021": "Yang et al. 2021", "makransky2021": "Makransky & Petersen 2021", "petersen2022": "Petersen et al. 2022", "zhou2022": "Zhou et al. 2022", "hunglee2025": "Hung & Lee 2025", "aiden2024": "Quantin et al. 2024 (AIDEN)", "wen2024": "Wen et al. 2024", "songevans2024": "Song & Evans 2024", "lu2026": "Lu et al. 2026"}
 
-# Lead-verified overrides of agent verdicts (evidence: Crossref version-of-record metadata, verified PDF quotes).
 OVR = {
  ("krokos", "P183"): ("Supported", "Crossref (version of record): Virtual Reality 23(1), 1–15, 2019; online-first 2018. The archived PDF is the online-first version."),
  ("yang2021", "P184"): ("Supported", "Crossref: IEEE TVCG 27(12), 4359–4373, 2021. The archived PDF is the accepted manuscript (2020), hence no printed pages."),

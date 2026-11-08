@@ -1,7 +1,3 @@
-/**
- * Request-bound helpers of the study engine (cookies, guards, redirects). Server-only.
- * Pages call these inside <Suspense> (cacheComponents: they read cookies and the database).
- */
 import "server-only";
 
 import { cookies } from "next/headers";
@@ -18,9 +14,7 @@ import { practiceRoute, STEP_ROUTE, type StudyStep } from "./config";
 import { loadSessionState, syncPosition, type Position, type SessionState } from "./engine";
 import { ENROLMENT_TTL_SECONDS, HISTORY_TTL_SECONDS, signEnrolment, signHistory, verifyEnrolment, verifyHistory, type EnrolmentClaims, type HistoryEntries } from "./tokens";
 
-/** Pre-allocation enrolment (between the study code and the consent decision). */
 export const ENROLMENT_COOKIE = hostOnly("ie_study_enrolment");
-/** Studies this browser enrolled in (repeat-enrolment detection only). */
 export const HISTORY_COOKIE = hostOnly("ie_study_history");
 
 const cookieBase = { httpOnly: true, secure: SECURE_COOKIES, sameSite: "lax" as const, path: "/" };
@@ -52,10 +46,6 @@ export interface CurrentSession {
   position: Position;
 }
 
-/**
- * The verified participant session (guard: signed cookie + live row) with its journal and the
- * current position, brought up to date. Redirects when there is no live session. Deduped per request.
- */
 export const getCurrentSession = cache(async (): Promise<CurrentSession> => {
   const participant = await requireParticipantSession();
   const pool = getPool();
@@ -70,7 +60,6 @@ export async function nextTelemetrySeq(sessionId: string): Promise<number> {
   return row.rows[0]!.next;
 }
 
-/** Where the participant should be for a position. */
 export function routeFor(position: Position, condition: SessionState["condition"]): string {
   switch (position.kind) {
     case "allocation":
@@ -86,10 +75,6 @@ export function routeFor(position: Position, condition: SessionState["condition"
   }
 }
 
-/**
- * Page guard for a step page: renders only when `step` is the participant's current step,
- * otherwise redirects to the session hub (no skipping ahead, no going back to an earlier test).
- */
 export async function requireStep(step: StudyStep | "device_check"): Promise<CurrentSession> {
   const current = await getCurrentSession();
   const p = current.position;

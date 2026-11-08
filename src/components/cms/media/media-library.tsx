@@ -1,14 +1,3 @@
-/**
- * /cms/media content (server component, rendered inside <Suspense>), DESIGN.md 11.10:
- *  1. Figure Balance, the review gate (./figure-balance.tsx);
- *  2. the selected asset (preview in the fixed 3:2 slot, metadata, review, concept links with
- *     their anchor claims);
- *  3. the library: a dense booktabs table with Thumbnail (3:2), Credit, Licence, Linked Concept,
- *     Anchor Claim, Tradition and Layer;
- *  4. upload;
- *  5. imported media candidates with their licence decisions, and the asset each was imported as.
- * Which forms show is cosmetic; every action re-checks permissions on the server. No madder.
- */
 import { Check, CircleAlert, CircleCheck } from "lucide-react";
 import Link from "next/link";
 
@@ -441,7 +430,6 @@ function SelectedAsset({
           {isImage ? (
             <figure className="flex flex-col gap-2">
               <span className="flex aspect-[3/2] w-full items-center justify-center border border-line bg-vat-2">
-                {/* eslint-disable-next-line @next/next/no-img-element -- staff-only authenticated original */}
                 <img src={`/cms/media/file/${a.id}`} alt={a.altText ?? ""} width={a.width ?? undefined} height={a.height ?? undefined} className="size-full object-contain" />
               </span>
               <figcaption className="t-s text-lime-dim">

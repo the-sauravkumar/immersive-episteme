@@ -1,18 +1,3 @@
-/**
- * Scoring runs over raw participant data, stored as versioned `derived_scores`.
- *
- *  - Concept maps: `scoreConceptMap` (the verified library, unchanged) against an adjudicated
- *    reference map, with the assessment's frozen scoring configuration and the concept
- *    categories of the concept set. Each `ScoreItem` becomes one row via `toDerivedScores`
- *    (metric name, metric version, value, parameters + itemised details, pipeline version),
- *    plus a fingerprint of the reference edges used. Rows are append-only: a re-run with the
- *    same metric versions stores nothing new.
- *  - Pre/post change: `compareConceptMaps` for every session with a final pre and post map of the
- *    same assessment (`cmap.change.*`, stored on the post map, `details.preConceptMapId`).
- *  - Keyed items: answer-key match (`item.key_match`).
- *  - Rubric ratings: one row per rater and response (`rubric.rating.r<rater hash>`); agreement
- *    with the library's Cohen's and Fleiss' kappa.
- */
 import { createHash } from "node:crypto";
 
 import type { Pool } from "pg";
@@ -40,10 +25,6 @@ import type { ConceptSet } from "./concept-set";
 import { rawToPayload } from "./participant-maps";
 import { reconstructionItem } from "./reference-maps";
 import type { RubricLevel } from "./definitions";
-
-// ---------------------------------------------------------------------------------------
-// Reference and participant inputs
-// ---------------------------------------------------------------------------------------
 
 export interface LoadedReference {
   id: string;
@@ -74,7 +55,6 @@ export async function loadReference(q: Q, referenceMapId: string): Promise<Loade
     [referenceMapId],
   );
   const edges: ReferenceEdgeInput[] = e.rows.map((x) => {
-    // Consensus-built edges carry their decided status; others fall back to `required`.
     const consensus = x.notes?.startsWith("consensus:") ? x.notes.slice("consensus:".length) : null;
     const status = x.required ? "expected" : consensus === "optional" ? "optional" : undefined;
     return {
@@ -128,10 +108,6 @@ async function insertScores(q: Q, rows: DerivedScore[], participantId: string): 
   return inserted;
 }
 
-// ---------------------------------------------------------------------------------------
-// Concept-map scoring run
-// ---------------------------------------------------------------------------------------
-
 export interface ScoringRunResult {
   maps: number;
   changePairs: number;
@@ -139,7 +115,6 @@ export interface ScoringRunResult {
   alreadyStored: number;
 }
 
-/** Scores every final map of the reference's assessment (both phases) and every pre/post pair. */
 export async function scoreConceptMaps(pool: Pool, actorId: string, referenceMapId: string): Promise<ScoringRunResult> {
   return inTransaction(pool, async (c) => {
     const ref = await loadReference(c, referenceMapId);
@@ -187,11 +162,6 @@ export async function scoreConceptMaps(pool: Pool, actorId: string, referenceMap
   });
 }
 
-/**
- * Scores ONE final concept map against one reference map with the library (same inputs as
- * `scoreConceptMaps`), stores the rows (idempotent) and returns the scores. Used by the study
- * engine to stratify allocation by the pre-test map (study decision D3, `cmap.recall.dl`).
- */
 export async function scoreFinalMap(q: Q, conceptMapId: string, referenceMapId: string): Promise<{ scores: ConceptMapScoreResult["scores"]; reference: { id: string; version: number; fingerprint: string } }> {
   assertUuid(conceptMapId, "Concept map");
   const ref = await loadReference(q, referenceMapId);
@@ -210,10 +180,6 @@ export async function scoreFinalMap(q: Q, conceptMapId: string, referenceMapId: 
   await insertScores(q, rows, m.participant_id);
   return { scores: result.scores, reference: referenceTag };
 }
-
-// ---------------------------------------------------------------------------------------
-// Views
-// ---------------------------------------------------------------------------------------
 
 export const SUMMARY_METRICS = [
   "cmap.valid_relationships",
@@ -280,15 +246,12 @@ export interface StoredScore {
 
 export interface MapBreakdown {
   map: { id: string; phase: "pre" | "post"; participantCode: string; condition: string; submittedAt: Date | null; sessionId: string };
-  /** The raw graph as the participant left it (positions, edges, edit log). */
   payload: MapPayload;
   reference: LoadedReference;
   set: ConceptSet;
-  /** Recomputed from the raw map with the parameters stored with the scores (or current ones). */
   result: ConceptMapScoreResult;
   parametersSource: "stored" | "current";
   stored: StoredScore[];
-  /** Metrics whose stored value differs from the recomputation (should be empty). */
   mismatches: string[];
   change: ReturnType<typeof compareConceptMaps> | null;
   otherPhaseMapId: string | null;
@@ -350,15 +313,8 @@ export async function mapBreakdown(q: Q, conceptMapId: string, referenceMapId: s
   };
 }
 
-// ---------------------------------------------------------------------------------------
-// Keyed items
-// ---------------------------------------------------------------------------------------
-
-// One answer format and one key rule, shared with the study engine that writes the answers
-// (src/features/assessment/responses.ts).
 export { KEY_MATCH_METRIC, extractAnswer, keyMatch } from "@/features/assessment/responses";
 
-/** Scores the latest answered attempt of every keyed item of an assessment. */
 export async function scoreKeyedItems(pool: Pool, actorId: string, assessmentId: string): Promise<{ responses: number; inserted: number }> {
   assertUuid(assessmentId, "Assessment");
   return inTransaction(pool, async (c) => {
@@ -394,13 +350,8 @@ export async function scoreKeyedItems(pool: Pool, actorId: string, assessmentId:
   });
 }
 
-// ---------------------------------------------------------------------------------------
-// Rubric ratings (multiple raters) and agreement
-// ---------------------------------------------------------------------------------------
-
 export const RUBRIC_METRIC = { prefix: "rubric.rating.r", version: "1.0.0", pipeline: "rubric-rating@1.0.0" } as const;
 
-/** Stable, metric-name-safe rater tag (derived_scores has no rater column). */
 export function raterMetricName(raterId: string): string {
   return `${RUBRIC_METRIC.prefix}${sha256(raterId).slice(0, 16)}`;
 }
@@ -439,14 +390,12 @@ export function responseText(raw: unknown): string {
 
 export interface RubricQueueItem {
   responseId: string;
-  /** Opaque, condition-free label: raters are blind to participant and condition. */
   label: string;
   text: string;
   myRating: number | null;
   ratingCount: number;
 }
 
-/** Latest answered attempt per session for the rubric's item, with the viewer's own rating only. */
 export async function rubricQueue(q: Q, rubricId: string, raterId: string): Promise<{ rubric: RubricInfo; items: RubricQueueItem[] }> {
   const rubric = await loadRubric(q, rubricId);
   const r = await q.query<{ id: string; raw: unknown }>(
@@ -468,7 +417,6 @@ export async function rubricQueue(q: Q, rubricId: string, raterId: string): Prom
   return { rubric, items };
 }
 
-/** One rater's rating of one response (immutable once stored). */
 export async function rateResponse(q: Q, raterId: string, rubricId: string, responseId: string, value: number, note?: string): Promise<void> {
   const rubric = await loadRubric(q, rubricId);
   if (rubric.status !== "locked") throw new AssessmentError("invalid", "Publish the rubric before rating.");
@@ -504,7 +452,6 @@ export async function rateResponse(q: Q, raterId: string, rubricId: string, resp
 export interface RubricAgreement {
   raters: number;
   responsesRated: number;
-  /** Responses rated by every rater (the Fleiss' kappa items). */
   completeItems: number;
   fleissKappa: number | null;
   percentAgreement: number | null;
@@ -563,10 +510,6 @@ export async function listRubricsForScoring(q: Q): Promise<Array<RubricInfo & { 
   return out;
 }
 
-// ---------------------------------------------------------------------------------------
-// Export
-// ---------------------------------------------------------------------------------------
-
 export const SCORE_EXPORT_COLUMNS = [
   "study_slug",
   "study_is_demo",
@@ -589,7 +532,6 @@ export const SCORE_EXPORT_COLUMNS = [
   "computed_at",
 ] as const;
 
-/** Long-format derived scores, joinable on participant code, session and condition. */
 export async function exportScores(q: Q, assessmentId?: string): Promise<Array<Record<(typeof SCORE_EXPORT_COLUMNS)[number], string | number | boolean | null>>> {
   if (assessmentId) assertUuid(assessmentId, "Assessment");
   const r = await q.query(
@@ -631,7 +573,6 @@ export const EDGE_EXPORT_COLUMNS = [
   "directed",
 ] as const;
 
-/** Raw participant map edges (one row per edge), for independent re-analysis. */
 export async function exportMapEdges(q: Q, assessmentId?: string): Promise<Array<Record<(typeof EDGE_EXPORT_COLUMNS)[number], string | number | boolean | null>>> {
   if (assessmentId) assertUuid(assessmentId, "Assessment");
   const r = await q.query(
@@ -655,15 +596,12 @@ export function toCsv(columns: readonly string[], rows: ReadonlyArray<Record<str
   const cell = (v: unknown) => {
     if (v === null || v === undefined) return "";
     const s = v instanceof Date ? v.toISOString() : String(v);
-    // Neutralise spreadsheet formula injection (the shared rule of the research exports: only a
-    // plain number may start with "-", so "-1+cmd|..." is neutralised) and quote when needed.
     const safe = neutraliseFormula(s, v);
     return /[",\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
   };
   return [columns.join(","), ...rows.map((r) => columns.map((c) => cell(r[c])).join(","))].join("\r\n") + "\r\n";
 }
 
-/** Assessments that have at least one keyed item, with their answered-response counts. */
 export async function listKeyedAssessments(q: Q): Promise<Array<{ id: string; code: string; version: number; title: string; responses: number; scored: number }>> {
   const r = await q.query<{ id: string; code: string; version: number; title: string; responses: string; scored: string }>(
     `SELECT a.id, a.code, a.version, a.title,
@@ -675,7 +613,6 @@ export async function listKeyedAssessments(q: Q): Promise<Array<{ id: string; co
   return r.rows.map((x) => ({ ...x, responses: Number(x.responses), scored: Number(x.scored) }));
 }
 
-/** Finalised (adjudicated) reference maps, newest first, with their assessment. */
 export async function listScorableReferences(q: Q): Promise<Array<{ id: string; title: string; version: number; isDemo: boolean; status: string; assessmentId: string; assessmentTitle: string; assessmentVersion: number }>> {
   const r = await q.query<{ id: string; title: string; version: number; is_demo: boolean; status: string; assessment_id: string; a_title: string; a_version: number }>(
     `SELECT r.id, r.title, r.version, r.is_demo, r.status, r.assessment_id, a.title AS a_title, a.version AS a_version

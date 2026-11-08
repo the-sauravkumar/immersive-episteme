@@ -1,11 +1,3 @@
-/**
- * Test harness for the schema integration tests (tests/integration/schema-*.test.ts).
- *
- * Every test file gets its OWN freshly created database, cloned from nothing and migrated
- * from db/migrations, on the server named by TEST_DATABASE_URL. That makes each run a full
- * reset, and keeps these files independent of each other and of other integration tests that
- * share `episteme_test` (Vitest runs files in parallel). The database is dropped afterwards.
- */
 import { randomBytes } from "node:crypto";
 
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
@@ -64,7 +56,6 @@ export async function createTestDatabase(label: string, opts: { reference?: bool
   };
 }
 
-/** Runs `fn` in a transaction with the transaction-local settings the triggers read. */
 export async function withSettings<T>(
   pool: Pool,
   settings: Record<string, string>,
@@ -103,11 +94,6 @@ export async function createUser(q: Q, id = `user_${randomBytes(4).toString("hex
 const SHA = "a".repeat(64);
 export { SHA as FAKE_SHA256 };
 
-/**
- * A minimal real (non-demo) graph: one tradition, one source, two concepts with sourced
- * claims and a PRECEDES relationship. All `under_review` unless `accept` is given, in which
- * case everything is verified by that actor (exercising the acceptance rules).
- */
 export async function createRealGraph(
   pool: Pool,
   opts: { prefix?: string; acceptBy?: string } = {},
@@ -163,11 +149,6 @@ export async function createRealGraph(
   };
 }
 
-/**
- * Inserts a draft snapshot and returns its id. The payload starts as an empty knowledge-bundle
- * skeleton whose header matches the row; `addSnapshotItem` appends each entity to it, because
- * publication requires the payload entity set to equal the snapshot_items set.
- */
 export async function createSnapshot(
   pool: Pool,
   opts: { label: string; isDemo?: boolean; includesUnverified?: boolean; createdBy?: string },
@@ -205,7 +186,6 @@ export function snapshotPayloadSkeleton(label: string, isDemo: boolean, includes
   };
 }
 
-/** Payload array and element describing one entity (only what the publish check reads). */
 async function payloadEntry(q: Q, kind: string, ref: string): Promise<{ path: string[]; elem: Record<string, unknown> }> {
   switch (kind) {
     case "category":
@@ -251,7 +231,6 @@ export async function publishSnapshot(q: Q, snapshotId: string, by: string | nul
   await q.query("UPDATE content_snapshots SET status = 'published', published_by = $2 WHERE id = $1", [snapshotId, by]);
 }
 
-/** Frozen rule set + published manifest compiled from `snapshotId`. */
 export async function createPublishedManifest(
   pool: Pool,
   snapshotId: string,
@@ -274,7 +253,6 @@ export async function createPublishedManifest(
   return m.id;
 }
 
-/** Draft study with a 2D and a 3D condition. */
 export async function createStudy(
   pool: Pool,
   opts: { slug: string; snapshotId?: string | null; manifestId?: string | null; isDemo?: boolean; allowUnverified?: boolean },
@@ -299,7 +277,6 @@ export async function createStudy(
   return { studyId: s.id, conditionIds: { c2d: c2d.id, c3d: c3d.id } };
 }
 
-/** Appends a consent decision for a participant (consent_records is append-only). */
 export async function recordConsent(q: Q, participantId: string, decision: "granted" | "declined" | "withdrawn" = "granted"): Promise<void> {
   await q.query(
     "INSERT INTO consent_records (participant_id, consent_version, consent_text_sha256, decision) VALUES ($1, 'c1', $2, $3)",
@@ -307,7 +284,6 @@ export async function recordConsent(q: Q, participantId: string, decision: "gran
   );
 }
 
-/** Enrols a participant (with granted consent unless `consent: false`), allocates them and opens a session. */
 export async function createSession(
   pool: Pool,
   studyId: string,

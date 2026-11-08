@@ -1,32 +1,3 @@
-/**
- * Next.js 16 Proxy (formerly middleware). Staff areas and the participant steps get presence
- * checks only: they redirect early so an anonymous visitor never waits on a render, and the real
- * checks run server-side in the layouts AND pages (src/components/shell/gates.tsx ->
- * src/server/auth/staff.ts, learning-access.ts) and in route handlers. The invite gate below is
- * the exception: it is decided here, against the database.
- *
- * It also forbids framing of the staff sign-in surfaces (clickjacking of the credential form),
- * matching what next.config.ts sends for /admin, /research and /cms, and on its own redirects
- * to /sign-in.
- *
- * On /api/auth/* it removes client-supplied forwarding headers unless a reverse proxy is
- * configured (src/lib/client-ip.ts): otherwise a client could choose its own sign-in
- * rate-limit bucket by sending a fresh `X-Forwarded-For` on every attempt. With the header
- * gone, Next.js fills `x-forwarded-for` from the socket address.
- *
- * INVITE GATE (deployment source change S11, DR-114; docs/deploy/RUNBOOK.md "Invite-only access").
- * The site is always invite-only; there is no open mode. Every page outside the exempt list
- * (src/lib/access/invite-paths.ts: /invite, /sign-in, /sign-out, /forbidden, /awaiting-access,
- * /console, /api, static assets) needs either an invite cookie whose HMAC signature verifies AND
- * whose code is not revoked in the database, or a staff session that the database confirms and
- * that holds a staff role (src/server/access/gate-lookups.ts). Both are checked on every gated
- * request, so revoking a code locks out every browser that redeemed it on its next request.
- * Without access, GET/HEAD redirect to /invite?next=<path> and other methods get 403; when the
- * database cannot be reached the gate answers 503. `?invite=<code>` on any gated URL is rewritten
- * to the redeem route (/invite/redeem), which sets the cookie and redirects to the same URL
- * without the code. The gate runs before consent and allocation and is identical in both
- * conditions.
- */
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -59,11 +30,6 @@ function noFraming(response: NextResponse): NextResponse {
   return response;
 }
 
-/**
- * /api/auth/* and the study entry form (POST /study, Server Action enterStudy): pass through,
- * minus spoofable client-IP headers when no proxy is trusted. Both key a rate limit on the client
- * address (sign-in; enrolment, src/server/study/enrolment-throttle.ts, final review security-04).
- */
 function authApi(request: NextRequest): NextResponse {
   if (clientIpPolicy().trustForwardedHeaders) return NextResponse.next();
   const headers = new Headers(request.headers);
@@ -124,12 +90,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   const code = request.nextUrl.searchParams.get(INVITE_PARAM);
   if (code !== null && readOnly) {
     const target = withoutInviteParam(request.nextUrl);
-    // Already admitted: drop the code from the address without counting another use.
     if (invited) return NextResponse.redirect(new URL(target, request.url));
     const redeem = new URL(INVITE_REDEEM_PATH, request.url);
     redeem.searchParams.set("code", code);
     redeem.searchParams.set("next", target);
-    // The rewrite keeps the original query, so code and target travel as request headers (DR-067).
     const headers = new Headers(request.headers);
     headers.set(INVITE_REDEEM_CODE_HEADER, encodeURIComponent(code));
     headers.set(INVITE_REDEEM_NEXT_HEADER, encodeURIComponent(target));
@@ -140,7 +104,6 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     return new NextResponse("An invite is required.", { status: 403, headers: { ...NO_STORE, "Content-Type": "text/plain; charset=utf-8" } });
   }
 
-  // The study entry form (POST /study, Server Action enterStudy): see authApi.
   if (pathname === "/study" && request.method === "POST") return authApi(request);
 
   if (startsWithSegment(pathname, "/learn")) {
@@ -150,7 +113,6 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     return NextResponse.next();
   }
 
-  // /study/<step>: everything below /study except the public entry pages.
   if (pathname.startsWith("/study/") && !PUBLIC_STUDY_PAGES.some((p) => startsWithSegment(pathname, p))) {
     if (!request.cookies.has(PARTICIPANT_COOKIE)) return NextResponse.redirect(new URL("/study", request.url));
   }
@@ -158,11 +120,6 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   return NextResponse.next();
 }
 
-/*
- * Every path except /api (other than /api/auth), Next's static output, the image optimiser and the
- * root files: the invite gate covers every page and route handler outside
- * those (S11). Matcher values must be literals (statically analysed at build time).
- */
 export const config = {
   matcher: ["/api/auth/:path*", "/((?!api/|_next/static/|_next/image|favicon.ico|robots.txt).*)"],
 };

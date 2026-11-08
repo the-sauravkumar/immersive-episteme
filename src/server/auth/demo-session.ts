@@ -1,11 +1,3 @@
-/**
- * Public demo cookie: lets a visitor explore both learning conditions WITHOUT being in a study.
- * Always non-experimental (`x: false`): telemetry from a demo must be tagged non-experimental
- * and demo access only ever serves demo/published-public content, never a study's dataset.
- * Set from /explore (see ./actions.ts).
- *
- * Pure (secret passed explicitly, no request APIs), like ./participant-session-token.ts.
- */
 import { z } from "zod";
 
 import { DEMO_COOKIE } from "./cookie-names";
@@ -18,9 +10,7 @@ export { DEMO_COOKIE };
 const demoClaims = z
   .object({
     t: z.literal("demo"),
-    /** experimental flag: always false for demo sessions. */
     x: z.literal(false),
-    /** random id to correlate non-experimental telemetry. */
     did: z.string().regex(/^[A-Za-z0-9_-]{16,64}$/),
     iat: z.number().int().nonnegative(),
     exp: z.number().int().positive(),

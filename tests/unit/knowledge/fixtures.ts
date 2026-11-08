@@ -1,11 +1,9 @@
-/** Fixture snapshot for the 2D tests, from the placeholder knowledge-graph fixtures (no craft facts). */
 import { buildBundle } from "@/features/knowledge/graph/snapshot";
 import { nodeSha256 } from "@/features/knowledge/graph/hash-node";
 import { createKnowledgeView } from "@/features/knowledge/read/view";
 
 import { alphaFile, claim, comparisonsFile, concept, load, rel } from "../knowledge-graph/fixtures";
 
-/** Fixture snapshot: tradition "alpha", a copy named "beta", and a comparison across both. */
 export function fixtureView() {
   const beta = JSON.parse(JSON.stringify(alphaFile()).replaceAll("alpha", "beta").replaceAll("Alpha", "Beta")) as Record<string, unknown>;
   const comparisons = comparisonsFile();

@@ -1,13 +1,3 @@
--- 0014 research-dashboard change notifications (custom SQL, hand-written).
---
--- Push instead of poll (docs/research/design-process/modules/research-dashboard.md, "Push"):
--- every statement that changes a table the dashboard reads sends ONE notification per distinct
--- study on channel `ie_dashboard` (payload: the study id). Statement-level AFTER triggers with
--- transition tables, so a 100-row ingest INSERT costs one trigger call, not 100. Notifications
--- only: nothing is written. NOTIFY is transactional (delivered at commit, never for a rolled-back
--- transaction) and identical payloads within one transaction are delivered once.
--- Transition tables allow one event per trigger, hence one trigger per table and event.
-
 CREATE OR REPLACE FUNCTION ie_dashboard_notify()
 RETURNS trigger
 LANGUAGE plpgsql

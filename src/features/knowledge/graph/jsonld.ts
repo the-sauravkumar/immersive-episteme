@@ -1,9 +1,3 @@
-/**
- * JSON-LD export of a knowledge bundle: schema.org `DefinedTermSet`/`DefinedTerm` for
- * traditions and concepts, `CreativeWork` for sources, and relationships reified as
- * `ie:Relationship` nodes so their explanation, conditions, ordinal, provenance and review
- * state survive. The `ie:` vocabulary is a URN namespace, not a resolvable web vocabulary.
- */
 import type { KnowledgeBundle } from "@/features/knowledge/contracts";
 
 export const IE_VOCAB = "urn:immersive-episteme:vocab#";

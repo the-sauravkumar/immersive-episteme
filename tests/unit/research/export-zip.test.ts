@@ -1,8 +1,3 @@
-/**
- * The minimal ZIP writer used for the all-tables CSV export (src/server/research/exports/zip.ts):
- * the archive is read back through its central directory, as unzip tools do, and every entry's
- * CRC-32 and content are checked.
- */
 import { crc32, inflateRawSync } from "node:zlib";
 
 import { describe, expect, it } from "vitest";

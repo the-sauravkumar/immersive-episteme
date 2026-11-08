@@ -1,12 +1,3 @@
-/**
- * Integration: research console services against a throwaway database.
- *  - activation is blocked by a failing parity report and allowed by a passing one;
- *  - telemetry -> derived metrics (idempotent recomputation);
- *  - session integrity, annotations, deviations, exclusion;
- *  - export and re-import validation (joins, checksums, metric recomputation, CSV round trip);
- *  - pseudonymised vs identified export content;
- *  - versioning of an active (frozen) study.
- */
 import { randomUUID } from "node:crypto";
 
 import type { StageTemplate } from "../../src/features/process/domain/stage-template";
@@ -70,7 +61,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
     const g = await createRealGraph(t.pool, { prefix: "rc", acceptBy: curator });
     conceptIds = g.conceptIds;
     relationshipId = g.relationshipId;
-    // The tradition's own overview concept (the compiler anchors the wing entry on it).
     const overview = await one<{ id: string }>(
       t.pool,
       `INSERT INTO concepts (key, slug, type, category_code, tradition_id, title, provenance_kind, verification_state)
@@ -82,7 +72,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
     await withSettings(t.pool, { "app.actor_id": curator, "app.change_reason": "test verification" }, (c) => c.query("UPDATE concepts SET verification_state = 'verified' WHERE id = $1", [overview.id]));
     const allConceptIds = [...g.conceptIds, overview.id];
 
-    // A complete knowledge bundle for the accepted graph, frozen as a published release snapshot.
     const tr = await one<Record<string, unknown>>(t.pool, "SELECT id, slug, name FROM traditions WHERE id = $1", [g.traditionId]);
     const src = await one<Record<string, unknown>>(t.pool, "SELECT id, kind::text AS kind, title FROM sources WHERE id = $1", [g.sourceId]);
     const cats = (await t.pool.query("SELECT code, label, template_group, position FROM knowledge_categories WHERE code IN ('process_stages', 'tradition_identity') ORDER BY position")).rows;
@@ -151,7 +140,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
     await t.pool.query("UPDATE content_snapshots SET status = 'published', published_by = $2 WHERE id = $1", [snapshotId, curator]);
 
 
-    // A locked post-learning concept-map assessment for the battery.
     const a = await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ('rc-map', 1, 'reconstruction', 'Reconstruction') RETURNING id");
     assessmentId = a.id;
     const item = await one<{ id: string }>(
@@ -174,7 +162,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
     protocolVersion: "p1",
     manifestId: null,
     snapshotId,
-    // The journey matches the battery (one post-learning reconstruction): parity check d.journey.
     config: researchStudyConfigSchema.parse({ traditionSlugs: ["rc-tradition"], steps: ["learning", "reconstruction"], ...CONSENT, ...config }),
   });
 
@@ -212,21 +199,16 @@ describe.skipIf(!TEST_URL)("research console", () => {
     expect(reports[0]!.id).toBe(r.parityReportId);
     expect(reports[0]!.report.contentSet).toMatchObject({ stages: 1, items: 1, products: 0, sources: 1 });
     await expect(updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { minutes: 25 } }))).rejects.toBeInstanceOf(ResearchActionError);
-    // Activation gave the study a secret allocation seed (study-07): journalled only as a fingerprint.
     const seed = (s?.config as { allocation: { seed?: string } }).allocation.seed!;
     expect(seed).toMatch(/^[A-Za-z0-9_-]{43}$/);
     const activation = await one<{ after: { allocationSeed: { generated: boolean; sha256Prefix: string } } }>(t.pool, "SELECT after FROM audit_log WHERE action = 'study.activate' AND entity_id = $1", [studyId]);
     expect(activation.after.allocationSeed.generated).toBe(true);
     expect(JSON.stringify(activation.after)).not.toContain(seed);
-    // While the study is open no export carries the seed.
     const open = await buildExportBundle(t.pool, studyId, { scope: "identified", appBuild: "test" });
     expect(JSON.stringify(open)).not.toContain(seed);
   });
 
   it("derives metrics from telemetry, recomputes idempotently and flags stale sessions", async () => {
-    // A participant still in (or dropped out during) the pre-test: allocation comes after it
-    // (D3), so the session has no condition. It must not break the recompute (final review
-    // telemetry-01: derived_metrics.condition_id is NOT NULL) and is not an analysable session.
     const p0 = await one<{ id: string }>(t.pool, "INSERT INTO participants (study_id, code) VALUES ($1, 'P-RC00') RETURNING id", [studyId]);
     await recordConsent(t.pool, p0.id);
     await t.pool.query(
@@ -255,7 +237,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
     await send(s2d, [{ type: "page_entered", roomOrPageId: "home" }, ...exposure("i1", a, 4000), { type: "relationship_followed", metadata: { relationshipId, relationshipTypeCode: "PRECEDES", fromConceptId: a, toConceptId: b } }, ...exposure("i2", b, 3000)]);
     await send(s3d, [{ type: "room_entered", roomOrPageId: "room:x" }, ...exposure("j1", b, 2000), ...exposure("j2", a, 1000), ...exposure("j3", b, 500)]);
 
-    // A final post-learning concept map for the 2D participant: a -> b (correct).
     const map = await one<{ id: string }>(
       t.pool,
       `INSERT INTO concept_maps (session_id, participant_id, assessment_id, item_id, phase, nodes, started_at)
@@ -283,7 +264,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
     const corr = await metric(s2d.sessionId, "nav.map_correspondence");
     expect(corr.value).toBe(1);
     expect(corr.details).toMatchObject({ reconstructedCorrect: 1, correctAndFollowed: 1 });
-    // derived_scores refuses timing metric names (DR-015): timings are never outcomes.
     await expect(
       t.pool.query("INSERT INTO derived_scores (session_id, participant_id, assessment_id, metric_name, metric_version, value, pipeline_version) VALUES ($1, $2, $3, 'time.exposure_total_ms', '1', 1, 'x')", [s2d.sessionId, s2d.participantId, assessmentId]),
     ).rejects.toThrow();
@@ -297,8 +277,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
     const s = (await getSession(t.pool, s3d.sessionId))!;
     expect(s).toMatchObject({ excluded: true, deviations: 1, annotations: 1, events: 7, openGaps: 0, participantCode: "P-RC02" });
     expect(integrityFlags(s).map((f) => f.level)).toContain("error");
-    // Free text is identified-only (security-05): a pseudonymised viewer gets the category, the
-    // annotation and deviation text only when they wrote it; the audit log keeps the category.
     expect(s.exclusionReason).toBe("technical_failure");
     expect(JSON.stringify(integrityFlags(s))).not.toContain("Renderer crashed twice");
     const identified = { identified: true, userId: null };
@@ -317,11 +295,10 @@ describe.skipIf(!TEST_URL)("research console", () => {
     expect(overview.excluded).toBe(1);
     expect(overview.telemetry.reduce((n, x) => n + x.events, 0)).toBe(13);
     const matrices = await transitionMatrices(t.pool, studyId);
-    expect(matrices.reduce((n, m) => n + m.transitions, 0)).toBe(1); // excluded 3D session not counted
+    expect(matrices.reduce((n, m) => n + m.transitions, 0)).toBe(1);
   });
 
   it("exports pseudonymised data that re-imports with valid joins, checksums and recomputable metrics", async () => {
-    // The download route's builder: one REPEATABLE READ, READ ONLY snapshot.
     const bundle = await buildExportBundleConsistent(t.pool, studyId, { scope: "pseudonymised", appBuild: "test" });
     expect(Object.keys(bundle.tables)).not.toContain("consent_records");
     expect(Object.keys(bundle.tables)).not.toContain("annotations");
@@ -346,7 +323,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
         for (const [k, val] of Object.entries(bundle.tables[table]![i]!)) expect(row[k]).toBe(csvText(val));
       });
     }
-    // The all-tables ZIP holds the same CSV text and a manifest with the bundle's checksums.
     const zip = Buffer.from(bundleCsvZip(bundle));
     expect(zip.readUInt32LE(0)).toBe(0x04034b50);
     const names: string[] = [];
@@ -372,14 +348,13 @@ describe.skipIf(!TEST_URL)("research console", () => {
 
   it("names the analysis reference maps and the current scoring versions (final review scoring-04)", async () => {
     const bundle = await buildExportBundle(t.pool, studyId, { scope: "pseudonymised", appBuild: "test" });
-    // No reference map of this study's reconstruction assessment is finalised, so there is no analysis reference yet.
     expect(bundle.study.analysisReferenceMaps).toEqual([]);
     expect(bundle.reproducibility.scoringMetricVersions).toMatchObject({ "cmap.recall": "1.0.0", "cmap.precision": "1.1.0", "cmap.cross_category.valid_normalised": "1.1.0" });
   });
 
   it("adds consent records and free text only to identified exports", async () => {
     const bundle = await buildExportBundle(t.pool, studyId, { scope: "identified", appBuild: "test" });
-    expect(bundle.tables.consent_records!.length).toBe(3); // P-RC00 (unallocated), P-RC01, P-RC02
+    expect(bundle.tables.consent_records!.length).toBe(3);
     expect(bundle.tables.annotations![0]).toMatchObject({ body: "Participant asked about controls" });
     expect(bundle.tables.sessions!.find((r) => r.participant_code === "P-RC02")!.exclusion_reason).toBe("technical_failure: Renderer crashed twice");
     expect(validateExportBundle(JSON.parse(JSON.stringify(bundle)) as ExportBundle).ok).toBe(true);
@@ -392,7 +367,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
     expect(s.battery.map((b) => b.assessmentId)).toEqual([assessmentId]);
     expect(s.conditions).toHaveLength(2);
     expect((await getStudy(t.pool, studyId))!.status).toBe("active");
-    // The new version gets its own seed at its own activation (a copied seed would repeat the sequence).
     expect((s.config as { allocation: { seed?: string } }).allocation.seed).toBeUndefined();
   });
 

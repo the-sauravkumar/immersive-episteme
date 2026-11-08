@@ -1,15 +1,3 @@
-/**
- * Build a knowledge-bundle snapshot from content/.
- *
- *   npx tsx scripts/content/build-snapshot.ts [--kind review|publishable] [--label <versionLabel>]
- *       [--generated-at <ISO 8601>] [--out analysis/out/knowledge-graph] [--no-jsonld]
- *
- * `review` (default) builds a clearly labelled researcher snapshot that includes unverified
- * content. `publishable` is refused unless every item is verified/published and the graph has
- * no error-level issues; content/ can never satisfy that, by design (FORMAT.md).
- * Writes snapshot-<label>.json (envelope + payload) and snapshot-<label>.jsonld.
- * Exit code 2 when the build is refused. Never writes to content/.
- */
 import { resolve } from "node:path";
 
 import { nodeSha256 } from "../../src/features/knowledge/graph/hash-node";

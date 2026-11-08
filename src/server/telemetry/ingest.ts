@@ -1,42 +1,3 @@
-/**
- * Telemetry batch ingestion (POST /api/telemetry/batch). The route handler
- * (src/app/api/telemetry/batch/route.ts) resolves WHO is calling from the cookies and passes a
- * `TelemetryPrincipal`; everything else happens here. Not `server-only`, so the integration
- * tests drive it against throwaway databases.
- *
- * Rules
- *  - Identity comes from the authenticated principal, never from the body. The client sends no
- *    participant, study or condition; they are read from the `study_sessions` row.
- *  - Cross-session writes are refused: the batch `sessionId` must be the principal's session
- *    (403 session_mismatch); an event whose own `sessionId` differs is quarantined.
- *  - Idempotency: `telemetry_batches.idempotency_key` (a replay returns the stored outcome with
- *    `replayed: true`) and `telemetry_events.event_id` (an event already stored, e.g. sent
- *    earlier by a page-exit beacon under another key, counts as a duplicate). A replay is
- *    answered only when every event of the batch is already stored or quarantined: a stored key
- *    arriving with OTHER events (two tabs of one session numbering the same seqs) is ingested
- *    under a key derived from its event ids instead, so those events are never acknowledged
- *    unseen (final review telemetry-02).
- *  - One session's batches are serialised (transaction-scoped advisory lock), so concurrent
- *    page-exit beacons see each other's events when gaps and out-of-order arrivals are computed
- *    (final review database-03 / telemetry-06).
- *  - Every event is validated with `telemetryEventSchema`; invalid events, seq conflicts and
- *    database rule violations (scope/condition mismatch, concept not in the snapshot, events
- *    after the session ended, ...) go to `telemetry_quarantine` with the reason. Nothing is
- *    dropped silently.
- *  - Server receipt time: one `receivedAt` per request, stored as `telemetry_batches.received_at`
- *    and `telemetry_events.server_ts`.
- *  - Sequence gaps: after the batch, missing seq ranges of the session (seq starts at 0) are
- *    upserted into `sequence_gaps` (kind `gap`; filled gaps get `resolved_at`), and an arrival
- *    below the session's previous maximum is recorded as `out_of_order`. A seq the server
- *    quarantined counts as received: a `gap` means transmission loss only, and the quarantine
- *    count keeps the rejection (final review telemetry-07).
- *  - Dashboard rollups: an event accepted for an ended session deletes that session's
- *    `session_telemetry_rollups` row, because the rollup probes ended sessions by max(seq) only
- *    and a late, lower seq would otherwise leave it stale (final review database-05 /
- *    telemetry-08).
- *  - Demo and staff preview have no study session: the batch is validated and acknowledged
- *    (`persisted: false`, `nonExperimental: true`) but nothing is written.
- */
 import { createHash } from "node:crypto";
 
 import type { Pool, PoolClient } from "pg";
@@ -103,16 +64,11 @@ function acknowledgeWithoutStoring(batch: { sessionId: string; events: unknown[]
   };
 }
 
-/**
- * Key for a batch whose client key collided with a stored batch holding other events: the
- * client key (shortened to keep the 128-character key rule) plus a hash of the event ids.
- */
 export function contentDerivedKey(key: string, eventIds: readonly string[]): string {
   const h = sha256([...eventIds].sort().join(",")).slice(0, 16);
   return `${key.slice(0, 128 - 18)}:x${h}`;
 }
 
-/** Validates and stores one batch for `principal`. `body` is the parsed JSON request body. */
 export async function ingestTelemetryBatch(
   pool: Pool,
   principal: TelemetryPrincipal,
@@ -126,7 +82,6 @@ export async function ingestTelemetryBatch(
   }
   const batch = env.data;
 
-  // Demo / preview: validate, acknowledge, store nothing.
   if (principal.kind !== "participant") return acknowledgeWithoutStoring(batch, receivedAt);
 
   if (batch.sessionId !== principal.sessionId) {
@@ -146,7 +101,6 @@ export async function ingestTelemetryBatch(
 
 type Batch = ReturnType<typeof telemetryBatchEnvelopeSchema.parse>;
 
-/** The stored path of `ingestTelemetryBatch` on one checked-out client (no transaction open on entry). */
 async function ingestOnClient(
   client: PoolClient,
   principal: Extract<TelemetryPrincipal, { kind: "participant" }>,
@@ -170,17 +124,12 @@ async function ingestOnClient(
     return fail(410, "session_closed", "Telemetry is not accepted for a withdrawn or excluded participant");
   }
   if (session.condition_id === null) {
-    // Not allocated yet (allocation after the pre-test, D3): events carry a condition, so there
-    // is nothing they could be stored under. The study pages emit none before allocation.
     return fail(403, "session_mismatch", "The participant session has no condition yet (not allocated)");
   }
   const cfg = studyConfigSchema.safeParse(session.study_config);
   const nonExperimental = session.study_is_demo || (cfg.success && cfg.data.nonExperimental);
 
   await client.query("BEGIN");
-  // Serialise this session's batches until COMMIT / ROLLBACK. Under READ COMMITTED every later
-  // statement then sees the events of a batch that committed while this one waited, so two
-  // concurrent page-exit beacons cannot each miss the other's seqs (spurious open gaps).
   await client.query("SELECT pg_advisory_xact_lock(hashtextextended('ie-telemetry:' || $1::text, 0))", [principal.sessionId]);
   const ins = await client.query<{ id: string }>(
     `INSERT INTO telemetry_batches (idempotency_key, session_id, schema_version, app_build, client_sent_at, received_at,
@@ -199,10 +148,6 @@ async function ingestOnClient(
     if (p.session_id !== principal.sessionId) {
       return fail(403, "session_mismatch", "This idempotency key belongs to another session");
     }
-    // A replay must not acknowledge events the server never saw. The client key names a seq
-    // range, so a second tab of the session can send OTHER events under a stored key: ingest
-    // those under a key derived from their ids (an event on a used seq is then quarantined as
-    // seq_conflict, not lost). Once every event is stored or quarantined, it is a true replay.
     const ids = batch.events
       .map((raw) => (raw as { eventId?: unknown } | null)?.eventId)
       .filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
@@ -291,7 +236,6 @@ async function ingestOnClient(
         acceptedSeqs.push(e.seq);
         continue;
       }
-      // Conflict: the same event already stored (duplicate) or another event holds this seq.
       const existing = await client.query<{ event_id: string }>("SELECT event_id FROM telemetry_events WHERE event_id = $1", [e.eventId]);
       if (existing.rows[0]) {
         duplicates++;
@@ -310,7 +254,6 @@ async function ingestOnClient(
     }
   }
 
-  // Out-of-order arrival: this batch carried seqs below what the session had already stored.
   if (previousMax !== null && acceptedSeqs.some((q) => q < previousMax)) {
     const lowest = Math.min(...acceptedSeqs);
     await client.query(
@@ -322,11 +265,6 @@ async function ingestOnClient(
   const gaps = await currentGaps(client, principal.sessionId);
   await recordGaps(client, principal.sessionId, gaps);
   if (accepted > 0) {
-    // An ended session's rollup is probed by max(seq) and status only, so a late, lower seq (a
-    // retried beacon chunk emitted before the end) would leave it stale for good: drop it, and
-    // the next dashboard load recomputes it. The status is read here, after the inserts: they
-    // hold a KEY SHARE lock on the session row, so completeSession / abandon (FOR UPDATE)
-    // cannot commit between this read and our COMMIT.
     await client.query(
       `DELETE FROM session_telemetry_rollups
         WHERE session_id = $1 AND EXISTS (SELECT 1 FROM study_sessions WHERE id = $1 AND status IN ('completed', 'abandoned'))`,
@@ -362,12 +300,6 @@ async function ingestOnClient(
   };
 }
 
-/**
- * Missing seq ranges of a session (seq numbering starts at 0): seqs neither stored nor
- * quarantined. A quarantined event (refused by a database rule, invalid) did reach the server,
- * so its seq is not transmission loss; it is counted in the quarantine instead. Seqs of events
- * quarantined as belonging to another session are not this session's and are ignored.
- */
 export async function currentGaps(q: Pick<PoolClient, "query">, sessionId: string): Promise<{ fromSeq: number; toSeq: number }[]> {
   const r = await q.query<{ from_seq: number; to_seq: number }>(
     `WITH seen AS (

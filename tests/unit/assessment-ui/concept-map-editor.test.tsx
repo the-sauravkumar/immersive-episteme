@@ -1,9 +1,3 @@
-/**
- * Concept-map editor without a mouse: relationships are created, revised, reversed and deleted
- * through labelled native controls; the raw map with its edit log is autosaved and submitted.
- * The React Flow canvas is replaced by a stub (jsdom has no layout); its behaviour is covered in
- * the e2e test.
- */
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
@@ -113,7 +107,7 @@ describe("ConceptMapEditor (keyboard path)", () => {
     const submit = screen.getByRole("button", { name: "Submit map" });
     expect(submit).toHaveClass("max-xs:w-full");
     const row = submit.closest("[data-slot=study-actions]")!;
-    expect(row).toHaveClass("flex-col", "xs:flex-row"); // stacked under 520 px, a row from xs
+    expect(row).toHaveClass("flex-col", "xs:flex-row");
     expect(row.className).not.toMatch(/border-t/);
     const addRow = screen.getByRole("button", { name: "Add relationship" }).parentElement!;
     expect(addRow.className).toContain("max-xs:flex-col");

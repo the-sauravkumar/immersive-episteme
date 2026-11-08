@@ -12,7 +12,6 @@ const le16 = (n: number) => [n & 255, (n >>> 8) & 255];
 const le24 = (n: number) => [n & 255, (n >>> 8) & 255, (n >>> 16) & 255];
 
 const png = (w: number, h: number) => bytes([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], be32(13), "IHDR", be32(w), be32(h), [8, 2, 0, 0, 0]);
-/** SOI, an APP0 segment, then a baseline SOF0 frame header. */
 const jpeg = (w: number, h: number) =>
   bytes([0xff, 0xd8], [0xff, 0xe0, 0x00, 0x10], "JFIF", [0, 1, 1, 0, 0, 1, 0, 1, 0, 0], [0xff, 0xc0, 0x00, 0x11, 0x08], [h >> 8, h & 255, w >> 8, w & 255], [3, 1, 0x22, 0, 2, 0x11, 1, 3, 0x11, 1]);
 const riff = (chunk: string, payload: number[]) => bytes("RIFF", [0, 0, 0, 0], "WEBP", chunk, [payload.length, 0, 0, 0], payload);

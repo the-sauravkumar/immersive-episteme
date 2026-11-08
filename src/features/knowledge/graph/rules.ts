@@ -1,8 +1,3 @@
-/**
- * Rule catalogue: every integrity issue has a stable code and a fixed severity. Codes are
- * never reused or renumbered; retire a rule by marking it, not by deleting its code.
- * Documented in docs/architecture/knowledge-graph-validation.md.
- */
 import type { Severity } from "./types";
 
 export interface RuleDefinition {
@@ -14,7 +9,6 @@ export interface RuleDefinition {
 const r = (code: string, severity: Severity, title: string): RuleDefinition => ({ code, severity, title });
 
 export const RULES = {
-  // 1xx entities and files
   FILE_SCHEMA: r("KG100", "error", "File does not satisfy the FORMAT v1 contract"),
   FILE_UNREADABLE: r("KG101", "error", "File is not readable JSON"),
   DUPLICATE_PACKAGE: r("KG102", "error", "Two files declare the same slug"),
@@ -25,7 +19,6 @@ export const RULES = {
   COMPARISON_ARITY: r("KG108", "warning", "Comparison concept compares fewer than two concepts"),
   COMPARES_UNKNOWN: r("KG109", "error", "Comparison names an unknown concept"),
   MEDIA_DEPICTS_UNKNOWN: r("KG110", "warning", "Media candidate depicts an unknown concept"),
-  // 2xx relationships
   UNKNOWN_TYPE: r("KG200", "error", "Relationship type not in the registry"),
   MISSING_ENDPOINT: r("KG201", "error", "Relationship endpoint does not exist"),
   SELF_LOOP: r("KG202", "error", "Relationship links a concept to itself"),
@@ -33,7 +26,6 @@ export const RULES = {
   UNDIRECTED_REVERSE: r("KG204", "error", "Undirected type stated in both directions"),
   ORDINAL_UNORDERED: r("KG205", "error", "Ordinal on a type that is not ordered"),
   ACCEPTED_EDGE_ENDPOINT: r("KG206", "error", "Accepted relationship has an unaccepted endpoint"),
-  // 3xx cycles and process structure
   CYCLE_ACYCLIC_TYPE: r("KG300", "error", "Cycle in a type that forbids cycles"),
   PRECEDES_CYCLE: r("KG301", "error", "PRECEDES cycle without a marked loop edge"),
   PRECEDES_LOOP: r("KG302", "info", "PRECEDES loop closed by a marked loop edge"),
@@ -45,7 +37,6 @@ export const RULES = {
   PRECEDES_UNORDINALLED: r("KG314", "info", "PRECEDES edge outside the ordered chain"),
   PRECEDES_NON_STAGE: r("KG315", "info", "PRECEDES between concepts that are not process stages"),
   STAGE_OUTSIDE_SEQUENCE: r("KG316", "warning", "Process stage not in any sequence or dependency"),
-  // 4xx provenance
   CONCEPT_NO_CLAIMS: r("KG400", "error", "Concept has no claims"),
   CLAIM_NO_SOURCE: r("KG401", "error", "Claim cites no source"),
   CLAIM_UNKNOWN_SOURCE: r("KG402", "error", "Claim cites an unknown source"),
@@ -59,18 +50,14 @@ export const RULES = {
   QUALIFIED_SOURCE_MISMATCH: r("KG410", "warning", "Qualified source id does not match its origin file"),
   GI_UNKNOWN_SOURCE: r("KG411", "error", "GI record cites an unknown source"),
   REL_EVIDENCE_UNLISTED_SOURCE: r("KG412", "error", "Relationship evidence quotes a source the relationship does not cite"),
-  // 5xx duplicates
   DUPLICATE_TITLE: r("KG500", "error", "Same title and type twice in one file"),
   NEAR_DUPLICATE_TITLE: r("KG501", "warning", "Near-duplicate titles of the same type in one file"),
   DUPLICATE_CLAIM: r("KG502", "warning", "Same claim text twice in one concept"),
-  // 6xx claims-only prose
   SUMMARY_NOT_FROM_CLAIMS: r("KG600", "error", "Summary is not the first claim (claims-only policy)"),
   BODY_NOT_FROM_CLAIMS: r("KG601", "error", "body_md is not derived from claims (claims-only policy)"),
   PROSE_NOT_DERIVABLE: r("KG602", "warning", "Free prose not derivable from claims"),
-  // 7xx never collapse semantics
   SEMANTICS_WORDING_MIX: r("KG700", "warning", "Explanation wording belongs to another semantics class"),
   MULTI_SEMANTICS_PAIR: r("KG701", "info", "Concept pair linked by several semantics classes"),
-  // 8xx orphans and coverage
   ORPHAN: r("KG800", "warning", "Concept has no relationships"),
   BELONGS_ONLY: r("KG801", "info", "Concept is attached only by BELONGS_TO"),
   COVERAGE_BELOW_TARGET: r("KG802", "info", "Tradition below a FORMAT.md depth target"),
@@ -78,7 +65,6 @@ export const RULES = {
 
 export type RuleName = keyof typeof RULES;
 
-/** Why a snapshot was refused (snapshot builder, not graph integrity). */
 export const SNAPSHOT_REFUSALS = {
   ERRORS_PRESENT: "SNAP001",
   UNACCEPTED_CONTENT: "SNAP002",

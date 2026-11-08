@@ -1,18 +1,3 @@
-/**
- * Knowledge authoring services: traditions, sources, concepts, claims, curator notes and
- * relationships. Every function checks its permission (ensure), writes in one actor transaction
- * (inActorTx: the review triggers record who changed what) and appends an audit_log row.
- *
- * Rules implemented here (on top of the database triggers of migrations 0003/0005):
- *  - New content starts as `draft`; only the review workflow (./workflow.ts) changes states.
- *  - Claims-only learner text: `summary` and `body_md` are always regenerated from the claims
- *    (deriveLearnerText), never taken from a form.
- *  - Real content only: the CMS never creates demo rows (is_demo stays false).
- *  - Editing accepted content returns it to review: traditions/concepts/relationships by trigger
- *    (0005 ie_return_edited_to_review, ie_evidence_changed); sources here (no trigger exists).
- *
- * Not `server-only` (integration tests call these with their own pool).
- */
 import type { Pool } from "pg";
 import type { z } from "zod";
 
@@ -30,21 +15,10 @@ import type {
   traditionSourceSchema,
 } from "./schemas";
 
-/** The CMS's own content package: holds sources authored in the CMS (local keys C1, C2, ...). */
 export const CMS_PACKAGE_SLUG = "cms";
 
 const ACCEPTED = new Set(["verified", "published"]);
 
-// ---------------------------------------------------------------------------------------
-// Learner text from claims (content/FORMAT.md "Learner-facing text is built from claims only")
-// ---------------------------------------------------------------------------------------
-
-/**
- * Same rule as the curation tool and the validator (deriveProseFromClaims in
- * src/features/knowledge/graph/validate.ts): summary = first claim; body = every claim followed by
- * its source ids in brackets, claims separated by blank lines. Source ids are the file-local
- * ids (sources.local_key), exactly as the importer stores imported concepts.
- */
 export function deriveLearnerText(claims: readonly { text: string; sourceKeys: readonly string[] }[]): { summary: string; bodyMd: string } {
   const texts = claims.map((c) => c.text.trim());
   return {
@@ -52,10 +26,6 @@ export function deriveLearnerText(claims: readonly { text: string; sourceKeys: r
     bodyMd: texts.map((t, i) => `${t} [${claims[i]!.sourceKeys.join(", ")}]`).join("\n\n"),
   };
 }
-
-// ---------------------------------------------------------------------------------------
-// Packages
-// ---------------------------------------------------------------------------------------
 
 async function cmsPackageId(q: Q): Promise<string> {
   const r = await q.query<{ id: string }>(
@@ -66,10 +36,6 @@ async function cmsPackageId(q: Q): Promise<string> {
   );
   return r.rows[0]!.id;
 }
-
-// ---------------------------------------------------------------------------------------
-// Sources
-// ---------------------------------------------------------------------------------------
 
 type SourceInput = z.infer<typeof sourceSchema>;
 const SOURCE_FIELDS = ["kind", "title", "author", "publisher", "year", "url", "accessedOn", "reliability", "citation", "notes"] as const;
@@ -128,10 +94,6 @@ function strip(row: Record<string, unknown>): Record<string, unknown> {
   return rest;
 }
 
-// ---------------------------------------------------------------------------------------
-// Traditions
-// ---------------------------------------------------------------------------------------
-
 type TraditionInput = z.infer<typeof traditionSchema>;
 
 export async function saveTradition(pool: Pool, actor: Actor, input: TraditionInput): Promise<{ id: string; created: boolean }> {
@@ -176,9 +138,6 @@ export async function saveTradition(pool: Pool, actor: Actor, input: TraditionIn
 export async function setTraditionSource(pool: Pool, actor: Actor, input: z.infer<typeof traditionSourceSchema>): Promise<void> {
   ensure(actor, "content.edit");
   await inActorTx(pool, actor, null, async (c) => {
-    // The 0019 trigger (tradition_sources_evidence) reopens an accepted tradition as soon as its
-    // evidence row changes, so the reason must be set first; the explicit reopen below is kept as
-    // a belt-and-braces check and finds the tradition already under review.
     await setChangeReason(c, "returned to review: tradition evidence changed");
     if (input.remove) {
       await c.query("DELETE FROM tradition_sources WHERE tradition_id = $1 AND source_id = $2 AND purpose = $3", [input.traditionId, input.sourceId, input.purpose]);
@@ -188,7 +147,6 @@ export async function setTraditionSource(pool: Pool, actor: Actor, input: z.infe
         [input.traditionId, input.sourceId, input.purpose],
       );
     }
-    // A change of the evidence behind an accepted tradition sends it back to review.
     const t = await c.query<{ verification_state: string }>("SELECT verification_state FROM traditions WHERE id = $1", [input.traditionId]);
     if (t.rows[0] && ACCEPTED.has(t.rows[0].verification_state)) {
       await c.query("UPDATE traditions SET verification_state = 'under_review', updated_by = $2 WHERE id = $1", [input.traditionId, actor.userId]);
@@ -201,10 +159,6 @@ export async function setTraditionSource(pool: Pool, actor: Actor, input: z.infe
     });
   });
 }
-
-// ---------------------------------------------------------------------------------------
-// Concepts and claims
-// ---------------------------------------------------------------------------------------
 
 export async function createConcept(pool: Pool, actor: Actor, input: z.infer<typeof conceptCreateSchema>): Promise<{ id: string; key: string }> {
   ensure(actor, ["content.draft", "content.edit"]);
@@ -245,20 +199,6 @@ export async function updateConcept(pool: Pool, actor: Actor, input: z.infer<typ
   });
 }
 
-/**
- * Replaces the concept's claims (positions 0..n-1) and their citations, then regenerates the
- * learner-facing summary/body from them. The quote and every locator are required (schemas.ts).
- *
- * Evidence per citation (final review knowledge-06): a citation keeps its located passages only
- * while its claim text, source AND locator are unchanged (a new locator would contradict the kept
- * passages' own locators); a citation may carry its own verbatim quote, stored as its passage.
- *
- * Figure anchors (final review knowledge-07): an illustration's `asset_links.position` is a claim
- * index, so a reorder would silently move a photograph under another claim. Each anchor follows
- * its claim's TEXT to the claim's new index; when that text is gone (reworded or deleted), the
- * asset goes back to review, because the reviewed "caption restates its anchor claim" no longer
- * holds. Both are audited.
- */
 function isSinglePassage(keptJson: string | undefined, quote: string): boolean {
   if (!keptJson) return false;
   const kept: unknown = JSON.parse(keptJson);
@@ -286,9 +226,6 @@ export async function saveClaims(pool: Pool, actor: Actor, conceptId: string, cl
     }
     const before = await c.query("SELECT position, text, quote FROM concept_claims WHERE concept_id = $1 ORDER BY position", [conceptId]);
     if (ACCEPTED.has(b.rows[0].verification_state)) await setChangeReason(c, "returned to review: the claims of an accepted concept changed");
-    // Located evidence passages (imported from content/) support a claim's exact wording: keep them
-    // for a citation whose claim text and source are unchanged; a reworded claim loses them and
-    // must be evidenced again.
     const kept = await c.query<{ text: string; source_id: string; locator: string | null; evidence: unknown }>(
       `SELECT cc.text, cs.source_id::text AS source_id, cs.locator, cs.evidence
          FROM concept_claims cc JOIN concept_claim_sources cs ON cs.claim_id = cc.id
@@ -297,7 +234,6 @@ export async function saveClaims(pool: Pool, actor: Actor, conceptId: string, cl
     );
     const evidenceKey = (text: string, sourceId: string, locator: string | null) => `${text}|${sourceId}|${(locator ?? "").trim()}`;
     const evidenceFor = new Map(kept.rows.map((k) => [evidenceKey(k.text, k.source_id, k.locator), JSON.stringify(k.evidence)]));
-    // Illustration anchors, by the text of the claim they follow (knowledge-07).
     const anchors = await c.query<{ id: string; asset_id: string; position: number; text: string | null }>(
       `SELECT l.id, l.asset_id, l.position, cc.text
          FROM asset_links l LEFT JOIN concept_claims cc ON cc.concept_id = l.concept_id AND cc.position = l.position
@@ -362,12 +298,6 @@ export async function saveClaims(pool: Pool, actor: Actor, conceptId: string, cl
   });
 }
 
-/**
- * Curator notes (Tiptap JSON, sanitised) in `concepts.body`. Never published to learners
- * (bundle body is always null). Saving notes never returns an accepted concept to review:
- * migration 0015 excludes `body` from ie_return_edited_to_review, because notes are not
- * learner-facing.
- */
 export async function saveCuratorNotes(pool: Pool, actor: Actor, conceptId: string, rawDoc: unknown): Promise<{ returnedToReview: boolean }> {
   ensure(actor, ["content.edit", "content.review"]);
   const doc = sanitizeDoc(rawDoc);
@@ -381,10 +311,6 @@ export async function saveCuratorNotes(pool: Pool, actor: Actor, conceptId: stri
     return { returnedToReview: after.rows[0]!.verification_state !== b.rows[0].verification_state };
   });
 }
-
-// ---------------------------------------------------------------------------------------
-// Relationships
-// ---------------------------------------------------------------------------------------
 
 type RelationshipInput = z.infer<typeof relationshipSchema>;
 
@@ -435,7 +361,6 @@ export async function saveRelationship(pool: Pool, actor: Actor, input: Relation
       );
       id = input.relationshipId;
     }
-    // Replace citations only when they differ (each change re-triggers review of an accepted edge).
     const current = await c.query<{ source_id: string; locator: string | null; quote: string | null }>("SELECT source_id, locator, quote FROM relationship_sources WHERE relationship_id = $1 ORDER BY source_id", [id]);
     const wanted = [...input.sources].sort((a, b) => (a.sourceId < b.sourceId ? -1 : 1));
     const same = current.rows.length === wanted.length && current.rows.every((r, i) => r.source_id === wanted[i]!.sourceId && r.locator === wanted[i]!.locator && r.quote === wanted[i]!.quote);
@@ -450,7 +375,6 @@ export async function saveRelationship(pool: Pool, actor: Actor, input: Relation
   });
 }
 
-/** Deletes a relationship that was never accepted (draft / rejected / needs_evidence / archived). */
 export async function deleteRelationship(pool: Pool, actor: Actor, relationshipId: string): Promise<void> {
   ensure(actor, "graph.edit");
   await inActorTx(pool, actor, null, async (c) => {

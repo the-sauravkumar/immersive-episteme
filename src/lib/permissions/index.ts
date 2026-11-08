@@ -1,7 +1,3 @@
-/**
- * Authorisation vocabulary (pure, isomorphic). Server-side enforcement helpers that redirect
- * or throw live in src/server/auth (requirePermission, requireLearningAccess, ...).
- */
 export * from "./roles";
 export * from "./permissions";
 export * from "./matrix";

@@ -1,19 +1,9 @@
-/**
- * Signed invite cookie (deployment source change S11): proof that this browser redeemed a valid
- * invite code. Same HMAC token format as the demo and participant cookies (src/server/auth/signed-token.ts),
- * with its own purpose, so no other token verifies as an invite.
- *
- * Pure (secret passed explicitly, WebCrypto only). src/proxy.ts and ./site-access.ts verify the
- * signature here and then confirm in the database that the code has not been revoked
- * (./gate-lookups.ts).
- */
 import { z } from "zod";
 
 import { INVITE_COOKIE } from "@/server/auth/cookie-names";
 import { signToken, verifyToken } from "@/server/auth/signed-token";
 
 export const INVITE_ACCESS_PURPOSE = "site-invite/v1";
-/** 30 days: long enough for a study with a follow-up, short enough that a leaked cookie ages out. */
 export const INVITE_ACCESS_TTL_SECONDS = 60 * 60 * 24 * 30;
 export { INVITE_COOKIE };
 
@@ -22,7 +12,6 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const inviteClaims = z
   .object({
     t: z.literal("invite"),
-    /** invite_codes.id of the redeemed code. */
     iid: z.string().regex(UUID_RE),
     iat: z.number().int().nonnegative(),
     exp: z.number().int().positive(),

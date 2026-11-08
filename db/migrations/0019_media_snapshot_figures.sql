@@ -23,16 +23,6 @@ ALTER TABLE "snapshot_figures" ADD CONSTRAINT "snapshot_figures_snapshot_id_cont
 ALTER TABLE "snapshot_figures" ADD CONSTRAINT "snapshot_figures_asset_id_assets_id_fk" FOREIGN KEY ("asset_id") REFERENCES "public"."assets"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "snapshot_figures_asset_idx" ON "snapshot_figures" USING btree ("asset_id");--> statement-breakpoint
 
--- =========================================================================================
--- Hand-written below (same conventions as 0003/0005/0018: "ie: " messages, SQLSTATE 23514).
--- Final review knowledge-01, database-01, security-02 (study photographs frozen into the
--- release a study pins) and knowledge-09 (GI evidence of an accepted tradition).
--- =========================================================================================
-
--- Backfill: every release published before this migration keeps the photographs its learners
--- could see on the day the migration runs (the rules of servableSql in
--- src/server/cms/media/service.ts at that time, plus a valid anchor in the release's own claims).
--- Runs before the guard below exists, because these snapshots are already published.
 INSERT INTO snapshot_figures (snapshot_id, concept_id, asset_id, position, caption, alt_text, credit, licence, licence_url, width, height, sha256)
 SELECT s.id, l.concept_id, a.id, l.position,
        btrim(COALESCE(NULLIF(btrim(l.caption_override), ''), a.caption)), btrim(a.alt_text), btrim(a.credit), btrim(a.licence), a.licence_url,
@@ -55,10 +45,6 @@ SELECT s.id, l.concept_id, a.id, l.position,
    )
 ON CONFLICT DO NOTHING;--> statement-breakpoint
 
--- Frozen with the snapshot: a row may be added only while its RELEASE snapshot is a draft (inside
--- publishRelease's transaction), for a concept the snapshot contains and an accepted, real image
--- whose stored file is the one recorded. Nothing may change a row afterwards, and rows of a
--- published snapshot can never be deleted.
 CREATE OR REPLACE FUNCTION ie_snapshot_figures_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -72,7 +58,6 @@ BEGIN
   SELECT * INTO snap FROM content_snapshots
    WHERE id = CASE WHEN TG_OP = 'DELETE' THEN OLD.snapshot_id ELSE NEW.snapshot_id END;
   IF TG_OP = 'DELETE' THEN
-    -- A cascade from a deleted draft snapshot finds no parent row (or a draft one).
     IF snap.status = 'published' THEN
       PERFORM ie_raise(format('figures of published snapshot %s are immutable', snap.version_label));
     END IF;
@@ -103,12 +88,6 @@ CREATE TRIGGER snapshot_figures_guard BEFORE INSERT OR UPDATE OR DELETE ON snaps
 CREATE TRIGGER snapshot_figures_no_truncate BEFORE TRUNCATE ON snapshot_figures
   FOR EACH STATEMENT EXECUTE FUNCTION ie_append_only();--> statement-breakpoint
 
--- =========================================================================================
--- knowledge-09: GI evidence (tradition_sources) is evidence like claim sources. Any change while
--- the tradition is accepted sends it back to review (ie_evidence_changed covers the claim and
--- relationship evidence tables only). The CMS path (setTraditionSource) did this by hand; the
--- content importer did not, so it is now enforced for every writer.
--- =========================================================================================
 CREATE OR REPLACE FUNCTION ie_tradition_evidence_changed()
 RETURNS trigger
 LANGUAGE plpgsql

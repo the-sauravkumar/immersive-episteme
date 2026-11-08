@@ -28,7 +28,6 @@ function ok(result: ReturnType<typeof build>) {
 
 type Json = Record<string, unknown>;
 
-/** Same content, every array that carries no meaning in its order shuffled. */
 function shuffledFiles(seed: number): Json[] {
   return shuffled([alphaFile(), comparisonsFile()], seed).map((f, i) => ({
     ...f,
@@ -50,7 +49,6 @@ describe("review snapshot", () => {
     expect(s.verificationCounts.concepts.under_review).toBe(7);
     expect(s.payload.concepts.map((c) => c.key)).toEqual([...s.payload.concepts.map((c) => c.key)].sort());
     expect(s.itemCount).toBe(s.items.length);
-    // Qualified source ids in comparisons.json resolve to the tradition's source: one row.
     expect(s.payload.sources).toHaveLength(2);
   });
 

@@ -13,7 +13,6 @@ def primary_outcome(bundle: dict[str, Any]) -> dict[str, Any]:
 
 
 def metric_role(bundle: dict[str, Any], metric: str) -> str:
-    """primary | secondary | exploratory."""
     roles = (bundle.get("metricRoles") or {}).get("roles")
     if roles is not None:
         return next((r["role"] for r in roles if r["metric"] == metric), "exploratory")
@@ -23,7 +22,6 @@ def metric_role(bundle: dict[str, Any], metric: str) -> str:
 
 
 def role_report(bundle: dict[str, Any], metric: str, phase: str, baseline_phase: str | None) -> dict[str, Any]:
-    """The role of a requested analysis, and whether it is the preregistered primary analysis."""
     p = primary_outcome(bundle)
     role = metric_role(bundle, metric)
     is_primary_analysis = role == "primary" and phase == p["phase"] and baseline_phase == p["covariate"]["phase"]

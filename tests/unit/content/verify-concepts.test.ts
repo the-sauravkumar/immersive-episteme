@@ -1,9 +1,3 @@
-/**
- * scripts/content/verify-concepts.ts: verifies only the listed concepts, through the CMS
- * `transition()` service with all four evidence checks and a reason; refuses demo content,
- * unknown and duplicate keys; the dry run changes nothing and reports every refusal.
- * And scripts/content/create-curator.ts: the password file must be outside the repository.
- */
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -31,7 +25,6 @@ const row = (key: string, over: Partial<ConceptRow> = {}): ConceptRow => ({
   ...over,
 });
 
-/** A fake pool: answers only the concept lookup, and records every query it is sent. */
 function fakePool(rows: ConceptRow[]) {
   const queries: { sql: string; params: unknown[] }[] = [];
   const pool = {

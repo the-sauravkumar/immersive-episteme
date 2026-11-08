@@ -1,8 +1,3 @@
-/**
- * Server-side validation of an editor payload against the item's concept set and vocabulary.
- * The client runs the same reducer, so a payload that fails here was not produced by the
- * editor; it is refused rather than repaired.
- */
 import { edgeDirected, edgeIdentity, mapPayloadSchema, type MapPayload } from "@/components/assessment/map-state";
 
 import { AssessmentError } from "./common";
@@ -20,7 +15,6 @@ export function validateMapPayload(input: unknown, set: ConceptSet, opts: { rate
   const nodes = payload.nodes.map((n) => {
     const c = expected.get(n.key);
     if (!c || c.conceptId !== n.conceptId) throw new AssessmentError("invalid", "The map must contain exactly the concepts of the task.");
-    // Labels always come from the concept set, never from the client.
     return { ...n, label: c.label };
   });
 

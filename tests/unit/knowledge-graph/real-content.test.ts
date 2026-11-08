@@ -1,8 +1,3 @@
-/**
- * Runs the validator and the review-snapshot builder over the curated content/ (read-only).
- * The curated data is real and source-cited, and only partly verified by source checks: it must
- * have zero error-level issues, must build a review snapshot, and must never build a publishable one.
- */
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 

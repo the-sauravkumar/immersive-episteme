@@ -1,24 +1,3 @@
-/**
- * Condition allocation: pure, seeded and reproducible. Given the study seed, the conditions and
- * the participant's sequence index, the assigned condition can be recomputed by anyone holding
- * the allocation records, which is what `auditAllocations` does.
- *
- * Algorithms (studies.config.allocation.algorithm):
- *  - `block` (default): permuted blocks. Each block holds every condition `weight × k` times
- *    (block size = config.blockSize, default 2 × total weight) in an order shuffled by
- *    Fisher–Yates with a stream derived from (seed, stratum, block index). Balance is exact at
- *    every block boundary.
- *  - `stratified_block`: the same, with an independent block sequence per stratum.
- *  - `simple`: an independent weighted draw per sequence index (no balance guarantee).
- *  - `counterbalanced` (within-subjects period orders) and `manual` are not drawn here; manual
- *    is the reassignment path with a recorded reason.
- *
- * Tradition order within learning is drawn separately by `drawTraditionOrder`.
- *
- * Randomness: u = first 32 bits of sha256("<seed>|<stratum>|<block>|<draw>") / 2^32. sha256 is
- * a deterministic, platform-independent stream; it is not used for secrecy. Allocation
- * concealment comes from keeping the seed in the (staff-only) study config.
- */
 import { createHash } from "node:crypto";
 
 export interface AllocatableCondition {
@@ -32,9 +11,7 @@ export type DrawAlgorithm = "block" | "stratified_block" | "simple";
 export interface AllocationDraw {
   conditionId: string;
   conditionCode: string;
-  /** Block number within the stratum sequence (null for simple). */
   blockIndex: number | null;
-  /** Position inside the block (null for simple). */
   positionInBlock: number | null;
 }
 
@@ -50,7 +27,6 @@ function uniform(seed: string, stratum: string, block: number | string, draw: nu
   return parseInt(hex.slice(0, 8), 16) / 4294967296;
 }
 
-/** Canonical order (by code) so the result never depends on database row order. */
 function canonical(conditions: readonly AllocatableCondition[]): AllocatableCondition[] {
   if (conditions.length < 2) throw new AllocationConfigError("allocation needs at least two conditions");
   for (const c of conditions) {
@@ -63,7 +39,6 @@ export function defaultBlockSize(conditions: readonly AllocatableCondition[]): n
   return 2 * conditions.reduce((n, c) => n + c.weight, 0);
 }
 
-/** The shuffled content of one block. */
 export function permutedBlock(
   seed: string,
   stratum: string,
@@ -79,7 +54,6 @@ export function permutedBlock(
   const reps = blockSize / total;
   const block: AllocatableCondition[] = [];
   for (const c of sorted) for (let i = 0; i < c.weight * reps; i++) block.push(c);
-  // Fisher–Yates, from the end.
   for (let i = block.length - 1; i > 0; i--) {
     const j = Math.floor(uniform(seed, stratum, blockIndex, block.length - 1 - i) * (i + 1));
     [block[i], block[j]] = [block[j]!, block[i]!];
@@ -87,11 +61,6 @@ export function permutedBlock(
   return block;
 }
 
-/**
- * The condition for the `index`-th participant of a stratum sequence (0-based). For `block` the
- * stratum is always "" and `index` is the study-wide sequence index; for `stratified_block` it
- * is the index within the stratum.
- */
 export function drawCondition(input: {
   algorithm: DrawAlgorithm;
   seed: string;
@@ -148,7 +117,6 @@ export interface RecordedAllocation {
   algorithm: string;
   seed: string;
   sequenceIndex: number;
-  /** Index within the stratum sequence (stratified) — recomputed from order when absent. */
   stratum: string | null;
   period: number;
 }
@@ -159,10 +127,6 @@ export interface AllocationAuditResult {
   mismatches: { participantId: string; sequenceIndex: number; recorded: string; expected: string }[];
 }
 
-/**
- * Recomputes every drawn (non-manual) period-1 allocation from its recorded seed and index and
- * reports any record whose condition differs. Rows must be the study's allocations.
- */
 export function auditAllocations(
   rows: readonly RecordedAllocation[],
   conditions: readonly AllocatableCondition[],

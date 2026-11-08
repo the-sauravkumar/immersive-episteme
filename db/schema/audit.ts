@@ -1,9 +1,3 @@
-/**
- * Append-only audit log. UPDATE, DELETE and TRUNCATE are rejected by triggers (migration
- * 0003). `actor_id` is plain text (not an FK) because actors may be staff users, the system
- * or a pseudonymous participant code, and entries must outlive every referenced row.
- * IP addresses are never stored raw: only a keyed hash (`ip_hash`).
- */
 import { sql } from "drizzle-orm";
 import { check, index, jsonb, pgTable, text } from "drizzle-orm/pg-core";
 

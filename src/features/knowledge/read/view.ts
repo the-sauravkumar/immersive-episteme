@@ -1,14 +1,3 @@
-/**
- * Knowledge read view: typed, pure queries over ONE immutable knowledge bundle (the
- * `content_snapshots.payload` contract, src/features/knowledge/contracts.ts).
- *
- * Both learning conditions read knowledge only through these shapes (server side via
- * src/server/knowledge/read-model.ts, which loads the bundle by snapshot id and caches the
- * results), so the 2D pages and the 3D museum present the same claims, sources and links.
- *
- * Pure TypeScript, no I/O: safe to unit-test and to import from client code for the types.
- * Nothing here invents text: every string comes from the bundle.
- */
 import type { KnowledgeBundle } from "@/features/knowledge/contracts";
 import { balanceDiagramSets, buildStructureDiagrams, type StructureDiagram } from "@/features/knowledge/read/diagrams";
 import {
@@ -27,11 +16,9 @@ type BundleRelationship = KnowledgeBundle["relationships"][number];
 type BundleSource = KnowledgeBundle["sources"][number];
 type BundleType = KnowledgeBundle["relationshipTypes"][number];
 
-/** Header facts about the snapshot every page should be able to show. */
 export interface SnapshotInfo {
   versionLabel: string;
   isDemo: boolean;
-  /** True for review snapshots: the content is NOT curator-verified and must be labelled so. */
   includesUnverified: boolean;
   generatedAt: string;
   counts: { traditions: number; concepts: number; relationships: number; sources: number };
@@ -39,11 +26,6 @@ export interface SnapshotInfo {
 
 export interface SourceView {
   id: string;
-  /**
-   * Human-readable short label for buttons and lists ("<author> <year>", else "<publisher> <year>",
-   * else the shortened title). Derived from the bundle fields, so older bundles get it too; never
-   * show the uuid `id` to learners.
-   */
   label: string;
   kind: ProvenanceKind;
   title: string;
@@ -56,15 +38,12 @@ export interface SourceView {
   verificationState: VerificationState;
 }
 
-/** A located verbatim passage from a cited source that supports the claim. */
 export interface EvidencePassage {
   locator: string;
   quote: string;
-  /** What a curator must check by hand (e.g. a passage whose extracted text was corrupted). */
   note: string | null;
 }
 
-/** A cited source with the citation's own locator/quote and its supporting passages. */
 export interface Citation extends SourceView {
   locator: string | null;
   quote: string | null;
@@ -97,19 +76,15 @@ export interface TraditionSummary {
 
 export interface TraditionDetail extends TraditionSummary {
   gi: { registered: boolean | null; applicationNo: string | null; year: number | null; sources: SourceView[] } | null;
-  /** The tradition's own `tradition` concept (its sourced overview), if present. */
   overviewConcept: ConceptRef | null;
-  /** Every concept of the tradition grouped by concept type (types with no concepts omitted). */
   conceptsByType: Partial<Record<ConceptType, ConceptRef[]>>;
 }
 
 export interface ClaimView {
   id: string;
-  /** 0-based authored position. */
   position: number;
   text: string;
   quote: string | null;
-  /** Resolved sources cited by this claim (the evidence). */
   evidence: Citation[];
 }
 
@@ -121,9 +96,7 @@ export interface ConceptDetail extends ConceptRef {
   compares: ConceptRef[];
   tradition: { id: string; slug: string; name: string } | null;
   claims: ClaimView[];
-  /** Distinct sources cited by any claim, in first-citation order. */
   sources: SourceView[];
-  /** Evidence profile: how many claims rest on each provenance kind / reliability. */
   evidenceSummary: {
     claims: number;
     sourcedClaims: number;
@@ -140,7 +113,6 @@ export interface RelatedConcept {
   type: string;
   semantics: RelationshipSemantics;
   direction: RelationDirection;
-  /** Reading from the current concept: the type label (outgoing/undirected) or inverse label (incoming). */
   label: string;
   concept: ConceptRef;
   explanation: string | null;
@@ -152,7 +124,6 @@ export interface RelatedConcept {
   evidence: Citation[];
 }
 
-/** Related concepts grouped by semantics class, in RELATIONSHIP_SEMANTICS order. */
 export type RelatedConceptGroups = { semantics: RelationshipSemantics; relations: RelatedConcept[] }[];
 
 export interface ProcessLink {
@@ -166,23 +137,14 @@ export interface ProcessLink {
 }
 
 export interface ProcessSequence {
-  /** Concepts in sequence order, following PRECEDES edges by ascending ordinal. */
   steps: ConceptRef[];
-  /** The ordinalled PRECEDES edges of this sequence, ascending. */
   links: ProcessLink[];
-  /** True when every edge starts where the previous one ended. */
   continuous: boolean;
 }
 
 export interface ProcessChain extends ProcessSequence {
   traditionSlug: string;
-  /**
-   * `steps`/`links` are the PROCESS: ordinalled PRECEDES edges between two process_stage
-   * concepts of the tradition. Other ordinalled PRECEDES sequences (e.g. a two-step historical
-   * chronology between historical_context concepts) are listed here, one per connected sequence.
-   */
   otherSequences: ProcessSequence[];
-  /** PRECEDES edges without an ordinal (marked repeat loops and the like); not part of any sequence. */
   unorderedLinks: ProcessLink[];
 }
 
@@ -190,17 +152,11 @@ export interface ComparisonView {
   concept: ConceptRef;
   compares: ConceptRef[];
   claims: ClaimView[];
-  /** SIMILAR_TO / CONTRASTS_WITH links touching the comparison or the compared concepts across traditions. */
   links: { relationshipId: string; type: string; a: ConceptRef; b: ConceptRef; explanation: string | null; evidence: Citation[] }[];
 }
 
 const byString = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
-/**
- * Display label of a source (see SourceView.label). Uses only fields present in the bundle. Long
- * names are cut at a word boundary (DESIGN.md 9.8: never mid-word), which fixes the 2D and 3D
- * "Stated by" lines together.
- */
 export function sourceDisplayLabel(s: { author: string | null; publisher: string | null; year: number | null; title: string }): string {
   const who = s.author?.trim() || s.publisher?.trim() || null;
   const year = s.year != null ? String(s.year) : null;
@@ -208,17 +164,12 @@ export function sourceDisplayLabel(s: { author: string | null; publisher: string
   return year ? `${wordCut(s.title, 56)} (${year})` : wordCut(s.title, 64);
 }
 
-/**
- * Binds a locator's abbreviation to what follows with no-break spaces, so "PDF p. 4" never breaks
- * between "PDF" and "p." or between "p." and "4"; the source line wraps only between its parts.
- */
 function bindLocator(locator: string): string {
   return locator
     .replace(/\b(PDF)\s+(?=pp?\.)/g, "$1 ")
     .replace(/(\b(?:pp?|figs?|nos?|vols?|ch|chap|paras?|sec|cols?|ll?|art|pl)\.|§)\s+(?=[\dIVXLCivxlc])/g, "$1 ");
 }
 
-/** Cuts `text` to at most `max` characters at a word boundary (never mid-word), adding "…". */
 function wordCut(text: string, max: number): string {
   const t = text.trim().replace(/\s+/g, " ");
   if (t.length <= max) return t;
@@ -227,7 +178,6 @@ function wordCut(text: string, max: number): string {
   return `${(at > max / 3 ? cut.slice(0, at) : cut).replace(/[\s,;:·–—-]+$/u, "")}…`;
 }
 
-/** First author (or publisher) as a short name: no parenthetical, first of several, "Surname, Given" -> "Surname". */
 function shortName(raw: string | null): string | null {
   if (!raw) return null;
   let s = raw.replace(/\([^)]*\)/g, " ").split(";")[0]!.split(/\s[—–]\s/)[0]!.replace(/\s+/g, " ").trim();
@@ -237,14 +187,6 @@ function shortName(raw: string | null): string | null {
   return s ? wordCut(s, 48) : null;
 }
 
-/**
- * The short label of a citation under its claim (DESIGN.md 9.8): first author or publisher short
- * name, the year in brackets, then the citation's own locator, e.g. "Victoria and Albert Museum
- * (2007), p. 2". No middle dot (DR-022).
- * Derived here from the bundle fields, never hand-written into content/. Every part is cut only
- * at a word boundary, so the label wraps to at most two lines at the claim measure and is never
- * truncated mid-word.
- */
 export function shortCitationLabel(c: { author: string | null; publisher: string | null; year: number | null; title: string; locator?: string | null }): string {
   const who = shortName(c.author) ?? shortName(c.publisher) ?? wordCut(c.title, 56);
   const year = c.year != null && c.year > 0 ? String(c.year) : null;
@@ -253,13 +195,6 @@ export function shortCitationLabel(c: { author: string | null; publisher: string
   return locator ? `${head}, ${locator}` : head;
 }
 
-/**
- * The deduplicated reference list of a set of claims (DESIGN.md 9.9; DR-022 Addendum A): every
- * cited source once, numbered in order of first citation (claim order, then citation order within
- * a claim). The number of a claim's marker [n] is the source's position here plus one, so a source
- * cited by several claims carries the same number everywhere in the view. Pure and deterministic:
- * the server render, the client render and both conditions number identically.
- */
 export function referencesOf<C extends { id: string }>(claims: readonly { evidence: readonly C[] }[]): C[] {
   const seen = new Set<string>();
   const out: C[] = [];
@@ -273,42 +208,29 @@ export function referencesOf<C extends { id: string }>(claims: readonly { eviden
   return out;
 }
 
-/** Marker numbers by source id for a set of claims (1-based, as `referencesOf`). */
 export function referenceNumbers(claims: readonly { evidence: readonly { id: string }[] }[]): Map<string, number> {
   return new Map(referencesOf(claims).map((c, i) => [c.id, i + 1]));
 }
 
-// ---------------------------------------------------------------------------------------
-// Knowledge figures (DESIGN.md 9.9; DR-018)
-// ---------------------------------------------------------------------------------------
-
 interface FigureBase {
-  /** Stable id (the diagram id, or the asset id). */
   id: string;
-  /** Concept the figure belongs to. */
   conceptId: string;
-  /** Zero-based index of the anchor claim; the figure renders right after it. */
   anchorClaimIndex: number;
-  /** Caption without the "Fig. n" prefix. Restates or points to the anchor claim; adds nothing. */
   caption: string;
-  /** Text equivalent; never repeats the caption. */
   alt: string;
 }
 
-/** A diagram generated from the knowledge graph (DR-018, "now"). */
 export interface DiagramFigure extends FigureBase {
   kind: "diagram";
   credit: string;
   diagram: StructureDiagram;
 }
 
-/** A rights-cleared photograph (DR-018, "later"), served by the learner figure route. */
 export interface PhotoFigure extends FigureBase {
   kind: "photo";
   src: string;
   width: number;
   height: number;
-  /** e.g. "Name, Institution". */
   credit: string;
   licence: string;
   licenceUrl: string | null;
@@ -316,12 +238,10 @@ export interface PhotoFigure extends FigureBase {
 
 export type KnowledgeFigureData = DiagramFigure | PhotoFigure;
 
-/** One approved illustration link of a concept, as the read model loads it (role `illustration`). */
 export interface IllustrationLink {
   assetId: string;
   conceptId: string;
   role: string;
-  /** asset_links.position: the zero-based index of the anchor claim. */
   position: number;
   src: string;
   width: number;
@@ -335,20 +255,10 @@ export interface IllustrationLink {
   sourceUrl: string;
 }
 
-/**
- * The anchor-claim gate of a study photograph (DR-020: "a photo goes live only when its anchor claim
- * is verified"). A claim is verified with its concept (claims carry no state of their own; curators
- * verify a concept's claims together), so the gate is open only when the anchor concept, as frozen
- * in the snapshot both conditions read, is verified or published.
- */
 export function photoGateOpen(conceptVerificationState: string): boolean {
   return conceptVerificationState === "verified" || conceptVerificationState === "published";
 }
 
-/**
- * Photo figures of a concept: illustration links only, anchored to an existing claim, by position,
- * and only while the anchor claim's gate is open (`photoGateOpen`).
- */
 export function photoFiguresOf(
   concept: { id: string; claimCount: number; verificationState: string },
   links: readonly IllustrationLink[],
@@ -418,27 +328,18 @@ export function conceptPhotosOf(view: Pick<KnowledgeView, "getConcept">, links: 
   });
 }
 
-/** Credit line of every graph-derived diagram (DESIGN.md 9.9). */
 export function diagramCredit(snapshotLabel: string): string {
   return `Diagram generated from the project's knowledge graph (snapshot ${snapshotLabel})`;
 }
 
-/** The figure of a diagram, attached to its anchor concept and claim. */
 export function diagramFigureOf(d: StructureDiagram, credit: string): DiagramFigure {
   return { kind: "diagram", id: d.id, conceptId: d.anchor.conceptId, anchorClaimIndex: d.anchor.claimIndex, caption: d.caption, alt: d.alt, credit, diagram: d };
 }
 
-/**
- * The figures of one concept view (12.3 rule 9: at most ONE figure per concept). The structure
- * diagram, when the protocol shows them, is balanced by construction and takes the slot; a
- * photograph is used otherwise, while the protocol shows photographs (`figures.photos`, DR-020).
- * Both conditions call this with the same arguments.
- */
 export function resolveConceptFigures(input: {
   diagrams: readonly DiagramFigure[];
   photos: readonly PhotoFigure[];
   structureDiagrams: boolean;
-  /** The protocol switch `figures.photos` (default on); off shows no photograph in either condition. */
   photosOn?: boolean;
 }): KnowledgeFigureData[] {
   const diagram = input.structureDiagrams ? input.diagrams[0] : undefined;
@@ -448,17 +349,10 @@ export function resolveConceptFigures(input: {
 }
 
 export interface DiagramScope {
-  /** Traditions in scope (the study's traditions; every tradition outside a study). */
   traditionSlugs: readonly string[];
-  /** Traditions whose diagram types must be equal (the study traditions in scope, else all in scope). */
   balanceSlugs: readonly string[];
 }
 
-/**
- * Every balanced structure-diagram figure in scope, by concept id. A diagram type is kept for a
- * tradition only when every tradition in `balanceSlugs` has that type (k(section) = the minimum),
- * so the study traditions get the same types in the same sections.
- */
 export function diagramFiguresByConcept(view: Pick<KnowledgeView, "info" | "structureDiagrams">, scope: DiagramScope): Map<string, DiagramFigure[]> {
   const credit = diagramCredit(view.info().versionLabel);
   const slugs = [...new Set([...scope.traditionSlugs, ...scope.balanceSlugs])];
@@ -480,18 +374,14 @@ export interface KnowledgeView {
   info(): SnapshotInfo;
   listTraditions(): TraditionSummary[];
   getTradition(slug: string): TraditionDetail | null;
-  /** By concept key, slug or id. */
   getConcept(keyOrSlugOrId: string): ConceptDetail | null;
   getProcessChain(traditionSlug: string): ProcessChain | null;
   getRelatedConcepts(keyOrSlugOrId: string): RelatedConceptGroups | null;
   getComparisons(opts?: { traditionSlug?: string }): ComparisonView[];
-  /** Concept refs by id (search hits, telemetry, manifest elements). */
   conceptRefsById(ids: readonly string[]): ConceptRef[];
-  /** The graph-derived structure diagrams of a tradition (DR-018), before balancing. */
   structureDiagrams(traditionSlug: string): StructureDiagram[];
 }
 
-/** Builds the indexes once; every query is then a map lookup or a small scan. */
 export function createKnowledgeView(bundle: KnowledgeBundle): KnowledgeView {
   const traditionById = new Map<string, BundleTradition>(bundle.traditions.map((t) => [t.id, t]));
   const traditionBySlug = new Map<string, BundleTradition>(bundle.traditions.map((t) => [t.slug, t]));
@@ -550,9 +440,6 @@ export function createKnowledgeView(bundle: KnowledgeBundle): KnowledgeView {
       position,
       text: cl.text,
       quote: cl.quote,
-      // Each citation carries its own located passages (content/FORMAT.md "Claim evidence"); its
-      // quote is the first passage. Without passages, the claim's own quote is attached only when
-      // the claim cites exactly one source (otherwise it is unknown which source it comes from).
       evidence: cl.sources
         .map((s) => {
           const passages = (s.evidence ?? []).map((e) => ({ locator: e.locator, quote: e.quote, note: e.note }));
@@ -683,7 +570,6 @@ export function createKnowledgeView(bundle: KnowledgeBundle): KnowledgeView {
       const ordinalled = precedes.filter((r) => r.ordinal != null);
       const isStageEdge = (r: BundleRelationship) => concept(r.source)?.type === "process_stage" && concept(r.target)?.type === "process_stage";
 
-      // Connected components of the non-process ordinalled edges (union-find over concept keys).
       const others = ordinalled.filter((r) => !isStageEdge(r));
       const parent = new Map<string, string>();
       const root = (k: string): string => {

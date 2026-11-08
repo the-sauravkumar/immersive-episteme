@@ -77,11 +77,11 @@ describe("entity validation (1xx)", () => {
 
   it("detects duplicate keys, namespace mismatch, demo markers, comparison arity and unknown compares", () => {
     const model = load(alphaFile(), comparisonsFile());
-    model.concepts.push({ ...model.concepts[1]!, packageSlug: "comparisons" }); // KG103 + KG104
-    model.concepts[2]!.title = "Demo: stage two"; // KG105
+    model.concepts.push({ ...model.concepts[1]!, packageSlug: "comparisons" });
+    model.concepts[2]!.title = "Demo: stage two";
     const cmp = model.concepts.find((c) => c.type === "comparison")!;
-    cmp.compares = ["alpha.process_stage.missing"]; // KG108 + KG109
-    model.packages[0]!.mediaCandidates.push({ url: "https://example.org/m", title: "m", licence: null, author: null, depicts: "alpha.tool.nope", width: null, height: null, mime: null, dimensionsSource: null }); // KG110
+    cmp.compares = ["alpha.process_stage.missing"];
+    model.packages[0]!.mediaCandidates.push({ url: "https://example.org/m", title: "m", licence: null, author: null, depicts: "alpha.tool.nope", width: null, height: null, mime: null, dimensionsSource: null });
     expect(codes(run(validateEntities, model))).toEqual(["KG103", "KG104", "KG105", "KG108", "KG109", "KG110"]);
   });
 
@@ -100,15 +100,15 @@ describe("relationship validation (2xx)", () => {
 
   it("rejects unknown types, missing endpoints, self-loops, duplicates, reverse undirected pairs and stray ordinals", () => {
     const model = load(alphaFile());
-    const base = model.relationships[2]!; // stage-one USES material-a
+    const base = model.relationships[2]!;
     model.relationships.push(
-      { ...base, type: "RELATES_SOMEHOW" }, // KG200
-      { ...base, target: "alpha.material.ghost" }, // KG201
-      { ...base, target: base.source }, // KG202
-      { ...base, packageSlug: "comparisons" }, // KG203
+      { ...base, type: "RELATES_SOMEHOW" },
+      { ...base, target: "alpha.material.ghost" },
+      { ...base, target: base.source },
+      { ...base, packageSlug: "comparisons" },
       { ...base, type: "SIMILAR_TO", source: `${A}.stage-two`, target: `${A}.stage-three` },
-      { ...base, type: "SIMILAR_TO", source: `${A}.stage-three`, target: `${A}.stage-two` }, // KG204
-      { ...base, type: "USES", target: "alpha.tool.tool-b", ordinal: 4 }, // KG205
+      { ...base, type: "SIMILAR_TO", source: `${A}.stage-three`, target: `${A}.stage-two` },
+      { ...base, type: "USES", target: "alpha.tool.tool-b", ordinal: 4 },
     );
     expect(codes(run(validateRelationships, model))).toEqual(["KG200", "KG201", "KG202", "KG203", "KG204", "KG205"]);
   });
@@ -133,7 +133,7 @@ describe("cycle checks (3xx)", () => {
     relsOf(f).push(rel(`${A}.stage-two`, "DEPENDS_ON", `${A}.stage-one`), rel(`${A}.stage-one`, "DEPENDS_ON", `${A}.stage-two`));
     const issues = run(validateCycles, load(f));
     expect(issues.filter((i) => i.code === "KG300")).toHaveLength(2);
-    expect(codes(issues)).toEqual(["KG300"]); // the DEPENDS_ON cycle is not re-reported as KG303
+    expect(codes(issues)).toEqual(["KG300"]);
   });
 
   it("rejects an unmarked PRECEDES cycle but accepts one closed by a marked loop", () => {
@@ -220,12 +220,12 @@ describe("provenance (4xx)", () => {
 
   it("rejects missing claims and unresolved or absent sources", () => {
     const model = load(alphaFile());
-    model.concepts[1]!.claims = []; // KG400
-    model.concepts[2]!.claims[0]!.sourceRefs = []; // KG401
-    model.concepts[3]!.claims[0]!.sourceRefs = ["alpha#S9"]; // KG402
-    model.relationships[0]!.sourceRefs = []; // KG403
-    model.relationships[1]!.sourceRefs = ["alpha#S9"]; // KG404
-    model.packages[0]!.gi!.sourceRefs = ["alpha#S9"]; // KG411
+    model.concepts[1]!.claims = [];
+    model.concepts[2]!.claims[0]!.sourceRefs = [];
+    model.concepts[3]!.claims[0]!.sourceRefs = ["alpha#S9"];
+    model.relationships[0]!.sourceRefs = [];
+    model.relationships[1]!.sourceRefs = ["alpha#S9"];
+    model.packages[0]!.gi!.sourceRefs = ["alpha#S9"];
     expect(codes(run(validateProvenance, model).filter((i) => i.severity === "error"))).toEqual(["KG400", "KG401", "KG402", "KG403", "KG404", "KG411"]);
   });
 
@@ -237,7 +237,6 @@ describe("provenance (4xx)", () => {
     expect(model.relationships[0]!.evidence).toEqual([{ ref: `alpha#${(r0.source_ids as string[])[0]}`, locator: "PDF p. 1", quote: "a placeholder passage" }]);
     expect(run(validateProvenance, model).filter((i) => i.severity !== "info")).toEqual([]);
 
-    // A model built in code (or a file that skipped the schema) is caught by the validator itself.
     model.relationships[0]!.evidence = [{ ref: "alpha#S9", locator: "PDF p. 1", quote: "a placeholder passage" }];
     const issues = run(validateProvenance, model).filter((i) => i.code === "KG412");
     expect(issues).toHaveLength(1);
@@ -287,9 +286,9 @@ describe("duplicates (5xx)", () => {
   it("rejects same title+type in a file and warns on near-duplicates and repeated claims", () => {
     const f = alphaFile();
     conceptsOf(f).push(
-      concept(`${A}.stage-one-again`, "process_stages", "Stage One!"), // exact after normalisation
+      concept(`${A}.stage-one-again`, "process_stages", "Stage One!"),
       concept("alpha.material.mixture-one", "materials", "Material alpha mixture"),
-      concept("alpha.material.mixture-two", "materials", "Material alpha mixtures"), // near duplicate
+      concept("alpha.material.mixture-two", "materials", "Material alpha mixtures"),
       concept("alpha.tool.tool-c", "tools", "Tool C", [claim("Same text."), claim("Same  text")]),
     );
     const issues = run(validateDuplicates, load(f));

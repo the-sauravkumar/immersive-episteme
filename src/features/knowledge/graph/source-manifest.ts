@@ -1,9 +1,3 @@
-/**
- * content/review/source-manifest.tsv: one row per archived source URL
- * (`cache_id  http_status  sha256  url`). The archive itself is kept outside the repository
- * (copyright); the manifest records what was fetched and its hash (verification.md V5).
- */
-
 export interface SourceManifestEntry {
   cacheId: string;
   httpStatus: number | null;
@@ -29,7 +23,6 @@ export function parseSourceManifest(text: string): SourceManifestEntry[] {
   });
 }
 
-/** Normalised URL key (manifest and content may differ in a trailing slash). */
 export function manifestUrlKey(url: string): string {
   return url.trim().replace(/\/+$/, "");
 }

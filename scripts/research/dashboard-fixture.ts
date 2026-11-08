@@ -1,13 +1,3 @@
-/**
- * Load fixture for the research dashboard (bench: scripts/research/bench-dashboard.ts; test:
- * tests/integration/research-dashboard-perf.test.ts). Builds, in a THROWAWAY database made by
- * tests/integration/schema-harness.ts, an active study with `sessions` sessions across the two
- * conditions, each with about `eventsPerSession` telemetry events in realistic interval sequences
- * (navigation → exposure with pauses, citations, relationships, guidance), in batches of 100,
- * plus pre/post concept maps with stored scores, knowledge-test totals and the D7 questionnaire
- * answers. `activeSessions` stay in progress; the rest are completed. Never run against the
- * development database: it writes synthetic participants.
- */
 import { randomUUID } from "node:crypto";
 
 import type { Pool } from "pg";
@@ -19,7 +9,6 @@ export interface FixtureOptions {
   sessions: number;
   eventsPerSession: number;
   activeSessions: number;
-  /** Concepts in the study snapshot (pairs from createRealGraph). */
   concepts?: number;
 }
 
@@ -29,12 +18,10 @@ export interface Fixture {
   conditions: { c2d: string; c3d: string };
   concepts: string[];
   sourceId: string;
-  /** Sessions still in progress (events can be appended). */
   active: { sessionId: string; participantId: string; conditionId: string; nextSeq: number; clientMs: number }[];
   events: number;
 }
 
-/** Small deterministic PRNG (mulberry32). */
 function rng(seed: number) {
   let a = seed >>> 0;
   return () => {
@@ -54,10 +41,6 @@ export interface GenEvent {
   clientMs: number;
 }
 
-/**
- * A realistic event sequence from `startSeq`: navigation interval, then an exposure interval with
- * occasional pause/resume, citation, relationship, guidance and concept_encountered events.
- */
 export function generateEvents(seed: number, count: number, concepts: readonly string[], sourceId: string, startSeq = 0, startMs = 0): GenEvent[] {
   const r = rng(seed);
   const out: GenEvent[] = [];
@@ -98,7 +81,6 @@ export function generateEvents(seed: number, count: number, concepts: readonly s
 
 const BASE_TS = Date.UTC(2026, 0, 1, 9, 0, 0);
 
-/** Inserts events for one session in batches of 100 (one telemetry_batches row each). */
 export async function insertEvents(pool: Pool, s: { studyId: string; participantId: string; sessionId: string; conditionId: string }, events: readonly GenEvent[], snapshotLabel: string): Promise<void> {
   for (let i = 0; i < events.length; i += 100) {
     const chunk = events.slice(i, i + 100);
@@ -147,7 +129,6 @@ export async function buildDashboardFixture(pool: Pool, opts: FixtureOptions): P
   await pool.query("UPDATE studies SET status = 'active' WHERE id = $1", [st.studyId]);
   const { c2d, c3d } = st.conditionIds;
 
-  // Assessments: reconstruction map, pre/post knowledge tests, D7 instruments (latest versions).
   const map = await one<{ id: string }>(pool, "INSERT INTO assessments (code, version, kind, title) VALUES ($1, 1, 'reconstruction', 'Map') RETURNING id", [`${snapshotLabel}-map`]);
   const item = await one<{ id: string }>(
     pool,
@@ -190,7 +171,6 @@ export async function buildDashboardFixture(pool: Pool, opts: FixtureOptions): P
     await insertEvents(pool, ref, ev, snapshotLabel);
     events += ev.length;
 
-    // Concept maps with stored scores.
     for (const phase of ["pre", "post"] as const) {
       const m = await one<{ id: string }>(
         pool,
@@ -218,7 +198,6 @@ export async function buildDashboardFixture(pool: Pool, opts: FixtureOptions): P
         [s.id, p.id, aid, v],
       );
     }
-    // Questionnaire answers (presence for 3D only; SSQ twice).
     for (const ins of instruments) {
       if (ins.code === "mps-physical-presence" && conditionId !== c3d) continue;
       const attempts = ins.code === "ssq" ? [1, 2] : [1];
@@ -240,7 +219,6 @@ export async function buildDashboardFixture(pool: Pool, opts: FixtureOptions): P
       await pool.query("UPDATE study_sessions SET status = 'completed', completed_at = now(), last_activity_at = now() WHERE id = $1", [s.id]);
     }
   }
-  // A little data-quality noise.
   const first = active[0];
   if (first) {
     await pool.query("INSERT INTO sequence_gaps (session_id, kind, from_seq, to_seq) VALUES ($1, 'gap', $2, $2)", [first.sessionId, first.nextSeq + 1000]);
@@ -250,7 +228,6 @@ export async function buildDashboardFixture(pool: Pool, opts: FixtureOptions): P
   return { studyId: st.studyId, snapshotLabel, conditions: { c2d, c3d }, concepts: conceptIds, sourceId, active, events };
 }
 
-/** Appends `count` events to an active session (as an ingest batch would). */
 export async function appendEvents(pool: Pool, f: Fixture, index: number, count: number): Promise<void> {
   const a = f.active[index]!;
   const ev = generateEvents(1000 + index * 7 + a.nextSeq, count, f.concepts, f.sourceId, a.nextSeq, a.clientMs);

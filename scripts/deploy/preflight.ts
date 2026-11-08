@@ -1,40 +1,3 @@
-/**
- * Deploy preflight: everything that can be checked BEFORE a production deploy, read-only.
- *
- *   npx tsx scripts/deploy/preflight.ts --env-file <path> [--mode production|local]
- *        [--skip-db] [--skip-s3] [--skip-source] [--build]
- *
- * Sections (each row PASS / FAIL / WARN / SKIP / INFO; exit code 1 when any row FAILs):
- *  1. env      the file against the app's own schemas (src/lib/env.ts serverEnvSchema with
- *              NODE_ENV=production, src/server/cms/media/storage.ts parseMediaEnv) plus the
- *              production rules from docs/deploy/RESEARCH.md (TLS, region, client-IP header,
- *              pool size, 64 KB limit, forbidden variables, secret reuse).
- *  2. source   the invite gate (scripts/deploy/invite-gate.ts; FAIL in production, because a
- *              `vercel deploy --prod` from this machine builds the local tree and vercel.json's
- *              ignoreCommand is not relied on for CLI deploys), the other source changes the
- *              deploy depends on, and the repo config (vercel.json, .gitignore, .vercelignore,
- *              lockfile, git state).
- *  3. db       connects to the DIRECT URL (DATABASE_URL_UNPOOLED, else DATABASE_URL) with the
- *              TLS settings production uses, inside a READ ONLY transaction: TLS on the socket,
- *              server and extension versions, non-superuser role, migrations current (same
- *              hashes drizzle's migrator computes), max_connections; then one query through the
- *              pooled DATABASE_URL when it differs.
- *  4. s3       HeadBucket with the file's explicit keys (never the ambient AWS chain); on AWS
- *              the expected bucket owner = the account in docs/deploy/aws-resources.md; the
- *              bucket refuses anonymous listing, and a CORS preflight from the production origin
- *              succeeds. Works for AWS S3 and S3-compatible stores (Cloudflare R2).
- *
- * Providers: the deployer chooses Neon or Amazon RDS, and Cloudflare R2 or AWS S3. The env
- * section detects the choice from the file (scripts/deploy/lib/topology.ts), checks each as it is,
- * and prints the one `regions` value vercel.json must carry next to the database (bom1 for RDS in
- * ap-south-1, sin1 for Neon in aws-ap-southeast-1); a different value FAILs in production.
- *  5. build    only with --build: `npm run build` with the file's variables. It overwrites
- *              .next, so run it only when no other heavy job is running.
- *
- * Mode: `production` (default) applies every production rule. `local` validates a development
- * file (for example the repo's .env) and reports production-only rules as INFO instead of FAIL.
- * Never prints secret values: only names, lengths and redacted URLs.
- */
 import { execFileSync, spawnSync } from "node:child_process";
 import { X509Certificate } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
@@ -51,10 +14,8 @@ import { clientIpPolicy } from "../../src/lib/client-ip";
 import { mediaUploadOrigin } from "../../src/lib/security/csp";
 import { parseMediaEnv } from "../../src/server/cms/media/storage";
 
-/** sslmode values that verify the server: pg-connection-string treats `require` as verify-full. */
 const VERIFYING_SSLMODES = new Set(["verify-full", "require"]);
 
-// Snapshot before anything (scripts/db/_shared.ts, imported lazily below) loads the repo .env.
 const PARENT_ENV: NodeJS.ProcessEnv = { ...process.env };
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 
@@ -81,7 +42,6 @@ if (args.mode !== "production" && args.mode !== "local") {
 const PROD = args.mode === "production";
 const envPath = resolve(args["env-file"]);
 const report = new Report();
-/** A production rule: FAIL in production mode, INFO in local mode. */
 const rule = (ok: boolean): Status => (ok ? "PASS" : PROD ? "FAIL" : "INFO");
 
 const readRepo = (rel: string): string | null => {
@@ -101,9 +61,6 @@ const errText = (e: unknown): string => {
   return `${err.name ?? "Error"}${err.code ? ` ${err.code}` : ""}${status}: ${(err.message ?? String(e)).split("\n")[0]}`.slice(0, 200);
 };
 
-// ---------------------------------------------------------------------------------------------
-// 1. Environment file
-// ---------------------------------------------------------------------------------------------
 if (!existsSync(envPath)) {
   report.add("env", "file exists", "FAIL", envPath);
   report.print("Deploy preflight");
@@ -121,7 +78,6 @@ if (insideRepo) {
   report.add("env", "file kept out of git", "PASS", "outside the repo");
 }
 
-// Forbidden and unknown names.
 const known = new Set(CATALOG.map((e) => e.name));
 for (const name of Object.keys(fileEnv)) {
   if (known.has(name)) continue;
@@ -133,13 +89,11 @@ for (const e of CATALOG.filter((c) => c.need === "required")) {
   if (fileEnv[e.name] === undefined) report.add("env", `${e.name} present`, rule(false), e.source);
 }
 
-// The app's own server schema, exactly as production parses it.
 const asProduction = { ...fileEnv, NODE_ENV: PROD ? "production" : (fileEnv.NODE_ENV ?? "development") };
 const parsed = serverEnvSchema.safeParse(asProduction);
 if (parsed.success) report.add("env", "src/lib/env.ts schema", "PASS", `NODE_ENV=${asProduction.NODE_ENV}`);
 else for (const i of parsed.error.issues) report.add("env", "src/lib/env.ts schema", "FAIL", `${i.path.join(".") || "(root)"}: ${i.message}`);
 
-// Media storage schema (storage.ts validates it lazily at first use, so check it now).
 let media: ReturnType<typeof parseMediaEnv> | null = null;
 try {
   media = parseMediaEnv(asProduction);
@@ -148,7 +102,6 @@ try {
   report.add("env", "storage.ts media schema", "FAIL", errText(e));
 }
 
-// Production rules (docs/deploy/RESEARCH.md).
 const total = envBytes(fileEnv);
 report.add("env", "64 KB Vercel limit", total < VERCEL_ENV_LIMIT_BYTES ? "PASS" : "FAIL", `${total} bytes of ${VERCEL_ENV_LIMIT_BYTES} (RESEARCH.md s5)`);
 
@@ -166,10 +119,8 @@ if (authUrl) {
 }
 
 const dbUrl = fileEnv.DATABASE_URL;
-/** The URL LISTEN and migrations use (src/lib/env.ts directDatabaseUrl). */
 const directUrl = fileEnv.DATABASE_URL_UNPOOLED ?? dbUrl;
 
-/** Checks one connection string's production rules; returns the parsed URL or null. */
 function checkDbUrl(name: string, url: string): URL | null {
   try {
     const u = new URL(url);
@@ -212,7 +163,6 @@ try {
 } catch {
   vercelJson = null;
 }
-// Provider-neutral topology: database, media store and the function region they need.
 const topology = topologyChecks(fileEnv, vercelJson?.regions);
 for (const row of topology.rows) {
   report.add("env", row.check, row.level === "info" ? "INFO" : row.ok ? "PASS" : row.level === "rule" ? rule(false) : PROD ? "WARN" : "INFO", row.detail);
@@ -248,7 +198,6 @@ report.add(
 );
 
 if (media?.MEDIA_S3_BUCKET || PROD) {
-  // The store's own rules (R2 or AWS S3) are topology rows above.
   const keys = Boolean(fileEnv.MEDIA_S3_ACCESS_KEY_ID && fileEnv.MEDIA_S3_SECRET_ACCESS_KEY);
   const oidcInCode = (readRepo("src/server/cms/media/storage.ts") ?? "").includes("AWS_ROLE_ARN");
   const oidc = oidcInCode && Boolean(fileEnv.AWS_ROLE_ARN);
@@ -269,16 +218,12 @@ if (buildVersion !== undefined) {
   report.add("env", "APP_BUILD_VERSION = HEAD", buildVersion === head ? "PASS" : PROD ? "WARN" : "INFO", `${buildVersion} vs HEAD ${head ?? "?"} (push-env -BuildVersionFromGit sets it)`);
 }
 
-// The production secret must not be the developer's local one.
 const localEnvPath = join(REPO, ".env");
 if (PROD && existsSync(localEnvPath) && resolve(localEnvPath) !== envPath && fileEnv.BETTER_AUTH_SECRET) {
   const localSecret = readEnvFile(localEnvPath).BETTER_AUTH_SECRET;
   report.add("env", "secret differs from .env", localSecret === fileEnv.BETTER_AUTH_SECRET ? "FAIL" : "PASS", "BETTER_AUTH_SECRET compared with the local development value (not printed)");
 }
 
-// ---------------------------------------------------------------------------------------------
-// 2. Source readiness and repo config
-// ---------------------------------------------------------------------------------------------
 if (args["skip-source"]) {
   report.add("source", "source readiness", "SKIP", "--skip-source");
 } else {
@@ -286,8 +231,6 @@ if (args["skip-source"]) {
   const pending = (ok: boolean, status: Status, id: string, what: string) =>
     report.add("source", `${id} ${what}`, ok ? "PASS" : status, ok ? "" : "pending (docs/deploy/RESEARCH.md s13; RUNBOOK 'Source changes')");
 
-  // A CLI deploy builds the local tree, so the gate must be in these files now. vercel.json runs
-  // the same check as its buildCommand on Vercel.
   const gate = inviteGateProblems(REPO);
   report.add("source", "S11 invite-only gate", gate.length === 0 ? "PASS" : PROD ? "FAIL" : "WARN", gate.length === 0 ? "src/proxy.ts gates every page (scripts/deploy/invite-gate.ts)" : gate.join("; "));
   const caInCode = has("src/server/db/client.ts", /DATABASE_CA_PEM/) && has("src/lib/env.ts", /DATABASE_CA_PEM/);
@@ -303,7 +246,6 @@ if (args["skip-source"]) {
   pending(vi !== null && /^\/?\.env\s*$/m.test(vi), "WARN", "S9", ".vercelignore excludes .env");
 
   const vj = vercelJson;
-  // The region row is in the env section (topology), next to the database it depends on.
   report.add("source", "vercel.json npm ci", vj?.installCommand === "npm ci" ? "PASS" : "FAIL", vj ? `install=${vj.installCommand}` : "missing or invalid");
   report.add("source", "vercel.json build runs the gate", /^node scripts\/deploy\/invite-gate\.ts --if-production && /.test(vj?.buildCommand ?? "") ? "PASS" : "FAIL", `buildCommand=${vj?.buildCommand ?? "(none)"} (guards Git and CLI builds)`);
   report.add("source", "vercel.json invite guard", /invite-gate.ts --ignore-step/.test(vj?.ignoreCommand ?? "") && (vj?.ignoreCommand ?? "").length <= 256 ? "PASS" : "FAIL", "ignoreCommand cancels production builds until src/proxy.ts has the invite gate");
@@ -314,9 +256,6 @@ if (args["skip-source"]) {
   report.add("source", "branch has upstream", upstream ? "PASS" : "INFO", upstream ?? "no remote yet (github-repo skill); Git-based deploys need it");
 }
 
-// ---------------------------------------------------------------------------------------------
-// 3. Database (read-only)
-// ---------------------------------------------------------------------------------------------
 if (args["skip-db"]) {
   report.add("db", "database", "SKIP", "--skip-db");
 } else if (!directUrl) {
@@ -326,11 +265,6 @@ if (args["skip-db"]) {
   if (dbUrl && dbUrl !== directUrl) await checkPooled(dbUrl);
 }
 
-/**
- * node-postgres settings with explicit TLS. pg lets URL parameters override an explicit `ssl`
- * object, so sslmode/sslrootcert are stripped and TLS is passed explicitly (the same shape source
- * change S3 uses in src/server/db/connection-config.ts).
- */
 function tlsFor(url: string) {
   const u = new URL(url);
   const mode = u.searchParams.get("sslmode");
@@ -343,7 +277,6 @@ function tlsFor(url: string) {
   return { connectionString: u.toString(), ssl, ca, wantTls };
 }
 
-/** The pooled URL answers one query (Neon's PgBouncer, transaction mode). */
 async function checkPooled(url: string): Promise<void> {
   const { Client } = await import("pg");
   const { connectionString, ssl } = tlsFor(url);
@@ -361,11 +294,10 @@ async function checkPooled(url: string): Promise<void> {
 
 async function checkDatabase(url: string): Promise<void> {
   const { Pool } = await import("pg");
-  const shared = await import("../db/_shared"); // loads .env into process.env: restore after
+  const shared = await import("../db/_shared");
   for (const k of Object.keys(process.env)) if (!(k in PARENT_ENV)) delete process.env[k];
   const { readMigrationFiles } = await import("drizzle-orm/migrator");
 
-  // A suspended Neon compute wakes on connect, hence the longer timeout.
   const { connectionString, ssl, ca, wantTls } = tlsFor(url);
   const host = new URL(url).hostname;
   const db = new Pool({ connectionString, ssl, max: 1, connectionTimeoutMillis: 15_000, application_name: "immersive-episteme-preflight" });
@@ -382,8 +314,6 @@ async function checkDatabase(url: string): Promise<void> {
   }
   try {
     await client.query("BEGIN READ ONLY");
-    // TLS as this client's socket sees it. pg_stat_ssl describes the server's own hop, which
-    // behind Neon's proxy may be the proxy-to-compute connection, so it is information only.
     const sock = (client as unknown as { connection?: { stream?: { encrypted?: boolean; getProtocol?: () => string | null } } }).connection?.stream;
     report.add("db", "TLS in use", sock?.encrypted ? "PASS" : rule(false), sock?.encrypted ? `${sock.getProtocol?.() ?? "TLS"} on the client socket` : "plain TCP");
     const tls = await client.query<{ ssl: boolean; version: string | null }>("select ssl, version from pg_stat_ssl where pid = pg_backend_pid()");
@@ -412,7 +342,7 @@ async function checkDatabase(url: string): Promise<void> {
     } else {
       const rows = (await client.query<{ hash: string; created_at: string }>("select hash, created_at::text from drizzle.__drizzle_migrations")).rows;
       const last = rows.reduce((m, r) => Math.max(m, Number(r.created_at)), 0);
-      const pendingCount = files.filter((f) => f.folderMillis > last).length; // drizzle's own rule
+      const pendingCount = files.filter((f) => f.folderMillis > last).length;
       const byWhen = new Map(rows.map((r) => [Number(r.created_at), r.hash]));
       const changed = files.filter((f) => byWhen.has(f.folderMillis) && byWhen.get(f.folderMillis) !== f.hash).length;
       report.add("db", "migrations current", pendingCount === 0 ? "PASS" : "FAIL", `${rows.length} applied, ${files.length} in db/migrations, ${pendingCount} pending`);
@@ -430,9 +360,6 @@ async function checkDatabase(url: string): Promise<void> {
   }
 }
 
-// ---------------------------------------------------------------------------------------------
-// 4. S3 (read-only)
-// ---------------------------------------------------------------------------------------------
 if (args["skip-s3"]) {
   report.add("s3", "bucket", "SKIP", "--skip-s3");
 } else if (!media?.MEDIA_S3_BUCKET) {
@@ -445,7 +372,6 @@ if (args["skip-s3"]) {
 
 async function checkS3(bucket: string, region: string): Promise<void> {
   const { S3Client, HeadBucketCommand } = await import("@aws-sdk/client-s3");
-  // The expected-owner check is AWS-only: an S3-compatible store (R2) has no AWS account id.
   const account = media?.MEDIA_S3_ENDPOINT ? undefined : /\| Account ID \| (\d{12}) \|/.exec(readRepo("docs/deploy/aws-resources.md") ?? "")?.[1];
   const prefix = media?.MEDIA_S3_FORCE_PATH_STYLE === "true" ? `/${bucket}` : "";
   const s3 = new S3Client({
@@ -483,13 +409,9 @@ async function checkS3(bucket: string, region: string): Promise<void> {
   }
 }
 
-// ---------------------------------------------------------------------------------------------
-// 5. Production build (opt-in)
-// ---------------------------------------------------------------------------------------------
 if (!args.build) {
   report.add("build", "npm run build", "SKIP", "pass --build (overwrites .next; one heavy job at a time); Vercel builds again from Git");
 } else {
-  // NODE_ENV is in FORBIDDEN, so neither the parent's nor the file's value reaches the build.
   const drop = new Set([...CATALOG.map((c) => c.name), ...Object.keys(FORBIDDEN)]);
   const env: Record<string, string | undefined> = Object.fromEntries(Object.entries(PARENT_ENV).filter(([k]) => !drop.has(k)));
   for (const [k, v] of Object.entries(fileEnv)) if (!(k in FORBIDDEN)) env[k] = v;

@@ -1,6 +1,3 @@
-/**
- * Request-scope public-demo gate (see ./demo-policy.ts). Deduped per request.
- */
 import "server-only";
 
 import { cache } from "react";

@@ -1,8 +1,3 @@
-/**
- * CMS read side (staff only). Reads the LIVE knowledge tables, which is correct for authoring;
- * learning pages never use this module (they read immutable snapshots through the read model).
- * Not `server-only` so tests can call it; pages call it after their permission gate.
- */
 import type { KnowledgeBundle } from "@/features/knowledge/contracts";
 import type { VerificationState } from "@/lib/validation/enums";
 import { loadSnapshotPayload } from "@/server/knowledge/snapshot-store";
@@ -134,12 +129,10 @@ export async function getSource(q: Q, id: string): Promise<SourceRow | null> {
 export interface SourceOption {
   id: string;
   label: string;
-  /** File-local id used in the generated body ("S1", "C3"). */
   key: string;
   state: VerificationState;
 }
 
-/** Every citable source (for claim / relationship forms). */
 export async function sourceOptions(q: Q): Promise<SourceOption[]> {
   const r = await q.query<{ id: string; package_slug: string | null; local_key: string | null; title: string; author: string | null; year: number | null; verification_state: VerificationState }>(
     `SELECT s.id, p.slug AS package_slug, s.local_key, s.title, s.author, s.year, s.verification_state
@@ -316,7 +309,6 @@ export async function relationshipsWhere(q: Q, where: string, params: unknown[])
 
 const TABLE: Record<CmsEntityKind, string> = { tradition: "traditions", concept: "concepts", relationship: "relationships", source: "sources" };
 
-/** Review history (verification_records) merged with CMS audit entries for one entity, newest first. */
 export async function entityHistory(q: Q, kind: CmsEntityKind, id: string): Promise<HistoryEntry[]> {
   if (!isUuid(id)) return [];
   const r = await q.query<{ at: Date; actor: string | null; what: string; reason: string | null; detail: unknown }>(
@@ -345,7 +337,6 @@ export interface ReviewItem {
   updatedBy: string | null;
 }
 
-/** Items awaiting a decision (under_review, needs_evidence by default). */
 export async function reviewQueue(q: Q, f: { kind?: string; state?: string } = {}): Promise<ReviewItem[]> {
   const states = f.state ? [f.state] : ["under_review", "needs_evidence"];
   const parts: string[] = [];
@@ -461,7 +452,6 @@ export interface GraphEdge {
   state: VerificationState;
 }
 
-/** Live graph for the staff relationship editor (no rejected/archived concepts, no demo rows). */
 export async function graphData(q: Q): Promise<{ nodes: GraphNode[]; edges: GraphEdge[] }> {
   const n = await q.query(
     `SELECT c.id, c.key, c.title, c.type, p.slug AS package_slug, c.verification_state FROM concepts c LEFT JOIN content_packages p ON p.id = c.package_id
@@ -478,7 +468,6 @@ export async function graphData(q: Q): Promise<{ nodes: GraphNode[]; edges: Grap
   };
 }
 
-/** User display names for actor ids. */
 export async function userNames(q: Q, ids: readonly (string | null)[]): Promise<Map<string, string>> {
   const list = [...new Set(ids.filter((x): x is string => !!x))];
   if (!list.length) return new Map();

@@ -1,6 +1,3 @@
-"""For every claim and every source it cites, select the best verbatim evidence excerpt
-(1-2 sentences, <= 45 words) from the located source segments, with its locator.
-Writes evidence.json: [{file, key, claim_index, source_id, url, locator, quote, coverage}]."""
 import json, os, re, sys
 sys.stdout.reconfigure(encoding="utf-8")
 SCR, CONTENT = sys.argv[1], sys.argv[2]
@@ -10,7 +7,6 @@ from verify_quotes import norm
 STOP = set("a an the of and or to in on for with by from as at is are was were be been being it its this that these those which who whom into than so not but also can may might will would should could has have had do does did there their they them we our you your if when where how what why all any each both more most other some only own same very s t just one two three such then".split())
 toks = lambda s: [w for w in re.findall(r"[a-z0-9]+", s.lower()) if w not in STOP and len(w) > 2]
 SEG = json.load(open(os.path.join(SCR, "evidence", "segments.json"), encoding="utf-8"))
-# pre-split segments into normalised sentences
 SENT = {}
 for url, segs in SEG.items():
     out = []
@@ -31,7 +27,7 @@ def best(claim, url):
                 q = " ".join(sents[i:i + span])
                 wq = q.split()
                 if len(wq) > 45:
-                    if span == 1:  # trim a long single sentence around its densest 45-word window
+                    if span == 1:
                         bestw = (0, 0)
                         for j in range(0, len(wq) - 44):
                             sc = len(ct & set(toks(" ".join(wq[j:j + 45]))))
@@ -40,7 +36,6 @@ def best(claim, url):
                     else:
                         continue
                 cov = len(ct & set(toks(q))) / len(ct)
-                # prefer fewer words at equal coverage
                 if cov > top[0] + 1e-9 or (abs(cov - top[0]) < 1e-9 and top[2] and len(q) < len(top[2])):
                     top = (cov, loc, q)
     return top if top[1] else None

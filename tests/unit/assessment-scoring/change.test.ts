@@ -12,11 +12,10 @@ const pre = pmap([
   ["p5", "FREE1", "A", "CAUSES"],
 ]);
 const post = pmap([
-  ["q1", "A", "B", "CAUSES"], // unchanged
-  ["q2", "B", "C", "ENABLES"], // retyped (CAUSES -> ENABLES)
-  ["q3", "D", "C", "ENABLES"], // reoriented (C>D -> D>C)
-  ["q4", "B", "D", "USES"], // added
-  // A CAUSES E removed
+  ["q1", "A", "B", "CAUSES"],
+  ["q2", "B", "C", "ENABLES"],
+  ["q3", "D", "C", "ENABLES"],
+  ["q4", "B", "D", "USES"],
 ]);
 
 describe("compareConceptMaps", () => {
@@ -41,9 +40,7 @@ describe("compareConceptMaps", () => {
 
   it("reports score deltas against a reference", () => {
     const d = (n: string) => r.scoreDeltas?.find((x) => x.metricName === n);
-    // pre valid: A>B, B>C = 2; post valid: A>B = 1 (B>D matches only an optional edge: neutral by default)
     expect(d("cmap.valid_relationships")).toMatchObject({ pre: 2, post: 1, delta: -1 });
-    // recall dl: pre 2/4, post 1/4
     expect(d("cmap.recall.dl")?.delta).toBeCloseTo(-0.25, 12);
   });
 

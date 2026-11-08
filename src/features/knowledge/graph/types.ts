@@ -1,13 +1,3 @@
-/**
- * In-memory knowledge graph model used by the validator and the snapshot builder.
- *
- * The loader (`loader.ts`) adapts content/FORMAT.md v1 files into this model; tests may also
- * build it directly (for example with verified states, which interchange files may never
- * carry). Source references are global: `<package slug>#<local id>`, so `S1` in two files
- * never collide and the comparisons file's `ajrakh:S7` resolves to `ajrakh#S7`.
- *
- * Pure TypeScript (no Node APIs), safe for any runtime.
- */
 import type {
   ConceptType,
   KnowledgeCategoryCode,
@@ -18,7 +8,6 @@ import type {
 
 export type PackageKind = "tradition" | "shared" | "comparisons";
 
-/** Global source reference: `<package slug>#<local id>`. */
 export type SourceRef = string;
 
 export function sourceRef(packageSlug: string, localId: string): SourceRef {
@@ -38,18 +27,14 @@ export interface GraphSource {
   accessed: string | null;
   reliability: SourceReliability | null;
   notes: string | null;
-  /** Sources carry no review state in FORMAT v1; the loader records `under_review`. */
   verificationState: VerificationState;
 }
 
 export interface GraphClaim {
   text: string;
   quote: string | null;
-  /** Resolved global refs (unresolvable ids are kept as `<pkg>#<id>` and flagged). */
   sourceRefs: SourceRef[];
-  /** Ids as written in the file (for messages). */
   rawSourceIds: string[];
-  /** Located verbatim passages, each from one of the cited sources, in file order. */
   evidence: { ref: SourceRef; locator: string; quote: string; note: string | null }[];
 }
 
@@ -66,14 +51,12 @@ export interface GraphConcept {
   provenanceKind: ProvenanceKind;
   verificationState: VerificationState;
   claims: GraphClaim[];
-  /** `"claims-only"` when summary/body_md are generated from claims (FORMAT.md). */
   prosePolicy: string | null;
   isDemo: boolean;
 }
 
 export interface GraphRelationship {
   packageSlug: string;
-  /** Position in its file (for messages; not part of identity). */
   index: number;
   source: string;
   target: string;
@@ -86,11 +69,6 @@ export interface GraphRelationship {
   verificationState: VerificationState;
   sourceRefs: SourceRef[];
   rawSourceIds: string[];
-  /**
-   * Located verbatim passages from content/ (FORMAT.md "Relationship evidence"), at most one per
-   * cited source. Absent on models built from the database, whose citations carry their locator
-   * and quote in relationship_sources instead.
-   */
   evidence?: { ref: SourceRef; locator: string; quote: string }[];
 }
 
@@ -100,7 +78,6 @@ export interface GraphMediaCandidate {
   licence: string | null;
   author: string | null;
   depicts: string | null;
-  /** Source pixel size and type as recorded in the file (FORMAT.md), or null. */
   width: number | null;
   height: number | null;
   mime: string | null;
@@ -110,9 +87,7 @@ export interface GraphMediaCandidate {
 export interface GraphPackage {
   slug: string;
   kind: PackageKind;
-  /** Repository-relative path of the file (forward slashes), or a synthetic label. */
   path: string;
-  /** sha256 of the file's bytes when loaded from disk. */
   fileSha256: string | null;
   name: string;
   altNames: string[];
@@ -142,20 +117,13 @@ export interface KnowledgeGraphModel {
   relationships: GraphRelationship[];
 }
 
-// ---------------------------------------------------------------------------------------
-// Integrity report
-// ---------------------------------------------------------------------------------------
-
 export type Severity = "error" | "warning" | "info";
 
 export interface IntegrityIssue {
   code: string;
   severity: Severity;
   message: string;
-  /** Package slug / file the issue belongs to, when there is one. */
   packageSlug?: string;
-  /** Concept key, relationship id (`source|TYPE|target`) or source ref. */
   entity?: string;
-  /** Extra machine-readable detail (cycle members, similarity score, ...). */
   detail?: Record<string, unknown>;
 }

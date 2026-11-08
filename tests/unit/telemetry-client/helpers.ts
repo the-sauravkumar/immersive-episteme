@@ -32,7 +32,6 @@ export function ackFor(batch: SentBatch, extra: Record<string, unknown> = {}) {
   };
 }
 
-/** Scripted fetch: each call consumes the next reply (default: 200 ack). */
 export function fakeFetch(replies: Reply[] = []) {
   const calls: { batch: SentBatch; init: RequestInit }[] = [];
   const impl = (async (_url: RequestInfo | URL, init?: RequestInit) => {

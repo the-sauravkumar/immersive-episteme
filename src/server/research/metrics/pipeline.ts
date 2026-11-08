@@ -1,9 +1,3 @@
-/**
- * Derived-metric pipeline: recompute and store a study's behavioural metrics
- * (`derived_metrics`, keyed by session + metric + version). Raw events are never modified;
- * rows are upserted only when their input hash changed, so recomputation is idempotent and a
- * stale row (new events arrived) is detectable by comparing `input_sha256`.
- */
 import type { MapEdgeInput, SnapshotRelationship } from "./correspondence";
 import type { ConceptFacts, NavEvent } from "./navigation";
 import { computeSessionMetrics, METRICS_PIPELINE_VERSION, metricInputHash, type ComputedMetrics } from "./session";
@@ -17,7 +11,6 @@ export interface SnapshotFacts {
 
 const snapshotFactsCache = new Map<string, SnapshotFacts>();
 
-/** Concept / relationship facts of a snapshot payload (immutable once stored, so cached). */
 export async function loadSnapshotFacts(q: Q, snapshotId: string): Promise<SnapshotFacts> {
   const hit = snapshotFactsCache.get(snapshotId);
   if (hit) return hit;
@@ -69,7 +62,6 @@ export async function loadSessionEvents(q: Q, sessionId: string): Promise<Stored
   return r.rows;
 }
 
-/** The final post-learning concept map of a session (latest submitted), with its edges. */
 export async function loadFinalPostMap(q: Q, sessionId: string): Promise<{ id: string; revision: number; edges: MapEdgeInput[] } | null> {
   const m = await q.query<{ id: string; revision: number }>(
     `SELECT id, revision FROM concept_maps
@@ -92,14 +84,11 @@ interface SessionRow {
   id: string;
   study_id: string;
   participant_id: string;
-  /** Null until the session is allocated (allocation after the pre-test, D3). */
   condition_id: string | null;
   snapshot_id: string | null;
 }
 
 export async function computeStoredSession(q: Q, s: SessionRow): Promise<ComputedMetrics | null> {
-  // An unallocated session (still in, or dropped out during, the pre-test) has no condition and
-  // no learning telemetry: there is nothing to derive, and derived_metrics.condition_id is NOT NULL.
   if (!s.snapshot_id || !s.condition_id) return null;
   const snapshotId = s.snapshot_id;
   const [events, facts, map] = await queryAll(q, [() => loadSessionEvents(q, s.id), () => loadSnapshotFacts(q, snapshotId), () => loadFinalPostMap(q, s.id)]);
@@ -112,11 +101,6 @@ export interface RecomputeSummary {
   unchanged: number;
 }
 
-/**
- * Recomputes every allocated session of a study; writes only rows whose inputs changed. Each
- * session's rows are written by ONE statement, so a session is never left half-updated (the
- * pool runs in autocommit), and a failure cannot leave a mix of old and new metric rows.
- */
 export async function recomputeStudyMetrics(q: Q, studyId: string): Promise<RecomputeSummary> {
   const sessions = await q.query<SessionRow>(
     "SELECT id, study_id, participant_id, condition_id, snapshot_id FROM study_sessions WHERE study_id = $1 AND condition_id IS NOT NULL ORDER BY id",
@@ -145,10 +129,6 @@ export async function recomputeStudyMetrics(q: Q, studyId: string): Promise<Reco
   return { sessions: sessions.rowCount ?? 0, rowsWritten, unchanged };
 }
 
-/**
- * Allocated sessions whose stored metrics are missing or stale (input hash differs from the raw
- * events). Unallocated sessions have no metrics to derive and are not counted in `total`.
- */
 export async function staleMetricSessions(q: Q, studyId: string): Promise<{ stale: number; total: number }> {
   const sessions = await q.query<{ id: string; stored: string | null }>(
     `SELECT ss.id, (SELECT dm.input_sha256 FROM derived_metrics dm WHERE dm.session_id = ss.id AND dm.metric_name = 'nav.path_length' LIMIT 1) AS stored

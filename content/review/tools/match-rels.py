@@ -1,4 +1,3 @@
-# For every substantive relationship, find the best source window for its explanation (+conditions).
 import json, re, sys, os
 SRC, ROOT, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
 sys.stdout.reconfigure(encoding="utf-8")

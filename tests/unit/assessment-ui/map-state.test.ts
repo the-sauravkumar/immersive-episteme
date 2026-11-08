@@ -1,4 +1,3 @@
-/** Concept-map editor reducer: typed/directed edges, revise/reverse/delete, append-only edit log. */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -59,13 +58,11 @@ describe("map-state reducer", () => {
     expect(s.edges[0]).toMatchObject({ source: "c2", target: "c1" });
     s = apply(s, { type: "retype_edge", edgeKey: "e1", relationshipType: "SIMILAR_TO", via: "form" });
     expect(s.edges[0]).toMatchObject({ relationshipType: "SIMILAR_TO", directed: false });
-    // Undirected edges cannot be reversed.
     expect(apply(s, { type: "reverse_edge", edgeKey: "e1", via: "form" })).toBe(s);
     s = apply(s, { type: "delete_edge", edgeKey: "e1", via: "form" }, { type: "add_edge", source: "c1", target: "c3", relationshipType: "PRECEDES", via: "form" });
     expect(s.edges.map((e) => e.key)).toEqual(["e2"]);
     expect(s.editLog.map((l) => l.op)).toEqual(["add_edge", "reverse_edge", "retype_edge", "delete_edge", "add_edge"]);
     expect(s.editLog[2]).toMatchObject({ from: "PRECEDES", to: "SIMILAR_TO" });
-    // Restoring from storage continues the key sequence.
     expect(stateFromPayload(toPayload(s)).nextEdge).toBe(3);
   });
 

@@ -1,7 +1,3 @@
-/**
- * Integration: migrations apply cleanly to TEST_DATABASE_URL and enable the required
- * extensions. Skipped (not failed) when TEST_DATABASE_URL is absent; CI always sets it.
- */
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 

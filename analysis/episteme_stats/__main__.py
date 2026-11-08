@@ -1,20 +1,3 @@
-"""Command line.
-
-    python -m episteme_stats validate <bundle.json>
-    python -m episteme_stats report <bundle.json> --metric <name> [--source derived_scores|derived_metrics]
-                                     [--phase post] [--baseline-phase pre] [--a conventional] [--b immersive]
-                                     [--metric-version 1.0.0]
-                                     [--covariate test.pre_test]
-    python -m episteme_stats hypotheses <bundle.json> [--a conventional] [--b immersive]
-    python -m episteme_stats power [--d 0.5 ...] [--alpha 0.05]
-
-The power reference is the preregistered plan (D4: ANCOVA, rho = 0.6, 51 per group); the concept
-note's t-test at 20 per group is shown only as a labelled comparison.
-
-Run from the analysis/ directory (or with analysis/ on PYTHONPATH). Output is JSON on stdout,
-always carrying the exploratory notice.
-"""
-
 from __future__ import annotations
 
 import argparse

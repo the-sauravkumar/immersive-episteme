@@ -1,7 +1,3 @@
-/**
- * Every /admin route requires an admin permission, and no role outside platform_admin can open
- * any of them except the audit log, which the principal investigator reads (matrix.ts).
- */
 import { describe, expect, it } from "vitest";
 
 import { canAny } from "@/lib/permissions/can";

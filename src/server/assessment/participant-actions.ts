@@ -1,9 +1,4 @@
 "use server";
-/**
- * Participant server action for the reconstruction task. The participant and session come only
- * from the verified participant cookie (re-checked against `study_sessions` on every call); the
- * client sends the item it was shown and the editor payload, nothing else.
- */
 import { cookies } from "next/headers";
 
 import type { SaveResult } from "@/components/assessment/concept-map-editor";
@@ -27,7 +22,6 @@ export async function saveReconstructionMap(itemId: string, payload: unknown, fi
   if (typeof itemId !== "string" || typeof final !== "boolean") return { ok: false, error: "Invalid request." };
   try {
     const { participantId, sessionId } = decision.participant;
-    // Only while the matching reconstruction step is current (study engine, security-03).
     await saveParticipantMap(getPool(), { participantId, sessionId }, { itemId, payload, final }, { currentPhase: (client) => currentReconstructionPhase(client, sessionId) });
     return { ok: true };
   } catch (err) {

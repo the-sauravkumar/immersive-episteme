@@ -1,10 +1,5 @@
 "use server";
 
-/**
- * Media library server actions. Each: assertPermission -> Zod -> service (ensure + audit in one
- * transaction) -> refresh(), via runAction. The local-disk upload itself goes through the route
- * handler src/app/(cms)/cms/media/upload/route.ts (multipart body).
- */
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
@@ -32,7 +27,6 @@ import {
 } from "./service";
 import { getMediaStorage } from "./storage";
 
-/** The learners' study-photo lists (read model) are cached for an hour; a change here drops them. */
 function dropPhotoCache(): void {
   revalidateTag(MEDIA_FIGURES_CACHE_TAG, "max");
 }
@@ -43,7 +37,6 @@ function s3Storage() {
   return storage;
 }
 
-/** S3 mode, step 1: presigned PUT for a file with this type, size and SHA-256. */
 export async function presignUploadAction(input: { declaredMime: string; byteSize: number; sha256: string }): Promise<ActionState> {
   return runAction("media.upload", presignRequestSchema, input, async ({ actor, pool }, data) => {
     const { storageKey, upload } = await presignAssetUpload(pool, actor, s3Storage(), data);
@@ -57,7 +50,6 @@ const finalizeSchema = z.object({
   metadata: assetMetadataSchema,
 });
 
-/** S3 mode, step 2: verify the stored object and record the asset. */
 export async function finalizeUploadAction(input: { declaredMime: string; sha256: string; metadata: Record<string, unknown> }): Promise<ActionState> {
   return runAction("media.upload", finalizeSchema, input, async ({ actor, pool }, data) => {
     const asset = await finalizeAssetUpload(pool, actor, s3Storage(), { declaredMime: data.declaredMime, sha256: data.sha256, metadata: input.metadata });
@@ -91,10 +83,6 @@ export async function reviewAssetAction(_prev: ActionState, fd: FormData): Promi
   });
 }
 
-/**
- * The form asks for the anchor claim by its number as curators see it (1, 2, 3 ...: the claim
- * numbers of the proof and of both conditions); the stored `position` is zero-based.
- */
 function linkInputFromForm(raw: Record<string, unknown>): Record<string, unknown> | null {
   if (!("anchorClaim" in raw)) return raw;
   const { anchorClaim, ...rest } = raw;

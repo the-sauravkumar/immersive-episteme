@@ -1,7 +1,3 @@
-/**
- * src/proxy.ts: client-IP header stripping on /api/auth/* (sign-in rate-limit keys), the
- * Content-Security-Policy on the responses the proxy creates itself, and the invite gate (S11).
- */
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -17,7 +13,6 @@ const SIGN_IN = "http://localhost:3000/api/auth/sign-in/email";
 const SECRET = "proxy-test-secret-abcdefghijklmnopqrstuvwxyz-0123456789";
 const INVITE_ID = "0190f3a4-1b2c-7d3e-8f40-123456789abc";
 
-/** A Cookie header carrying a valid invite cookie. */
 async function invited(): Promise<Record<string, string>> {
   return { cookie: `${INVITE_COOKIE}=${await signInviteAccess(INVITE_ID, SECRET)}` };
 }
@@ -30,7 +25,6 @@ beforeEach(() => {
   vi.stubEnv("BETTER_AUTH_SECRET", SECRET);
 });
 
-/** Request headers the proxy forwards: Next encodes them as x-middleware-request-* overrides. */
 function forwarded(res: Response): { overridden: string[]; value: (name: string) => string | null } {
   const overridden = (res.headers.get("x-middleware-override-headers") ?? "").split(",").filter(Boolean);
   return { overridden, value: (name) => res.headers.get(`x-middleware-request-${name}`) };

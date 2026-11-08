@@ -1,13 +1,3 @@
-/**
- * Helper for push-env.ps1: parses an env file with the same dotenv parser as the rest of the kit
- * and prints a JSON plan on stdout.
- *
- *   npx tsx scripts/deploy/lib/env-json.ts --env-file <path> [--with-values] [--build-version <sha>]
- *
- * Without --with-values (dry run) the output carries NO values at all, only names, kinds, byte
- * lengths and decisions. With --with-values the values are included for push-env.ps1 to pipe into
- * `vercel env add` over stdin; push-env never prints them.
- */
 import { existsSync } from "node:fs";
 import { parseArgs } from "node:util";
 

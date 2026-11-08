@@ -1,24 +1,3 @@
-/**
- * Structural similarity beyond edge overlap:
- *
- * Degree-profile similarity (Bray–Curtis). For every concept c of the reference concept set
- * take the vector (out-degree, in-degree, undirected-degree) over distinct directed-unlabelled
- * edges, for the participant (all in-scope edges, valid or not) and the reference (expected
- * edges). With p and r the concatenated vectors:
- *     S = 1 − Σ|p_i − r_i| / Σ(p_i + r_i)          (null when both maps have no edges)
- * It ignores which concepts are linked to which: it compares the shape (hubs, sources,
- * sinks), so it rewards a correct structure even with wrong partners.
- *
- * Edit distance with a fixed node correspondence (nodes are concept ids, so no node edits):
- * labelled participant edges are transformed into the expected labelled edges.
- *   exact matches cost 0; a participant edge and a reference edge on the same concept pair
- *   may be substituted at cost relabel·[type differs] + reverse·[direction differs], capped at
- *   delete + insert; every other participant edge is deleted, every other reference edge
- *   inserted. The cheapest assignment per concept pair is found exactly (bitmask DP).
- *   Participant edges that match only optional reference edges are left out; out-of-scope
- *   edges counted incorrect each cost one delete.
- *   normalised = cost / (|P|·delete + |E|·insert), in [0, 1]; null when both are empty.
- */
 import { cmp, type ScoringConfig } from "../config";
 import type { PreparedReference } from "../match";
 import type { CanonicalEdge } from "../types";
@@ -114,7 +93,6 @@ export function editDistance(
     const ps = restP.filter((e) => e.keys.undirected_unlabelled === pair);
     const rs = restR.filter((e) => e.keys.undirected_unlabelled === pair);
     if (rs.length > MAX_GROUP) throw new Error(`More than ${MAX_GROUP} reference edges on one concept pair`);
-    // dp over participant index i and mask of used reference edges.
     const memo = new Map<string, { cost: number; choice: number }>();
     const solve = (i: number, mask: number): number => {
       if (i === ps.length) {

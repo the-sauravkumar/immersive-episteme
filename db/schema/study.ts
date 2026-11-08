@@ -1,24 +1,3 @@
-/**
- * Research/study domain.
- *
- * Privacy: participants carry only a pseudonymous `code` (pattern-checked so emails and
- * names with spaces cannot be stored) and an optional hashed entry token. There are NO PII
- * columns anywhere in this domain; consent wording is referenced by version + hash.
- *
- * Integrity (constraints + migration 0003 triggers):
- *  - composite FKs pin every allocation/session to conditions and participants of the SAME study;
- *  - a non-demo study can never reference a demo snapshot or manifest, and can only become
- *    active on a published snapshot (and published manifest, if any);
- *  - once active, a study's protocol inputs (snapshot, manifest, design, config, protocol
- *    version) are frozen;
- *  - sessions inherit and must match the study's snapshot/manifest, so both conditions
- *    read the same knowledge bundle;
- *  - allocations and consent records are append-only;
- *  - (0005) allocation and new sessions require the participant's latest consent decision to
- *    be `granted` and the participant not withdrawn/excluded; a within-subjects allocation
- *    records its content set, which the session copies; activation needs a `released`
- *    release manifest (if one is set), and that release is then frozen.
- */
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -70,10 +49,8 @@ export const studies = pgTable(
     manifestId: uuid().references(() => spatialManifests.id, { onDelete: "restrict" }),
     releaseManifestId: uuid().references(() => releaseManifests.id, { onDelete: "restrict" }),
     design: studyDesignEnum().notNull(),
-    /** Protocol as data: steps per arm, traditions, timing, guidance policy (study contracts). */
     config: jsonb().notNull().default(sql`'{}'::jsonb`),
     status: studyStatusEnum().notNull().default("draft"),
-    /** Explicit researcher permission to run on a snapshot that includes unverified content. */
     allowUnverifiedContent: boolean().notNull().default(false),
     isDemo: isDemo(),
     createdBy: actorId(),
@@ -128,9 +105,7 @@ export const participants = pgTable(
     studyId: uuid()
       .notNull()
       .references(() => studies.id, { onDelete: "restrict" }),
-    /** Pseudonymous study code. Never an email, name or roll number. */
     code: text().notNull(),
-    /** sha256 of the one-time entry token handed to the participant (optional). */
     accessTokenHash: text().unique(),
     status: participantStatusEnum().notNull().default("enrolled"),
     stratum: text(),
@@ -154,7 +129,6 @@ export const participants = pgTable(
   ],
 );
 
-/** Append-only consent history. */
 export const consentRecords = pgTable(
   "consent_records",
   {
@@ -173,13 +147,10 @@ export const consentRecords = pgTable(
     check("consent_records_sha_ck", sql`${t.consentTextSha256} ~ ${sql.raw(`'${SHA256_HEX_RE}'`)}`),
     check("consent_records_method_ck", sql`${t.method} IN ('on_screen', 'paper', 'verbal_witnessed')`),
     index("consent_records_participant_idx").on(t.participantId, t.recordedAt),
-    // One initial decision per enrolment (withdrawal is a later "withdrawn" row): the database
-    // backstop of recordConsent, against a double submit from two tabs (final review database-08).
     uniqueIndex("consent_records_one_decision_uq").on(t.participantId).where(sql`decision IN ('granted', 'declined')`),
   ],
 );
 
-/** Append-only, reproducible condition assignment. */
 export const allocations = pgTable(
   "allocations",
   {
@@ -188,7 +159,6 @@ export const allocations = pgTable(
     participantId: uuid().notNull(),
     conditionId: uuid().notNull(),
     period: smallint().notNull().default(1),
-    /** Learning task the participant receives in this period (optional, protocol-defined). */
     taskCode: text(),
     algorithm: allocationAlgorithmEnum().notNull(),
     seed: text().notNull(),
@@ -227,21 +197,12 @@ export const studySessions = pgTable(
     id: pk(),
     studyId: uuid().notNull(),
     participantId: uuid().notNull(),
-    /**
-     * NULL until the participant is allocated (migration 0010/0011): when a study allocates after
-     * the pre-test (study decision D3), the session exists from consent so the condition-blind
-     * pre-allocation steps can be stored, and the allocation is attached once, later. Both are
-     * set together and never change afterwards.
-     */
     conditionId: uuid(),
     allocationId: uuid(),
     period: smallint().notNull().default(1),
-    /** Copied from the allocation by trigger; immutable. */
     taskCode: text(),
-    /** Filled from the study by trigger when omitted; must equal the study's. */
     snapshotId: uuid().references(() => contentSnapshots.id, { onDelete: "restrict" }),
     manifestId: uuid().references(() => spatialManifests.id, { onDelete: "restrict" }),
-    /** { [assessmentId]: version } presented in this session. */
     assessmentVersions: jsonb().notNull().default(sql`'{}'::jsonb`),
     appBuild: text().notNull(),
     compilerVersion: text(),
@@ -257,7 +218,6 @@ export const studySessions = pgTable(
     traditionOrder: jsonb().notNull().default(sql`'[]'::jsonb`),
     interrupted: boolean().notNull().default(false),
     interruptionCount: integer().notNull().default(0),
-    /** Covariates: viewport, input device, GPU class, quality tier, a11y settings. No fingerprinting. */
     device: jsonb().notNull().default(sql`'{}'::jsonb`),
     excluded: boolean().notNull().default(false),
     exclusionReason: text(),
@@ -392,11 +352,6 @@ export const sessionAnnotations = pgTable(
   ],
 );
 
-/**
- * Enrolment throttle (final review security-04): fixed-window counters of new enrolments per
- * study and per client address (keys are sha256 values; no address is stored). Written only by
- * src/server/study/enrolment-throttle.ts.
- */
 export const studyEnrolmentThrottle = pgTable("study_enrolment_throttle", {
   keySha256: text().primaryKey(),
   attempts: integer().notNull(),

@@ -1,7 +1,3 @@
-/**
- * Integration: the server Drizzle client connects through the validated env.
- * Points DATABASE_URL at TEST_DATABASE_URL so the main database is never touched.
- */
 import { sql } from "drizzle-orm";
 import { afterAll, describe, expect, it } from "vitest";
 

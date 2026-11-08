@@ -1,5 +1,3 @@
-// First-hand verification fixes, batch 4: remove relationships no source states
-// (they were self-described as inferences, or I could find no source support). Run from content/.
 const fs = require("fs");
 const removed = [];
 const drop = (file, type, srcEnd, tgtEnd, why) => {

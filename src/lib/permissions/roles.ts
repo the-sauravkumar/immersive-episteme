@@ -1,11 +1,3 @@
-/**
- * Role catalogue. Dependency-free so it can be imported by the Drizzle schema (db/schema/auth.ts),
- * tsx scripts, server code and client components alike.
- *
- * Staff roles are stored per user in `user_roles` (a user may hold several). `participant` and
- * `public` are never stored: they are synthesised from a signed study-session cookie and from
- * the absence of any credential respectively.
- */
 export const STAFF_ROLES = [
   "platform_admin",
   "principal_investigator",

@@ -1,10 +1,3 @@
-"""Load and verify an export bundle (format ``immersive-episteme-research-export`` v1).
-
-Checksums are sha256 over canonical JSON exactly as the server computes them
-(src/features/spatial/compiler/canonical.ts): object keys sorted, no whitespace, numbers in
-JavaScript ``Number#toString`` form, strings as ``JSON.stringify`` writes them.
-"""
-
 from __future__ import annotations
 
 import hashlib
@@ -19,7 +12,6 @@ SCHEMA_VERSION = 1
 
 
 def js_number(x: float | int) -> str:
-    """JavaScript Number#toString for a finite number (shortest round-trip digits)."""
     if isinstance(x, bool):
         raise TypeError("booleans are not numbers here")
     if isinstance(x, int):
@@ -34,7 +26,7 @@ def js_number(x: float | int) -> str:
     digits_tuple = Decimal(repr(abs(x))).normalize().as_tuple()
     digits = "".join(str(d) for d in digits_tuple.digits)
     k = len(digits)
-    n = digits_tuple.exponent + k  # decimal point position
+    n = digits_tuple.exponent + k
     if k <= n <= 21:
         return sign + digits + "0" * (n - k)
     if 0 < n <= 21:
@@ -60,7 +52,6 @@ def canonical_json(value: Any) -> str:
     if isinstance(value, list):
         return "[" + ",".join(canonical_json(v) for v in value) + "]"
     if isinstance(value, dict):
-        # JavaScript sorts by UTF-16 code units; UTF-16BE bytes compare in the same order.
         keys = sorted(value.keys(), key=lambda s: s.encode("utf-16-be", "surrogatepass"))
         return "{" + ",".join(f"{json.dumps(k, ensure_ascii=False)}:{canonical_json(value[k])}" for k in keys) + "}"
     raise TypeError(f"unsupported value {type(value).__name__}")
@@ -76,7 +67,6 @@ def load_bundle(path: str | Path) -> dict[str, Any]:
 
 
 def verify_bundle(bundle: dict[str, Any]) -> list[str]:
-    """Format, checksums and join keys. Returns a list of problems (empty when valid)."""
     errors: list[str] = []
     if bundle.get("format") != FORMAT:
         errors.append(f"unknown format {bundle.get('format')!r}")
@@ -93,8 +83,6 @@ def verify_bundle(bundle: dict[str, Any]) -> list[str]:
     for s in sessions.values():
         if s["participant_code"] not in participants:
             errors.append(f"session {s['session_id']} has an unknown participant")
-        # A NULL condition is "not allocated yet" (allocation follows the pre-test, D3), not a
-        # broken join key (final review scoring-02); such a session cannot store telemetry.
         if s["condition_id"] is not None and s["condition_id"] not in conditions:
             errors.append(f"session {s['session_id']} has an unknown condition")
     seen: set[str] = set()

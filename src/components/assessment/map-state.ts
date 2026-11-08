@@ -1,33 +1,19 @@
-/**
- * Concept-map editor state: a pure reducer plus the raw-graph contract that is stored.
- *
- * Client-safe (no React, no server code). The participant editor and the expert-rater editor
- * share it, and the server validates every save against the same schema
- * (src/server/assessment/participant-maps.ts), so what is stored is exactly what the editor
- * produced: nodes with positions, typed and directed edges, and an append-only, timestamped edit
- * log. A score is never stored instead of the graph.
- */
 import { z } from "zod";
 
 import { relationshipTypeCodeSchema } from "@/lib/validation/primitives";
 
-/** Version tag of the stored raw editor state (concept_maps.raw.format). */
 export const MAP_FORMAT = "cmap-editor/1";
 export const MAX_EDIT_LOG = 5000;
 
-/** One concept of the protocol-defined, fixed concept set. */
 export interface MapConcept {
-  /** Stable node key within the item (position-derived: c1, c2, ...). */
   nodeKey: string;
   conceptId: string;
   label: string;
 }
 
-/** A relationship type the protocol allows, with its registry label and directedness. */
 export interface MapRelationshipType {
   code: string;
   label: string;
-  /** Registry `directed`: false for symmetric types (SIMILAR_TO, ...). */
   directed: boolean;
 }
 
@@ -47,7 +33,6 @@ export const mapEdgeSchema = z
     target: z.string().min(1).max(64),
     relationshipType: relationshipTypeCodeSchema.nullable(),
     directed: z.boolean(),
-    /** Expert-rater maps only: the edge must appear for full credit ("expected"). */
     required: z.boolean().optional(),
   })
   .refine((e) => e.source !== e.target, { message: "A relationship needs two different concepts" });
@@ -58,7 +43,6 @@ export type EditOp = (typeof EDIT_OPS)[number];
 
 export const editLogEntrySchema = z.strictObject({
   seq: z.number().int().min(0),
-  /** Client wall-clock time of the edit (ISO 8601). Raw editing history, not an exposure timing. */
   at: z.iso.datetime({ offset: true }),
   op: z.enum(EDIT_OPS),
   via: z.enum(["canvas", "form"]),
@@ -75,7 +59,6 @@ export const editLogEntrySchema = z.strictObject({
 });
 export type EditLogEntry = z.infer<typeof editLogEntrySchema>;
 
-/** What the editor sends on every save (autosave or final submission). */
 export const mapPayloadSchema = z.object({
   nodes: z.array(mapNodeSchema).max(200),
   edges: z.array(mapEdgeSchema).max(1000),
@@ -84,7 +67,6 @@ export const mapPayloadSchema = z.object({
 export type MapPayload = z.infer<typeof mapPayloadSchema>;
 
 export interface MapState extends MapPayload {
-  /** Next numeric edge key; keys are never reused, so the edit log stays unambiguous. */
   nextEdge: number;
 }
 
@@ -98,18 +80,15 @@ export type MapAction =
 
 export interface EditorRules {
   relationshipTypes: readonly MapRelationshipType[];
-  /** Item-level `directed` (concept_map config). False makes every link undirected. */
   directedLinks: boolean;
 }
 
-/** Directedness of an edge of this type under the item's rules. */
 export function edgeDirected(type: string | null, rules: EditorRules): boolean {
   if (!rules.directedLinks) return false;
   if (type === null) return true;
   return rules.relationshipTypes.find((t) => t.code === type)?.directed ?? true;
 }
 
-/** Deterministic initial layout: concepts on a circle, in protocol order. */
 const RING_LIMIT = 8;
 const GRID_COLUMN = 210;
 const GRID_ROW = 110;
@@ -140,14 +119,12 @@ export function emptyState(concepts: readonly MapConcept[]): MapState {
   return { nodes: initialNodes(concepts), edges: [], editLog: [], nextEdge: 1 };
 }
 
-/** Restores editor state from a stored payload. */
 export function stateFromPayload(payload: MapPayload): MapState {
   const max = payload.edges.reduce((m, e) => Math.max(m, Number(e.key.slice(1))), 0);
   const logMax = payload.editLog.reduce((m, l) => (l.edgeKey ? Math.max(m, Number(l.edgeKey.slice(1)) || 0) : m), 0);
   return { ...payload, nextEdge: Math.max(max, logMax) + 1 };
 }
 
-/** Why an edge cannot be added, or null. */
 export function addEdgeProblem(state: MapPayload, source: string, target: string, relationshipType: string | null, rules: EditorRules): string | null {
   if (!source || !target) return "Choose two concepts.";
   if (source === target) return "A relationship needs two different concepts.";
@@ -159,16 +136,11 @@ export function addEdgeProblem(state: MapPayload, source: string, target: string
   return state.edges.some((e) => edgeIdentity(e) === id) ? "This relationship already exists." : null;
 }
 
-/** Identity of a relationship: endpoints (sorted when undirected) plus type. */
 export function edgeIdentity(e: Pick<MapEdge, "source" | "target" | "relationshipType" | "directed">): string {
   const [a, b] = e.directed ? [e.source, e.target] : [e.source, e.target].sort();
   return `${a}|${b}|${e.relationshipType ?? ""}`;
 }
 
-/**
- * Applies one edit. Invalid edits return the state unchanged (the UI explains why beforehand).
- * `now` is injected so tests are deterministic.
- */
 export function reduceMap(state: MapState, action: MapAction, rules: EditorRules, now: () => string = () => new Date().toISOString()): MapState {
   const log = (entry: Omit<EditLogEntry, "seq" | "at">): EditLogEntry[] =>
     state.editLog.length >= MAX_EDIT_LOG ? state.editLog : [...state.editLog, { seq: state.editLog.length, at: now(), ...entry }];
@@ -245,7 +217,6 @@ export function toPayload(state: MapState): MapPayload {
   return { nodes: state.nodes, edges: state.edges, editLog: state.editLog };
 }
 
-/** Human-readable sentence for an edge, used for screen-reader labels and lists. */
 export function describeEdge(edge: Pick<MapEdge, "source" | "target" | "relationshipType" | "directed">, labelOf: (nodeKey: string) => string, typeLabel: (code: string | null) => string): string {
   const s = labelOf(edge.source);
   const t = labelOf(edge.target);
@@ -253,7 +224,6 @@ export function describeEdge(edge: Pick<MapEdge, "source" | "target" | "relation
   return edge.directed ? `${s} ${verb} ${t}` : `${s} ${verb} ${t} (both ways)`;
 }
 
-/** True when `next` keeps every entry of `prev` unchanged (the edit log is append-only). */
 export function extendsLog(prev: readonly EditLogEntry[], next: readonly EditLogEntry[]): boolean {
   if (next.length < prev.length) return false;
   for (let i = 0; i < prev.length; i++) {
@@ -262,7 +232,6 @@ export function extendsLog(prev: readonly EditLogEntry[], next: readonly EditLog
   return next.every((e, i) => e.seq === i);
 }
 
-/** Key-order-independent JSON (jsonb reorders object keys on storage). */
 function canonical(entry: EditLogEntry | undefined): string {
   if (!entry) return "";
   const rec = entry as Record<string, unknown>;

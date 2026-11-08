@@ -1,17 +1,3 @@
-/**
- * Knowledge domain: the typed craft-knowledge graph shared by both learning conditions.
- *
- *   content_packages ─┬─ traditions ─┬─ tradition_sources ── sources
- *                     ├─ sources     │
- *                     ├─ concepts ───┴─ concept_claims ── concept_claim_sources ── sources
- *                     └─ relationships (concept → concept, typed by relationship_types)
- *                                       └─ relationship_sources ── sources
- *   knowledge_categories (14 reference rows), relationship_types (registry)
- *   verification_records (append-only review history, written by trigger)
- *
- * Lossless with content/FORMAT.md v1: every field of tradition.json maps to a column
- * (see docs/architecture/knowledge-schema.md §"Import mapping").
- */
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -49,24 +35,15 @@ import {
   verificationStateEnum,
 } from "./_common";
 
-/** Demo rows: unverified provenance, never in an accepted review state. */
 const demoGuard = (isDemoCol: AnyPgColumn, prov: AnyPgColumn, state: AnyPgColumn) =>
   sql`NOT ${isDemoCol} OR (${prov} = 'unverified' AND ${state} NOT IN ('verified', 'published'))`;
 
-// ---------------------------------------------------------------------------------------
-// Import provenance
-// ---------------------------------------------------------------------------------------
-
-/**
- * One interchange file (content/traditions/<slug>/tradition.json, content/shared/*.json) or a
- * CMS-authored collection. Scopes source ids ("S1") and preserves file-level fields.
- */
 export const contentPackages = pgTable(
   "content_packages",
   {
     id: pk(),
     slug: text().notNull().unique(),
-    kind: text().notNull(), // tradition | shared | comparisons | cms
+    kind: text().notNull(),
     formatVersion: integer().notNull().default(1),
     name: text().notNull(),
     altNames: text().array().notNull().default(sql`'{}'::text[]`),
@@ -88,18 +65,12 @@ export const contentPackages = pgTable(
   ],
 );
 
-// ---------------------------------------------------------------------------------------
-// Reference data
-// ---------------------------------------------------------------------------------------
-
-/** The 14 knowledge categories (reference data, seeded; not demo). */
 export const knowledgeCategories = pgTable(
   "knowledge_categories",
   {
     code: text().primaryKey(),
     label: text().notNull(),
     description: text().notNull(),
-    /** Which of the seven epistemic-template groups (requirements digest §3) it belongs to. */
     templateGroup: text().notNull(),
     position: smallint().notNull().unique(),
     createdAt: createdAt(),
@@ -107,10 +78,6 @@ export const knowledgeCategories = pgTable(
   (t) => [check("knowledge_categories_code_ck", sql`${t.code} ~ '^[a-z][a-z_]*$'`)],
 );
 
-/**
- * Relationship vocabulary (researcher-editable registry). `semantics` keeps causal,
- * sequential, associative, compositional, explanatory and comparative links distinct.
- */
 export const relationshipTypes = pgTable(
   "relationship_types",
   {
@@ -121,11 +88,8 @@ export const relationshipTypes = pgTable(
     semantics: relationshipSemanticsEnum().notNull(),
     directed: boolean().notNull().default(true),
     allowsCycles: boolean().notNull().default(true),
-    /** Accepts an `ordinal` (process sequences). */
     ordered: boolean().notNull().default(false),
-    /** An edge of this type cannot be verified/published without at least one source. */
     requiresEvidence: boolean().notNull().default(true),
-    /** Part of content/FORMAT.md v1 (seeded). */
     isCore: boolean().notNull().default(false),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -136,10 +100,6 @@ export const relationshipTypes = pgTable(
     check("relationship_types_undirected_ck", sql`${t.directed} OR ${t.inverseLabel} IS NULL`),
   ],
 );
-
-// ---------------------------------------------------------------------------------------
-// Traditions and sources
-// ---------------------------------------------------------------------------------------
 
 export const traditions = pgTable(
   "traditions",
@@ -184,10 +144,6 @@ export const traditions = pgTable(
   ],
 );
 
-/**
- * Bibliographic / testimonial sources. `local_key` is the per-file id ("S1") scoped by
- * package, so imports are idempotent and claims resolve unambiguously.
- */
 export const sources = pgTable(
   "sources",
   {
@@ -202,7 +158,6 @@ export const sources = pgTable(
     url: text(),
     accessedOn: date(),
     reliability: sourceReliabilityEnum(),
-    /** Formatted citation (optional; the structured fields above are authoritative). */
     citation: text(),
     notes: text(),
     verificationState: verificationStateEnum().notNull().default("draft"),
@@ -229,7 +184,6 @@ export const sources = pgTable(
   ],
 );
 
-/** Sources backing tradition-level facts (purpose 'gi' = the GI registration record). */
 export const traditionSources = pgTable(
   "tradition_sources",
   {
@@ -255,15 +209,10 @@ export const traditionSources = pgTable(
   ],
 );
 
-// ---------------------------------------------------------------------------------------
-// Concepts
-// ---------------------------------------------------------------------------------------
-
 export const concepts = pgTable(
   "concepts",
   {
     id: pk(),
-    /** Stable interchange key `<namespace>.<type>.<kebab-name>` (content/FORMAT.md). */
     key: text().notNull().unique(),
     slug: text().notNull().unique(),
     type: conceptTypeEnum().notNull(),
@@ -274,22 +223,13 @@ export const concepts = pgTable(
     packageId: uuid(),
     title: text().notNull(),
     summary: text().notNull().default(""),
-    /** Rich body as a Tiptap/ProseMirror JSON document (CMS-authored). */
     body: jsonb(),
-    /** Plain-markdown body as imported (content/FORMAT.md `body_md`). */
     bodyMd: text(),
     localTerms: text().array().notNull().default(sql`'{}'::text[]`),
-    /**
-     * `comparison` concepts only: keys of the concepts being compared (content/FORMAT.md
-     * `compares`, used by content/comparisons.json). Kept as keys so the import is lossless
-     * even before every compared concept exists; the importer also emits CONTRASTS_WITH /
-     * SIMILAR_TO relationships for navigation.
-     */
     compares: text().array().notNull().default(sql`'{}'::text[]`),
     provenanceKind: provenanceKindEnum().notNull(),
     verificationState: verificationStateEnum().notNull().default("draft"),
     isDemo: isDemo(),
-    /** Full-text vector (immutable wrapper defined in migration 0001). */
     search: tsvector().generatedAlwaysAs(
       sql`ie_concept_search_vector(title, summary, local_terms, body_md)`,
     ),
@@ -333,7 +273,6 @@ export const concepts = pgTable(
   ],
 );
 
-/** A sourced statement about a concept (content/FORMAT.md `claims[]`). */
 export const conceptClaims = pgTable(
   "concept_claims",
   {
@@ -341,7 +280,6 @@ export const conceptClaims = pgTable(
     conceptId: uuid().notNull(),
     position: smallint().notNull(),
     text: text().notNull(),
-    /** Verbatim quote, at most 25 words (FORMAT.md). */
     quote: text(),
     isDemo: isDemo(),
     createdAt: createdAt(),
@@ -369,13 +307,7 @@ export const conceptClaimSources = pgTable(
   {
     claimId: uuid().notNull(),
     sourceId: uuid().notNull(),
-    /** Page, timestamp or section within the source (the first evidence passage's locator). */
     locator: text(),
-    /**
-     * Located verbatim passages from this source that support the claim (content/FORMAT.md
-     * "Claim evidence"): [{ locator, quote, note? }]. A passage supports the claim; it does not
-     * verify it (curators do).
-     */
     evidence: jsonb().$type<{ locator: string; quote: string; note?: string | null }[]>().notNull().default([]),
     isDemo: isDemo(),
     createdAt: createdAt(),
@@ -397,10 +329,6 @@ export const conceptClaimSources = pgTable(
   ],
 );
 
-// ---------------------------------------------------------------------------------------
-// Relationships
-// ---------------------------------------------------------------------------------------
-
 export const relationships = pgTable(
   "relationships",
   {
@@ -411,13 +339,9 @@ export const relationships = pgTable(
       .notNull()
       .references(() => relationshipTypes.code, { onDelete: "restrict", onUpdate: "cascade" }),
     packageId: uuid(),
-    /** Why the relation holds. */
     explanation: text(),
-    /** Qualifications under which it holds. */
     conditions: text(),
-    /** Optional researcher-assigned strength in [0, 1]. */
     strength: doublePrecision(),
-    /** Position within an ordered sequence (types with `ordered = true`, e.g. PRECEDES). */
     ordinal: integer(),
     provenanceKind: provenanceKindEnum().notNull(),
     verificationState: verificationStateEnum().notNull().default("draft"),
@@ -485,16 +409,6 @@ export const relationshipSources = pgTable(
   ],
 );
 
-// ---------------------------------------------------------------------------------------
-// Review history
-// ---------------------------------------------------------------------------------------
-
-/**
- * Append-only review history. Rows are written by the `ie_record_verification` trigger on
- * every verification_state change; the actor/reason come from the transaction-local settings
- * `app.actor_id` / `app.change_reason` (set by the CMS service). Accepting content
- * (verified/published) without an actor is rejected.
- */
 export const verificationRecords = pgTable(
   "verification_records",
   {

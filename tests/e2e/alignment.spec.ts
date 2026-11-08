@@ -1,24 +1,9 @@
-/**
- * Visual-alignment guard (docs/research/design-process/modules/visual-alignment.md).
- *
- * 1. Parallel cards: in every card grid that carries an action, the action elements of the cards
- *    in one grid row share the same top and bottom (±1 px) at 1280 px, whatever the length of the
- *    text above them (cards stretch to the row height; the action is pinned with mt-auto).
- * 2. No in-scope page scrolls horizontally at 390 px (document scrollWidth <= clientWidth).
- *
- * Runs against the dev server and database: the 2D pages through the public demo, the consoles
- * through a throwaway staff account made with scripts/create-admin.ts (platform_admin + curator),
- * the study pages through the demo fixture study (./study-fixtures.ts). Never experimental data.
- * The throwaway staff accounts are locked after the run (with any left by earlier runs), so no
- * usable test login accumulates in the users list.
- */
 import { randomBytes } from "node:crypto";
 
 import { expect, newContext, test, type Browser, type Page } from "./fixtures";
 
 import { JOURNEY_STUDY as E2E_STUDY_CODE, closeDb, createE2eStaff, ensureDemoStudy, retireE2eStaff, signInStaff as signInAs } from "./study-fixtures";
 
-// The dev server compiles each route on first visit.
 test.describe.configure({ timeout: 600_000 });
 test.use({ navigationTimeout: 120_000 });
 
@@ -31,7 +16,6 @@ test.beforeAll(async () => {
   for (const role of ["platform_admin", "curator"]) createE2eStaff(STAFF, "E2E Alignment", role, PASSWORD);
 });
 test.afterAll(async () => {
-  // Retire this run's account and any left by earlier runs (locked, roles removed, sessions ended).
   await retireE2eStaff(undefined, [STAFF]);
   await closeDb();
 });
@@ -46,12 +30,7 @@ async function startDemo(page: Page) {
   await page.waitForURL(/\/learn\/2d$/, { timeout: 120_000 });
 }
 
-/**
- * For each card matched by `cards`, the box of its `action`; cards are grouped into rows by
- * their top edge, and every action in a row must share top and bottom within 1 px.
- */
 async function expectActionsAligned(page: Page, cards: string, action: string) {
-  // Pages stream their content in behind Suspense: wait for the grid before measuring.
   await page.locator(cards).nth(1).waitFor({ timeout: 120_000 });
   const boxes = await page.locator(cards).evaluateAll(
     (els, sel) =>
@@ -98,16 +77,12 @@ test("card actions in one row share a baseline at 1280 px", async ({ browser }) 
   const { ctx, page } = await context(browser, DESKTOP);
 
   await page.goto("/");
-  // The two conditions are parallel items of equal weight (Atlas: unboxed, one rule above each).
   await expectActionsAligned(page, 'section[aria-labelledby="conditions-heading"] ul[aria-label="The two conditions"] > li', 'a[href="/explore"]');
 
   await page.goto("/explore");
   await expectActionsAligned(page, '[data-slot="card"]', 'button[type="submit"]');
 
-  // Study entry: label and field share the left edge; Continue ends on the field's right edge
-  // (DESIGN.md 11.7: the primary action sits right, on the study column's edge).
   await page.goto("/study");
-  // boundingBox() does not wait: the form streams in behind Suspense, so wait for it first.
   await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
   const label = (await page.getByText("Study code", { exact: true }).boundingBox())!;
   const field = (await page.getByLabel("Study code").boundingBox())!;
@@ -147,7 +122,6 @@ test("no in-scope page scrolls horizontally at 390 px", async ({ browser }) => {
 });
 
 test("the study consent page does not scroll horizontally at 390 px", async ({ browser }) => {
-  // Participant: consent page of the demo fixture study (kept apart so the study fixture never blocks the other checks).
   ensureDemoStudy(E2E_STUDY_CODE, 30);
   const p = await context(browser, PHONE);
   await p.page.goto("/study");

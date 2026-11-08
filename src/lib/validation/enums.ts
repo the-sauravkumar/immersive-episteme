@@ -1,13 +1,3 @@
-/**
- * Shared domain vocabularies. These const tuples are the single source of truth: the
- * Drizzle schema (db/schema/*) builds its Postgres enums from them and the Zod contracts
- * (src/features/{feature}/contracts.ts) build their validators from them.
- *
- * Pure TypeScript with no dependencies, so it is safe to import from client components.
- * Changing a value here requires a migration (`npm run db:generate`).
- */
-
-/** Content review lifecycle (spec §6.5 plus publishing states). */
 export const VERIFICATION_STATES = [
   "draft",
   "under_review",
@@ -19,10 +9,8 @@ export const VERIFICATION_STATES = [
 ] as const;
 export type VerificationState = (typeof VERIFICATION_STATES)[number];
 
-/** States that count as "accepted" content: only a human curator can set them. */
 export const ACCEPTED_STATES = ["verified", "published"] as const satisfies readonly VerificationState[];
 
-/** Epistemic kind of a statement or source. Matches content/FORMAT.md `kind` / `provenance_kind`. */
 export const PROVENANCE_KINDS = [
   "practitioner_testimony",
   "historical_documentation",
@@ -36,7 +24,6 @@ export type ProvenanceKind = (typeof PROVENANCE_KINDS)[number];
 export const SOURCE_RELIABILITIES = ["high", "medium", "low"] as const;
 export type SourceReliability = (typeof SOURCE_RELIABILITIES)[number];
 
-/** Concept types (content/FORMAT.md `type`). */
 export const CONCEPT_TYPES = [
   "tradition",
   "material",
@@ -54,10 +41,6 @@ export const CONCEPT_TYPES = [
 ] as const;
 export type ConceptType = (typeof CONCEPT_TYPES)[number];
 
-/**
- * The 14 knowledge categories (content/FORMAT.md `category`). Stored as reference rows in
- * `knowledge_categories`; this list seeds them and validates imports.
- */
 export const KNOWLEDGE_CATEGORY_CODES = [
   "tradition_identity",
   "geography_history",
@@ -76,7 +59,6 @@ export const KNOWLEDGE_CATEGORY_CODES = [
 ] as const;
 export type KnowledgeCategoryCode = (typeof KNOWLEDGE_CATEGORY_CODES)[number];
 
-/** Semantics class of a relationship type: never collapse these into one generic link. */
 export const RELATIONSHIP_SEMANTICS = [
   "causal",
   "sequential",
@@ -87,7 +69,6 @@ export const RELATIONSHIP_SEMANTICS = [
 ] as const;
 export type RelationshipSemantics = (typeof RELATIONSHIP_SEMANTICS)[number];
 
-/** Relationship type codes used by content/FORMAT.md v1. The registry table may add more. */
 export const CORE_RELATIONSHIP_TYPE_CODES = [
   "BELONGS_TO",
   "USES",
@@ -106,7 +87,6 @@ export const CORE_RELATIONSHIP_TYPE_CODES = [
 ] as const;
 export type CoreRelationshipTypeCode = (typeof CORE_RELATIONSHIP_TYPE_CODES)[number];
 
-/** Entities whose review state is tracked in `verification_records`. */
 export const VERIFIABLE_ENTITY_KINDS = [
   "tradition",
   "concept",
@@ -115,10 +95,6 @@ export const VERIFIABLE_ENTITY_KINDS = [
   "asset",
 ] as const;
 export type VerifiableEntityKind = (typeof VERIFIABLE_ENTITY_KINDS)[number];
-
-// ---------------------------------------------------------------------------------------
-// Publishing
-// ---------------------------------------------------------------------------------------
 
 export const SNAPSHOT_STATUSES = ["draft", "published"] as const;
 export type SnapshotStatus = (typeof SNAPSHOT_STATUSES)[number];
@@ -138,10 +114,6 @@ export type SnapshotItemKind = (typeof SNAPSHOT_ITEM_KINDS)[number];
 export const RELEASE_STATUSES = ["candidate", "released", "withdrawn"] as const;
 export type ReleaseStatus = (typeof RELEASE_STATUSES)[number];
 
-// ---------------------------------------------------------------------------------------
-// Media
-// ---------------------------------------------------------------------------------------
-
 export const ASSET_KINDS = ["image", "video", "audio", "model_3d", "texture", "document"] as const;
 export type AssetKind = (typeof ASSET_KINDS)[number];
 
@@ -156,10 +128,6 @@ export type AssetLinkRole = (typeof ASSET_LINK_ROLES)[number];
 
 export const MEDIA_CANDIDATE_STATUSES = ["candidate", "approved", "rejected", "imported"] as const;
 export type MediaCandidateStatus = (typeof MEDIA_CANDIDATE_STATUSES)[number];
-
-// ---------------------------------------------------------------------------------------
-// Spatial
-// ---------------------------------------------------------------------------------------
 
 export const RULE_SET_STATUSES = ["draft", "frozen"] as const;
 export type RuleSetStatus = (typeof RULE_SET_STATUSES)[number];
@@ -180,17 +148,12 @@ export const SPATIAL_ELEMENT_KINDS = [
 ] as const;
 export type SpatialElementKind = (typeof SPATIAL_ELEMENT_KINDS)[number];
 
-// ---------------------------------------------------------------------------------------
-// Study
-// ---------------------------------------------------------------------------------------
-
 export const STUDY_DESIGNS = ["between"] as const;
 export type StudyDesign = (typeof STUDY_DESIGNS)[number];
 
 export const STUDY_STATUSES = ["draft", "active", "closed"] as const;
 export type StudyStatus = (typeof STUDY_STATUSES)[number];
 
-/** The two experimental interfaces. */
 export const CONDITION_INTERFACES = ["conventional_2d", "immersive_3d"] as const;
 export type ConditionInterface = (typeof CONDITION_INTERFACES)[number];
 
@@ -217,10 +180,6 @@ export type DeviationSeverity = (typeof DEVIATION_SEVERITIES)[number];
 
 export const STUDY_PHASES = ["pre", "learning", "post", "follow_up"] as const;
 export type StudyPhase = (typeof STUDY_PHASES)[number];
-
-// ---------------------------------------------------------------------------------------
-// Assessment
-// ---------------------------------------------------------------------------------------
 
 export const ASSESSMENT_KINDS = [
   "pretest",
@@ -260,10 +219,6 @@ export type RaterRole = (typeof RATER_ROLES)[number];
 
 export const CONCEPT_MAP_PHASES = ["pre", "post"] as const;
 export type ConceptMapPhase = (typeof CONCEPT_MAP_PHASES)[number];
-
-// ---------------------------------------------------------------------------------------
-// Telemetry
-// ---------------------------------------------------------------------------------------
 
 export const EVENT_SCOPES = ["both", "conventional_2d", "immersive_3d"] as const;
 export type EventScope = (typeof EVENT_SCOPES)[number];

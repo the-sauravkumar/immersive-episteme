@@ -1,13 +1,3 @@
-"""Two-group comparison with effect sizes and confidence intervals (exploratory).
-
-- Welch's t-test (unequal variances) and its CI for the mean difference (b - a).
-- Hedges' g (bias-corrected standardised mean difference, pooled SD) with an approximate CI
-  from the large-sample variance of d (Hedges & Olkin), exact noncentral-t inversion when
-  `exact_ci=True`.
-- Mann-Whitney U with the rank-biserial correlation as a distribution-free alternative.
-- Percentile bootstrap CI for the mean difference (fixed seed, reproducible).
-"""
-
 from __future__ import annotations
 
 import math
@@ -17,7 +7,6 @@ from scipy import optimize, stats
 
 
 def hedges_g(a: list[float], b: list[float]) -> tuple[float, float]:
-    """(g, approximate variance of g) for b minus a."""
     n1, n2 = len(a), len(b)
     s1, s2 = np.var(a, ddof=1), np.var(b, ddof=1)
     sp = math.sqrt(((n1 - 1) * s1 + (n2 - 1) * s2) / (n1 + n2 - 2))
@@ -29,7 +18,6 @@ def hedges_g(a: list[float], b: list[float]) -> tuple[float, float]:
 
 
 def d_ci_exact(t: float, n1: int, n2: int, level: float = 0.95) -> tuple[float, float]:
-    """CI for Cohen's d by inverting the noncentral t distribution of the pooled t statistic."""
     df = n1 + n2 - 2
     scale = math.sqrt(1 / n1 + 1 / n2)
     lo_p, hi_p = (1 + level) / 2, (1 - level) / 2
@@ -42,7 +30,6 @@ def d_ci_exact(t: float, n1: int, n2: int, level: float = 0.95) -> tuple[float, 
 
 
 def compare_groups(a: list[float], b: list[float], *, level: float = 0.95, n_boot: int = 5000, seed: int = 20261014) -> dict[str, float | int | str | None]:
-    """Comparison of group b against group a (differences are b minus a)."""
     n1, n2 = len(a), len(b)
     out: dict[str, float | int | str | None] = {"n_a": n1, "n_b": n2}
     if n1 < 2 or n2 < 2:

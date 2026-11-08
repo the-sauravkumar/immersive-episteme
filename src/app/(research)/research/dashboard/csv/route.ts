@@ -1,14 +1,3 @@
-/**
- * GET /research/dashboard/csv?study=<uuid>&table=<dashboard table>: one research-dashboard table
- * as CSV, generated from the database on every request (never cached or written to disk),
- * pseudonymised (participant codes only), with a `#` header line naming the metric versions.
- * The tables of rows 3 and 4 (gain by tradition, dwell time per layer, per-item statistics) come
- * from src/server/research/dashboard-extra-tables.ts, with the same header.
- *
- * Permission: `analytics.view` (the dashboard) AND `exports.create` or `exports.identified`
- * (taking data out of the platform is an export). A role with only `analytics.view` (e.g.
- * platform_admin) is refused with 403. Each download is audited like the research exports.
- */
 import { can } from "@/lib/permissions/can";
 import { authorizeRequest } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";

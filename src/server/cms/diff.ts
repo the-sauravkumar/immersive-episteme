@@ -1,10 +1,3 @@
-/**
- * Diff between two knowledge bundles (snapshot payloads). Pure.
- *
- * Entities are matched by their stable identity: traditions by slug, concepts by key, sources
- * and relationships by id (database ids, stable across snapshots built from the database),
- * claims by (concept key, position). A changed entity lists the fields that differ.
- */
 import type { KnowledgeBundle } from "@/features/knowledge/contracts";
 import { canonicalJson } from "@/features/knowledge/graph/canonical-json";
 
@@ -63,7 +56,6 @@ export function diffBundles(a: KnowledgeBundle, b: KnowledgeBundle): BundleDiff 
   const relLabel = (r: KnowledgeBundle["relationships"][number]) => `${r.source} ${r.type} ${r.target}`;
   return {
     traditions: diffBy(a.traditions, b.traditions, (t) => t.slug, (t) => t.name, ["id"]),
-    // `claims` are diffed separately; ids of claims change whenever claims are re-saved.
     concepts: diffBy(a.concepts, b.concepts, (c) => c.key, (c) => c.title, ["id", "claims"]),
     claims: diffBy(claimsOf(a), claimsOf(b), (c) => `${c.conceptKey}#${c.position + 1}`, (c) => `${titlesB.get(c.conceptKey) ?? titlesA.get(c.conceptKey) ?? c.conceptKey}, claim ${c.position + 1}`, ["id"]),
     relationships: diffBy(a.relationships, b.relationships, (r) => r.id, relLabel),

@@ -1,9 +1,3 @@
-/**
- * Deployment on Neon + Cloudflare R2 (DR-055):
- * the pooled/direct URL rules, the migration scripts' URL choice, the server-side checksum
- * fallback for stores without a single-part SHA-256, the invite-gate guard that runs before every
- * Vercel build, and the deploy kit's configuration.
- */
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -40,7 +34,6 @@ describe("Neon: pooled app URL, direct URL for LISTEN and migrations", () => {
     const env = parseServerEnv({ ...prod, DATABASE_URL_UNPOOLED: DIRECT });
     expect(directDatabaseUrl(env)).toBe(DIRECT);
     expect(() => parseServerEnv({ ...prod, DATABASE_URL_UNPOOLED: POOLED })).toThrow(/pooled \(-pooler\) host/);
-    // No RDS CA rule on Neon: the chain ends at ISRG Root X1, in Node's default store.
     expect(() => parseServerEnv({ ...prod, DATABASE_URL_UNPOOLED: DIRECT })).not.toThrow();
   });
 
@@ -130,7 +123,6 @@ describe("Invite gate before every production build (CLI deploys too)", () => {
     const vj = JSON.parse(readFileSync("vercel.json", "utf8")) as { buildCommand: string; regions: string[] };
     expect(vj.buildCommand).toBe("node scripts/deploy/invite-gate.ts --if-production && npm run build");
     expect(vj.regions).toEqual(["sin1"]);
-    // Provider-neutral: preflight derives the region from the database (tests/unit/deploy-topology.test.ts).
     expect(topologyChecks({ DATABASE_URL: POOLED, DATABASE_URL_UNPOOLED: DIRECT }, vj.regions).functionRegion).toBe(vj.regions[0]);
   });
 });

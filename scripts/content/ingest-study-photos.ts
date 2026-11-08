@@ -1,43 +1,3 @@
-/**
- * Ingests the study photographs through the media pipeline (the same service the CMS media library
- * uses), so they reach learners only through its governance:
- *
- *   npx tsx scripts/content/ingest-study-photos.ts --uploader <staff email> [--dry-run] [--test]
- *
- * For every image with status "proposed" in content/review/media-proposals.json and, when present,
- * content/review/process-photo-proposals.json (both read only; today: one V&A textile photograph
- * per study tradition), it takes the full-size file in
- * scripts/content/study-photos/<tradition>-<kind>.jpg, made by scripts/content/build-study-photos.ts
- * from the source original (the Machilipatnam textile cropped at the left to remove the museum's
- * paper tag, DR-020; every other file is the source original, byte for byte, DR-118) and:
- *  1. uploads it (sniffed type, SHA-256, pixel size from the file) with the proposal's title,
- *     caption and alt text, the credit and licence its source requires (`PHOTO_SOURCES`) and the
- *     record page as provenance;
- *  2. links it as the `illustration` of its concept, anchored after the claim the proposal names
- *     first, replacing an earlier rendition of the same record on that concept;
- *  3. submits it for review.
- *
- * Sources (DR-020 for the V&A; DR-057 for the others):
- *  - V&A: the fixed V&A credit, "(cropped)" when a crop is noted;
- *  - Rick Bradley and Eric Parker (Flickr; CC BY 2.0 and CC BY-NC 2.0): the photographer named,
- *    a noted crop credited;
- *  (every stored credit omits the leading "Photo: ", which the shared figure prints; DR-063)
- *  - Sahapedia (CC BY-NC-SA 4.0 with written permission, docs/research/sahapedia-image-permission-reply.md):
- *    the credit names the photographer Sahapedia confirms; uncropped and unaltered only;
- *  - PARI (CC BY-NC-ND 4.0 with written permission, docs/research/pari-image-permission-reply.md):
- *    PARI's exact credit line, Rahul Maganti's photographs only; uncropped and unaltered only.
- * Every photograph is licensed for public use by CXA's approval (DR-118). A proposal is refused when it notes a crop or edit on a no-alteration source, or when its source credits a
- * photographer and the name is missing or still a placeholder.
- *
- * It never verifies anything: a second curator verifies each asset in the CMS (nobody verifies
- * their own upload). A photograph then shows, identically in both doors at the end of its
- * tradition, only when the asset is verified, its anchor claim's concept is verified in the snapshot
- * the learner reads, and the protocol switch `figures.photos` is on. Never on the home page: no
- * plate flag is set.
- *
- * Idempotent: a file already in the library (same SHA-256) is reused, and its link is updated.
- * The uploader must be a staff account with the media.upload permission (content editor, curator).
- */
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -53,42 +13,26 @@ import { makePool, redact, resolveDatabaseUrl } from "../db/_shared";
 
 import { arg, flag, REPO_ROOT } from "./_shared";
 
-/** The credit the V&A requires on every image (terms section 3; reply archived in docs/research/va-image-licence-reply.md). */
 export const VA_CREDIT = "© Victoria and Albert Museum, London";
 export const VA_LICENCE = "V&A non-commercial terms";
 export const VA_LICENCE_URL = "https://www.vam.ac.uk/info/va-websites-terms-conditions";
 export const PHOTO_SOURCE_IDS = ["vam", "rick-bradley", "sahapedia", "eric-parker", "pari"] as const;
 export type PhotoSourceId = (typeof PHOTO_SOURCE_IDS)[number];
 
-/** The exact credit line PARI confirmed in its third reply (docs/research/pari-image-permission-reply.md). */
 export const PARI_CREDIT = "Photo: Rahul Maganti / People's Archive of Rural India (PARI). CC BY-NC-ND 4.0, used with permission.";
 
-/** What a source requires of every photograph taken from it. */
 export interface PhotoSource {
   id: PhotoSourceId;
-  /** The proposal's licence text must match, so a mislabelled proposal is refused. */
   licencePattern: RegExp;
-  /** The record page must be on the source's site (provenance). */
   pageUrlPattern: RegExp;
   licence: string;
   licenceUrl: string;
-  /**
-   * null: the credit names the institution, no photographer (V&A);
-   * "named": any photographer, whose name must be given (Sahapedia);
-   * a name: the only photographer the licence or permission covers.
-   */
   photographer: null | "named" | string;
-  /** Uncropped and unaltered only (a no-derivatives licence, or the permission's condition). */
   noAlteration: boolean;
   credit(p: { photographer: string; recordTitle?: string | undefined; cropped: boolean }): string;
 }
 
 const cropSuffix = (cropped: boolean) => (cropped ? " (cropped)" : "");
-/**
- * Stored credits never start with "Photo: ": the shared figure prints "Photo: <credit>." in both
- * conditions (FIGURE_TEXT.photoCredit), so a stored prefix would print twice (DR-063). The rendered
- * line is the line each source asks for.
- */
 const PHOTO_PREFIX = /^Photo:\s*/;
 const flickrCredit = (licence: string) => (p: { photographer: string; recordTitle?: string | undefined; cropped: boolean }) =>
   `${p.photographer}${p.recordTitle ? `, "${p.recordTitle}"` : ""}, Flickr, ${licence}${cropSuffix(p.cropped)}`;
@@ -159,21 +103,16 @@ const proposalSchema = z.object({
   altText: z.string(),
   licence: z.string(),
   notes: z.array(z.string()).default([]),
-  /** Whose terms apply; absent = the V&A (the DR-020 entries carry no source field). */
   source: z.enum(PHOTO_SOURCE_IDS).optional(),
-  /** The photographer the credit names. */
   photographer: z.string().optional(),
-  /** The record's own title, quoted in a Flickr credit when given. */
   recordTitle: z.string().optional(),
 });
 export type PhotoProposal = z.infer<typeof proposalSchema>;
 
-/** What the pipeline receives for one proposal: the asset metadata and the link. */
 export interface PhotoIngestPlan {
   proposalId: string;
   file: string;
   conceptKey: string;
-  /** Zero-based anchor claim index (the first claim the proposal names). */
   position: number;
   metadata: {
     title: string;
@@ -190,42 +129,35 @@ export interface PhotoIngestPlan {
 
 export const studyPhotoFile = (p: Pick<PhotoProposal, "tradition" | "kind">): string => `${p.tradition}-${p.kind}.jpg`;
 
-/** The anchor claim index from a claim id such as "ajrakh.historical_context.x#4". */
 export function anchorPosition(claimId: string, conceptKey: string): number {
   const m = /^(.+)#(\d+)$/.exec(claimId);
   if (!m || m[1] !== conceptKey) throw new Error(`Claim id ${claimId} does not name a claim of ${conceptKey}`);
   return Number(m[2]);
 }
 
-/** Is a crop noted in the proposal? */
 export function cropNoted(p: Pick<PhotoProposal, "notes">): boolean {
   return p.notes.some((n) => /^crop/i.test(n.trim()));
 }
 
-/** A note that the image was cropped or otherwise altered beyond resizing. */
 export function alterationNoted(p: Pick<PhotoProposal, "notes">): boolean {
   return p.notes.some((n) => /^(crop|edit|alter|retouch|recolou?r|colour[- ]correct|straighten|mirror|flip)/i.test(n.trim()));
 }
 
-/** A crop noted in the proposal is credited (DR-020: "credited 'cropped'"). The V&A credit. */
 export function creditOf(p: Pick<PhotoProposal, "notes">): string {
   return PHOTO_SOURCES.vam.credit({ photographer: "", cropped: cropNoted(p) });
 }
 
-/** Whose terms apply: the proposal's `source`, else the V&A when its licence names the museum. */
 export function sourceOf(p: Pick<PhotoProposal, "id" | "licence" | "source">): PhotoSource {
   if (p.source) return PHOTO_SOURCES[p.source];
   if (PHOTO_SOURCES.vam.licencePattern.test(p.licence)) return PHOTO_SOURCES.vam;
   throw new Error(`${p.id}: no "source" given and not a V&A image; set "source" to one of ${PHOTO_SOURCE_IDS.join(", ")}`);
 }
 
-/** A photographer name that is missing, blank or still a placeholder such as "[Photographer's Name]". */
 export function missingPhotographer(name: string | undefined): boolean {
   const n = (name ?? "").trim();
   return !n || /[[\]<>{}]/.test(n) || /^(the )?photographer('?s)?( name)?$/i.test(n) || /^(unknown|anonymous|tbc|tbd|n\/?a|none|-+|\?+)$/i.test(n);
 }
 
-/** The ingest plan of one proposal, refused when its source's terms are not met. */
 export function planPhoto(p: PhotoProposal): PhotoIngestPlan {
   const src = sourceOf(p);
   if (!src.licencePattern.test(p.licence)) throw new Error(`${p.id}: licence "${p.licence}" is not the ${src.id} licence (${src.licence})`);
@@ -262,15 +194,10 @@ export function planPhoto(p: PhotoProposal): PhotoIngestPlan {
   };
 }
 
-/** Parses one proposal entry (the format of content/review/*-proposals.json `images`). */
 export function parsePhotoProposal(raw: unknown): PhotoProposal {
   return proposalSchema.parse(raw);
 }
 
-/**
- * The plans of every proposed photograph, validated before anything is written. Entries with any
- * other status ("held", "reserve", "rejected") are skipped. Takes one or more proposal files.
- */
 export function planStudyPhotos(...proposalsJson: unknown[]): PhotoIngestPlan[] {
   const images = proposalsJson.flatMap((j) => z.object({ images: z.array(z.unknown()) }).parse(j).images);
   const proposed = images
@@ -280,7 +207,6 @@ export function planStudyPhotos(...proposalsJson: unknown[]): PhotoIngestPlan[] 
   return proposed.map(planPhoto);
 }
 
-/** Width and height from a baseline or progressive JPEG's SOF marker. */
 export function jpegSize(bytes: Uint8Array): { width: number; height: number } | null {
   const b = Buffer.from(bytes);
   if (b[0] !== 0xff || b[1] !== 0xd8) return null;
@@ -374,7 +300,6 @@ async function main() {
   }
 }
 
-// Run only as a script (the unit tests import the planning helpers).
 if (process.argv[1] && /ingest-study-photos\.ts$/.test(process.argv[1])) {
   main().catch((err) => {
     console.error("[photos] failed:", err instanceof Error ? err.message : err);

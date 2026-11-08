@@ -1,6 +1,3 @@
-"""Split every archived source into located segments for citation:
-PDF -> one segment per page (locator "PDF p. N"); HTML -> one segment per section under its nearest
-h1-h4 heading (locator '§ "<heading>"'). Output: segments.json {url: [{locator, text}]}."""
 import html, json, os, re, subprocess, sys
 
 def pdf_pages(path, label=""):
@@ -52,7 +49,6 @@ def main():
             segs = html_sections(b)
         out[url.strip()] = segs
 
-    # Sources recovered through other routes (see content/review/verification.md §V3, §V5).
     aj = "https://search.ipindia.gov.in/GIRPublicSearch/Application/Details/1050"
     out[aj] = out.get(aj, []) + pdf_pages(os.path.join(GI, "aj-journal.pdf"), "GI Journal No. 188 copy (application 1050), ")
     ax = "https://arxiv.org/abs/1412.2842"

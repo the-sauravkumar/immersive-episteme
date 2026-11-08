@@ -1,27 +1,3 @@
-/**
- * Time accountant: content-exposure and navigation intervals, measured the same way in both
- * conditions (lead requirement: equal exposure; navigation recorded apart from learning).
- *
- *  - CONTENT EXPOSURE: a concept's sheet is open (DR-050: 2D concept page shown, 3D information
- *    panel open). `beginExposure(conceptId, layer)`.
- *  - NAVIGATION: moving or browsing with no concept content open (3D walking between exhibits,
- *    2D menus or catalogue). `beginNavigation(surface)`.
- *
- * Exactly ONE interval can be open. Beginning a new one first ends the open one (reason
- * `switched`) at the same monotonic instant, so intervals never overlap and no moment is counted
- * as both kinds. Time with no open interval and no pause is idle.
- *
- * Pauses: tab hidden, window blurred, or a non-content modal open (`pause(cause)` /
- * `resume(cause)`; causes nest). The first cause logs `timing_paused`, the last one released logs
- * `timing_resumed` with the paused duration and all causes. Paused time is excluded from the open
- * interval's `activeMs`. Over a page load the four parts reconcile exactly:
- *
- *   elapsed = exposure active + navigation active + paused + idle      (see `totals()`)
- *
- * All times come from one monotonic clock (performance.now()); events carry start/end on it.
- * Only this module emits the six interval event types: the tracker's public `track` and the
- * typed helpers refuse them.
- */
 import type { ExposureLayer, NavigationSurface, PauseCause } from "@/features/telemetry/contracts";
 import type { KnowledgeCategoryCode } from "@/lib/validation/enums";
 
@@ -46,7 +22,6 @@ export interface OpenInterval {
   context: IntervalContext;
 }
 
-/** Milliseconds since the accountant was created; the four parts sum to `elapsedMs`. */
 export interface TimingTotals {
   elapsedMs: number;
   exposureMs: number;
@@ -56,22 +31,14 @@ export interface TimingTotals {
 }
 
 export interface TimeAccountant {
-  /** The open interval, or null (idle or paused with nothing open). */
   current(): OpenInterval | null;
   paused(): boolean;
-  /** Active pause causes. */
   pauseCauses(): PauseCause[];
-  /** Ends any open interval (`switched`) and opens an exposure interval. Returns its id. */
   beginExposure(conceptId: string, layer: ExposureLayer, context?: IntervalContext): string;
-  /** Ends any open interval (`switched`) and opens a navigation interval. Returns its id. */
   beginNavigation(surface?: NavigationSurface, context?: IntervalContext): string;
-  /** Ends the open interval, if any. */
   end(reason?: Exclude<IntervalEndReason, "switched">): void;
-  /** Ends the interval only if it is still `intervalId` (safe for component unmounts). */
   endIf(intervalId: string, reason?: Exclude<IntervalEndReason, "switched">): void;
-  /** Adds a pause cause (tab hidden, window blur, non-content modal). */
   pause(cause: PauseCause): void;
-  /** Releases a pause cause; timing resumes when none is left. */
   resume(cause: PauseCause): void;
   totals(): TimingTotals;
 }
@@ -87,7 +54,6 @@ export function createTimeAccountant(opts: { track: RawTrackFn; monotonicNow: ()
   let pausedAt: number | null = null;
   const done = { exposureMs: 0, navigationMs: 0, pausedMs: 0 };
 
-  // Exact (unrounded) bookkeeping; events carry integer milliseconds.
   const close = (reason: IntervalEndReason, at: number) => {
     if (!open) return;
     const iv = open;
@@ -108,7 +74,6 @@ export function createTimeAccountant(opts: { track: RawTrackFn; monotonicNow: ()
     const at = monotonicNow();
     close("switched", at);
     const intervalId = newId();
-    // An interval opened during a pause starts paused: its paused time runs from `at`.
     open = { ...iv, intervalId, startMonoMs: at, pausedMs: pausedAt !== null ? -(at - pausedAt) : 0 };
     if (iv.kind === "exposure") {
       void track("exposure_started", { ...iv.context, conceptId: iv.conceptId!, metadata: { intervalId, layer: iv.layer!, startMonoMs: at } });

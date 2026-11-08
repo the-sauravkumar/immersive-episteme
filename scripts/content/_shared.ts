@@ -1,9 +1,3 @@
-/**
- * Shared helpers for the content CLIs (validate, build-snapshot). Read-only on content/.
- *
- * Output goes to analysis/out/knowledge-graph/ by default: `.tmp/` is not in .gitignore,
- * while `/analysis/out/` is ("generated data is not committed").
- */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,10 +20,6 @@ export function flag(name: string, argv: readonly string[] = process.argv.slice(
   return argv.includes(`--${name}`);
 }
 
-/**
- * Exit with an error on any argument that is not a known option, so a typo
- * (e.g. `--publishable` for `--kind publishable`) cannot silently fall back to a default.
- */
 export function assertKnownArgs(
   options: { values?: readonly string[]; flags?: readonly string[] },
   argv: readonly string[] = process.argv.slice(2),
@@ -46,7 +36,7 @@ export function assertKnownArgs(
     const name = a.slice(2).split("=")[0]!;
     if (flags.has(name)) continue;
     if (values.has(name)) {
-      if (!a.includes("=")) i++; // skip the value that follows
+      if (!a.includes("=")) i++;
       continue;
     }
     unknown.push(a);

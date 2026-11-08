@@ -1,7 +1,3 @@
-/**
- * Integration: the knowledge schema's constraints and triggers reject invalid data
- * (own fresh database per run; see schema-harness.ts).
- */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { TEST_URL, createRealGraph, createTestDatabase, createUser, one, withSettings, type TestDb } from "./schema-harness";
@@ -65,11 +61,9 @@ describe.skipIf(!TEST_URL)("schema constraints", () => {
   });
 
   it("enforces the demo flagging rules", async () => {
-    // demo key without demo flag, demo flag without demo key, demo without "Demo:" title
     await expect(insertConcept("demo-x.material.m1", "material", "Demo: m1")).rejects.toThrow(/concepts_demo_ck/);
     await expect(insertConcept("x2.material.m1", "material", "Demo: m1", { isDemo: true, prov: "unverified" })).rejects.toThrow(/concepts_demo_ck/);
     await expect(insertConcept("demo-x.material.m2", "material", "Material", { isDemo: true, prov: "unverified" })).rejects.toThrow(/concepts_demo_ck/);
-    // demo content is always unverified provenance and never accepted
     await expect(insertConcept("demo-x.material.m3", "material", "Demo: m3", { isDemo: true })).rejects.toThrow(/concepts_demo_state_ck/);
     await expect(
       insertConcept("demo-x.material.m4", "material", "Demo: m4", { isDemo: true, prov: "unverified", state: "verified" }),
@@ -79,7 +73,6 @@ describe.skipIf(!TEST_URL)("schema constraints", () => {
 
   it("keeps demo and real graphs disjoint via composite is_demo foreign keys", async () => {
     const real = await createRealGraph(t.pool, { prefix: "disjoint" });
-    // A demo concept cannot belong to a real tradition.
     await expect(
       t.pool.query(
         `INSERT INTO concepts (key, slug, type, category_code, tradition_id, title, provenance_kind, is_demo)
@@ -87,7 +80,6 @@ describe.skipIf(!TEST_URL)("schema constraints", () => {
         [real.traditionId],
       ),
     ).rejects.toThrow(/concepts_tradition_fk/);
-    // A relationship cannot connect a demo concept to a real one.
     const demo = await insertConcept("demo-y.material.m1", "material", "Demo: m1", { isDemo: true, prov: "unverified" });
     await expect(
       t.pool.query(
@@ -96,7 +88,6 @@ describe.skipIf(!TEST_URL)("schema constraints", () => {
         [real.conceptIds[0], demo.rows[0].id],
       ),
     ).rejects.toThrow(/relationships_source_fk/);
-    // A real claim cannot cite a demo source.
     const demoSource = await one<{ id: string }>(
       t.pool,
       "INSERT INTO sources (kind, title, is_demo) VALUES ('unverified', 'Demo: s', true) RETURNING id",
@@ -151,7 +142,6 @@ describe.skipIf(!TEST_URL)("schema constraints", () => {
       await expect(rel(a, b, "PRODUCES", { ordinal: 1 })).rejects.toThrow(/does not take an ordinal/);
       await expect(rel(a, b, "PRECEDES", { ordinal: 0 })).rejects.toThrow(/relationships_ordinal_ck/);
       await expect(rel(a, b, "PRECEDES", { ordinal: 1 })).resolves.toBeDefined();
-      // PRECEDES allows cycles: real process content has repeat loops.
       await expect(rel(b, a, "PRECEDES", { ordinal: 2 })).resolves.toBeDefined();
     });
 

@@ -1,16 +1,3 @@
-/**
- * The public demo, shared by `npm run dev:bootstrap` (local) and
- * `npm run content:bootstrap:remote` (production): import content/, build the REVIEW snapshot,
- * and create or update the demo study `demo-review-walkthrough`.
- *
- * No side effects on import. Nothing here creates users, staff accounts, participants or demo
- * seed rows: dev:bootstrap adds those itself (db/seeds), the remote command never does.
- *
- * Every step is idempotent: a second run over unchanged content/ inserts and updates no content,
- * snapshot or study row. The importer's own bookkeeping still records each run, by
- * design (src/server/content/import-content.ts): one audit_log row ('content.import') and
- * content_packages.imported_at set to the time of the run.
- */
 import type { PoolClient } from "pg";
 
 import { nodeSha256 } from "../../src/features/knowledge/graph/hash-node";
@@ -22,7 +9,6 @@ import { REPO_ROOT, loadAndValidate } from "./_shared";
 export const SHORTLIST = ["ajrakh", "sanganeri", "machilipatnam-kalamkari"] as const;
 export const DEMO_REVIEW_STUDY_SLUG = "demo-review-walkthrough";
 
-/** Creates the demo study, or updates it while it is a draft and only when something differs. */
 export async function ensureDemoStudy(
   client: PoolClient,
   snapshotId: string,
@@ -77,7 +63,6 @@ export interface PublicDemoResult {
   study: "created" | "updated" | "unchanged";
 }
 
-/** Steps 3-6 of dev:bootstrap: content import, review snapshot, demo study. */
 export async function buildPublicDemo(client: PoolClient, opts: { invokedBy: string; log: (msg: string) => void }): Promise<PublicDemoResult> {
   const { log } = opts;
   const { model, report } = loadAndValidate(`${REPO_ROOT}/content`);
@@ -106,7 +91,6 @@ export const COUNTED_TABLES = [
   "spatial_manifests", "spatial_elements", "spatial_element_encodings", "studies", "study_conditions", "event_types", "audit_log",
 ] as const;
 
-/** Row counts per table, split into real and demo rows where the table has is_demo. */
 export async function counts(client: Pick<PoolClient, "query">): Promise<Record<string, string>> {
   const out: Record<string, string> = {};
   for (const t of COUNTED_TABLES) {

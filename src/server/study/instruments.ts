@@ -1,25 +1,3 @@
-/**
- * Questionnaire instrument definitions (study decision D7, docs/research/study-decisions.md),
- * seeded as draft `questionnaire` assessments with their items.
- *
- * Rules (docs/research/citation-policy.md; MP:593 "Do not invent a supposedly validated
- * instrument"):
- *  - An item is seeded WITH wording only when that wording was found verbatim on the stated page
- *    of an archived source (`verify_quotes.py`). Every item stores its source, page, source item
- *    code and ORIGINAL wording in `assessment_items.config.provenance`, and whether the source
- *    is primary or *secondary* (a paper reprinting another paper's instrument).
- *  - Displayed variants are recorded next to the original, never instead of it: D7's neutral
- *    term ("the learning environment" for "the simulation" / "the virtual environment"), and the
- *    SUS "awkward" for "cumbersome" (Brooke 2013, p. 35).
- *  - Response scales come from the sources with their endpoint labels. Where no label is verified
- *    the label is a platform choice and says so (`responseScale.anchorsSource`).
- *  - Any item still PENDING makes the instrument unshowable: the questionnaire page refuses the
- *    whole step and names the reason for the researchers.
- *  - `is_validated_instrument` stays false (rewording and changed formats break the original
- *    validation, D7 risks) and no validation statistics are stored.
- * Version 1 of cognitive-load, sus, ssq and umux-lite had pending wording; version 2 carries the
- * verified wording. Earlier versions are never edited.
- */
 import type { Pool, PoolClient } from "pg";
 
 import type { LearningCondition } from "@/lib/permissions/learning";
@@ -40,7 +18,6 @@ const KENNEDY =
   "Kennedy, R. S., Lane, N. E., Berbaum, K. S., & Lilienthal, M. G. (1993). Simulator Sickness Questionnaire: An enhanced method for quantifying simulator sickness. The International Journal of Aviation Psychology, 3(3), 203–220. https://doi.org/10.1207/s15327108ijap0303_3";
 const EUDAVE = "Eudave, L., & Martínez, M. (2025). To VR or not to VR: Assessing cybersickness in navigational tasks at different levels of immersion. Frontiers in Virtual Reality, 6, 1518735. https://doi.org/10.3389/frvir.2025.1518735";
 
-/** The one neutral term replacing "simulation" / "virtual environment" in both conditions (D7). */
 export const NEUTRAL_TERM = "the learning environment";
 
 export function neutralise(original: string): string {
@@ -50,7 +27,6 @@ export function neutralise(original: string): string {
     .replace(/The virtual environment/g, "The learning environment");
 }
 
-/** SUS item 8: "awkward" for "cumbersome" (Brooke 2013, p. 35, PDF p. 7). */
 export function awkward(original: string): string {
   return original.replace("cumbersome", "awkward");
 }
@@ -60,12 +36,10 @@ export type Substitution = "neutral_term" | "awkward" | null;
 export interface VerifiedItem {
   key: string;
   choices?: readonly string[];
-  /** Item code or number in the source (e.g. ECL_I_1, SUS 8). */
   sourceCode: string;
   original: string;
   source: string;
   locator: string;
-  /** A paper reprinting another paper's item (the original is not archived). */
   secondary: boolean;
   substitution: Substitution;
 }
@@ -78,7 +52,6 @@ export interface PendingItem {
 
 export interface ResponseScale {
   points: number;
-  /** First value: 0 or 1. */
   min: 0 | 1;
   anchors: Record<string, string>;
   formatSource: string;
@@ -89,14 +62,11 @@ export interface ResponseScale {
 export interface InstrumentDefinition {
   code: string;
   version: number;
-  /** Title (Title Case). */
   name: string;
   purpose: "cognitive_load" | "usability" | "presence" | "simulator_sickness" | "background" | "common_questions";
   decision: string;
   selectionStatus: "adopted" | "backup";
-  /** Limited to these conditions whatever the study config says (presence names the virtual environment). */
   conditions?: LearningCondition[];
-  /** Shown above the items; `instructionsSource` says where it comes from. */
   instructions: string | null;
   instructionsSource: string | null;
   responseScale: ResponseScale;
@@ -110,11 +80,6 @@ export function displayedText(item: VerifiedItem): string {
   return item.substitution === "neutral_term" ? neutralise(item.original) : item.substitution === "awkward" ? awkward(item.original) : item.original;
 }
 
-/**
- * Cognitive load (D7a). Response format: option (a), Leppink's 0–10 for all 14 items, because it
- * is the only one of the two formats with verified endpoint labels (p. 1070, PDF p. 13); the
- * 5-point Likert format of Petersen et al. (p. 15) has none in the archived sources.
- */
 const LEPPINK_SCALE: ResponseScale = {
   points: 11,
   min: 0,
@@ -124,7 +89,6 @@ const LEPPINK_SCALE: ResponseScale = {
   anchorsVerified: true,
 };
 
-/** Five points without verified labels (presence): platform labels, recorded as such. */
 const FIVE_POINT_PLATFORM: ResponseScale = {
   points: 5,
   min: 1,
@@ -356,7 +320,6 @@ export const INSTRUMENT_DEFINITIONS: readonly InstrumentDefinition[] = [
   },
 ];
 
-/** The assessments.config document of a definition. */
 export function instrumentConfig(d: InstrumentDefinition): Record<string, unknown> {
   return {
     instrument: {
@@ -374,10 +337,6 @@ export function instrumentConfig(d: InstrumentDefinition): Record<string, unknow
   };
 }
 
-/**
- * Inserts each definition and its verified items (idempotent on code + version; an existing
- * assessment is never changed, so researcher edits survive). Returns the code@version inserted.
- */
 export async function seedInstrumentDefinitions(q: Q): Promise<string[]> {
   const inserted: string[] = [];
   for (const d of INSTRUMENT_DEFINITIONS) {
@@ -421,7 +380,6 @@ export async function seedInstrumentDefinitions(q: Q): Promise<string[]> {
   return inserted;
 }
 
-/** Why an assessment cannot be shown (null when it can). Instruments need verified wording for every item. */
 export function instrumentBlocker(a: { config: Record<string, unknown>; items: { itemKey: string; config: unknown }[] }): string | null {
   const ins = a.config.instrument as { pendingItems?: { key: string; reason: string }[] } | undefined;
   if (!ins) return null;
@@ -431,7 +389,6 @@ export function instrumentBlocker(a: { config: Record<string, unknown>; items: {
   return null;
 }
 
-/** Conditions an instrument is limited to by its definition (null = both). */
 export function instrumentConditions(config: Record<string, unknown>): LearningCondition[] | null {
   const c = (config.instrument as { conditions?: LearningCondition[] | null } | undefined)?.conditions;
   return c && c.length > 0 ? c : null;

@@ -1,12 +1,3 @@
-/**
- * GET /invite/redeem?code=<code>&next=<path>: redeems an invite code from a link (S11).
- *
- * src/proxy.ts rewrites `<any gated URL>?invite=<code>` here, so the visitor's first response is
- * either the invite cookie plus a redirect to the same URL without the code, or a redirect to
- * /invite?error=invalid with no cookie at all (unknown, revoked, expired or used-up codes are
- * refused alike, so the answer does not reveal which). A Route Handler, because only handlers and
- * Server Actions can set cookies. `Cache-Control: no-store`: the answer depends on the code.
- */
 import { NextResponse, type NextRequest } from "next/server";
 
 import { INVITE_PARAM, INVITE_REDEEM_CODE_HEADER, INVITE_REDEEM_NEXT_HEADER, inviteNextPath, invitePath } from "@/lib/access/invite-paths";
@@ -18,7 +9,6 @@ import { getPool } from "@/server/db/client";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const params = request.nextUrl.searchParams;
-  // From the proxy's rewrite: headers first, because a rewrite keeps the original query (DR-067).
   const code = fromHeader(request, INVITE_REDEEM_CODE_HEADER) ?? params.get("code") ?? params.get(INVITE_PARAM);
   const next = inviteNextPath(fromHeader(request, INVITE_REDEEM_NEXT_HEADER) ?? params.get("next"));
   const redirectTo = (path: string) => {
@@ -37,7 +27,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   return res;
 }
 
-/** A URI-encoded value the proxy put in a request header, or null (absent or not decodable). */
 function fromHeader(request: NextRequest, name: string): string | null {
   const raw = request.headers.get(name);
   if (raw === null) return null;

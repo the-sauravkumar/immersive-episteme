@@ -1,22 +1,3 @@
-/**
- * Content -> snapshot builder. Produces a knowledge bundle v1 (`knowledgeBundleSchema`, the
- * `content_snapshots.payload` contract) wrapped in an envelope that records hashes, the
- * content files, the source manifest, verification-state counts and the integrity summary.
- *
- * Two kinds:
- *  - `review`: for researchers. `includesUnverified: true`; may hold under_review and
- *    needs_evidence content; the envelope says so in `notice`. Refused only on error-level
- *    integrity issues or demo content.
- *  - `publishable`: refused unless there are no error-level issues and every tradition,
- *    concept, relationship and source is verified or published. Interchange files can never
- *    carry those states (FORMAT.md), so content/ alone never yields a publishable snapshot;
- *    only curator-accepted content (CMS) can.
- *
- * Determinism: ids are name-based (hash.ts), every array is sorted (concepts by key, the
- * rest by id or code; claims keep their authored position), and hashes are taken over
- * canonical JSON. `contentSha256` excludes `generatedAt` and `versionLabel`, so the same
- * content always has the same content hash regardless of input order or build time.
- */
 import { KNOWLEDGE_CATEGORIES } from "@db/seeds/reference-data";
 import { knowledgeBundleSchema, slugFromConceptKey, type KnowledgeBundle, type SnapshotItem } from "@/features/knowledge/contracts";
 import { ACCEPTED_STATES, type VerificationState } from "@/lib/validation/enums";
@@ -44,15 +25,11 @@ export const SNAPSHOT_NOTICES: Record<SnapshotKind, string> = {
 export interface BuildSnapshotOptions {
   kind: SnapshotKind;
   hasher: Sha256Hasher;
-  /** ISO 8601 with offset. Pass a fixed value for reproducible payload hashes. */
   generatedAt: string;
-  /** Integrity issues from validation (loader + validators) of this same model. */
   issues: readonly IntegrityIssue[];
-  /** Defaults to `<kind>-<first 12 hex of contentSha256>`. */
   versionLabel?: string;
   sourceManifest?: { path: string; sha256: string; entries: readonly SourceManifestEntry[] } | null;
   registry?: RelationshipTypeRegistry;
-  /** The model is demo content (bundle `isDemo`). Real content must not contain demo rows. */
   isDemo?: boolean;
 }
 
@@ -66,11 +43,8 @@ export interface SnapshotEnvelope {
   kind: SnapshotKind;
   notice: string;
   versionLabel: string;
-  /** sha256(canonicalJson(payload without generatedAt and versionLabel)). */
   contentSha256: string;
-  /** sha256(canonicalJson(payload)). */
   payloadSha256: string;
-  /** sha256 of the payload as PostgreSQL jsonb text = expected `content_snapshots.payload_sha256`. */
   predictedDbPayloadSha256: string;
   contentFiles: { path: string; slug: string; sha256: string | null }[];
   sourceManifest: {
@@ -112,7 +86,6 @@ export function contentIds(hasher: Sha256Hasher): ContentIds {
   };
 }
 
-/** Builds the bundle payload (unvalidated). Exposed for exporters and tests. */
 export function buildBundle(
   model: KnowledgeGraphModel,
   opts: { hasher: Sha256Hasher; versionLabel: string; generatedAt: string; includesUnverified: boolean; isDemo?: boolean; registry?: RelationshipTypeRegistry },
@@ -186,8 +159,6 @@ export function buildBundle(
           id: ids.claim(c.key, i),
           text: cl.text,
           quote: cl.quote,
-          // Sorted by id like relationship sources, so a bundle rebuilt from the database (which
-          // keeps no citation order) is byte-identical to one built from the files.
           sources: dedupe(cl.sourceRefs)
             .map((ref) => {
               const evidence = cl.evidence.filter((e) => e.ref === ref).map(({ locator, quote, note }) => ({ locator, quote, note }));
@@ -222,13 +193,11 @@ function dedupe(xs: readonly string[]): string[] {
   return [...new Set(xs)];
 }
 
-/** A tradition's review state is its `tradition` concept's state (FORMAT v1 has no file-level state). */
 function traditionState(model: KnowledgeGraphModel, slug: string): VerificationState {
   const c = model.concepts.find((x) => x.packageSlug === slug && x.type === "tradition");
   return c?.verificationState ?? "under_review";
 }
 
-/** snapshot_items rows (same shape and hashing as db/seeds/demo.ts `snapshotItemsFor`). */
 export function snapshotItems(bundle: KnowledgeBundle, hasher: Sha256Hasher): SnapshotItem[] {
   const row = (itemKind: SnapshotItem["itemKind"], entityRef: string, entityKey: string | null, value: unknown): SnapshotItem => ({
     itemKind,
@@ -297,7 +266,6 @@ export function buildSnapshot(model: KnowledgeGraphModel, opts: BuildSnapshotOpt
       refusals: parsed.error.issues.slice(0, 20).map((i) => ({ code: SNAPSHOT_REFUSALS.BUNDLE_INVALID, message: `${i.path.join(".")}: ${i.message}` })),
     };
   }
-  // Keep the builder's key order and arrays (the parse only adds defaults that are already present).
   const payload: KnowledgeBundle = { ...draft, versionLabel };
   const items = snapshotItems(payload, opts.hasher);
 

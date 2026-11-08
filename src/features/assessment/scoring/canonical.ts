@@ -1,15 +1,3 @@
-/**
- * Edge normalisation and match keys. Node identity is the concept id (never the label).
- *
- * 1. Equivalence rewrite: if the type has a rule `from -> to`, the type becomes `to` and, when
- *    the rule says `reverse`, source and target swap.
- * 2. Directedness: an edge is undirected if its `directed` flag is false or its (rewritten)
- *    type is listed in `undirectedTypes`. Undirected endpoints are sorted so (A,B) == (B,A).
- * 3. Keys:  undirected_unlabelled  "A|B"        (sorted pair)
- *           directed_unlabelled    "A>B" | "A~B"  (ordered for directed, "~" + sorted for undirected)
- *           directed_labelled      "<L2 key>#TYPE" ("#" alone for an untyped link)
- * Two edges match at a level iff their keys at that level are equal.
- */
 import { cmp, type MatchLevel, type ScoringConfig } from "./config";
 import type { CanonicalEdge } from "./types";
 
@@ -71,7 +59,6 @@ export function canonicaliseEdge(
   };
 }
 
-/** Sorted, de-duplicated list of strings. */
 export function uniqSorted(values: Iterable<string>): string[] {
   return [...new Set(values)].sort(cmp);
 }

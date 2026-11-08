@@ -1,15 +1,3 @@
-/**
- * Curation contract: the files in content/ (curated separately, still in progress) satisfy the
- * interchange format (content/FORMAT.md v1) losslessly. Read-only: never writes to content/.
- * No database needed. Skips files that do not exist yet.
- *
- * Runs in its own Vitest project ("content", `npm run test:content`) and its own CI job, so a
- * half-finished tradition file never turns the application's `npm test` red. The format itself
- * is guarded for the app by tests/unit/content-format-contract.test.ts (synthetic fixtures).
- *
- * Every test is self-contained: each one parses the files it needs (memoised), so running a
- * single test with `-t`, or a parse failure in one file, reports the real error.
- */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -62,7 +50,6 @@ function parseFile(file: string): ParseResult {
   return result;
 }
 
-/** All files parsed, or one error naming every file that does not parse. */
 function parseAll(): ContentPackageFile[] {
   const parsed: ContentPackageFile[] = [];
   const failures: string[] = [];
@@ -96,7 +83,6 @@ describe.skipIf(files.length === 0)("content/ interchange files", () => {
     expect(new Set(keys.map(slugFromConceptKey)).size).toBe(keys.length);
     const states = new Set(parsed.flatMap((f) => [...f.concepts, ...f.relationships].map((x) => x.verification_state)));
     expect([...states].every((s) => s === "under_review" || s === "needs_evidence" || s === "verified")).toBe(true);
-    // No real content namespace may collide with the demo prefix.
     expect(keys.some((k) => k.startsWith("demo"))).toBe(false);
     expect(parsed.some((f) => f.slug.startsWith("demo"))).toBe(false);
   });

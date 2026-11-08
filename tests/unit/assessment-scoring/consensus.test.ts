@@ -11,12 +11,12 @@ const r4 = { raterId: "r4", edges: [redge("A", "D", "CAUSES", undefined, { requi
 
 describe("majorityDecision (K raters, s support, x expected support)", () => {
   it.each([
-    [3, 3, 3, "expected"], // 2x=6 > 3
-    [2, 1, 3, "optional"], // 2s=4 > 3, 2x=2 ≠ 3
-    [1, 1, 3, "excluded"], // 2s=2 < 3
-    [2, 2, 4, "disputed"], // 2s=4 = 4 (include/exclude tie)
-    [2, 1, 2, "disputed"], // 2s>2, 2x=2 = K (expected/optional tie)
-    [3, 2, 4, "disputed"], // 2s=6>4, 2x=4 = K
+    [3, 3, 3, "expected"],
+    [2, 1, 3, "optional"],
+    [1, 1, 3, "excluded"],
+    [2, 2, 4, "disputed"],
+    [2, 1, 2, "disputed"],
+    [3, 2, 4, "disputed"],
   ] as const)("s=%i x=%i K=%i -> %s", (s, x, k, d) => {
     expect(majorityDecision(s, x, k)).toBe(d);
   });
@@ -54,7 +54,6 @@ describe("buildConsensus", () => {
     expect(adj.isComplete).toBe(true);
     expect(adj.edges.filter((e) => e.decidedBy === "adjudication").map((e) => e.majorityDecision)).toEqual(["disputed", "disputed", "disputed"]);
     const r = scoreConceptMap(p, adj.referenceMap);
-    // expected: A>B, A>D -> participant has A>B only
     expect(getScore(r, "cmap.recall.dl")).toBeCloseTo(0.5, 12);
     expect(getScore(r, "cmap.missing_expected_relationships")).toBe(1);
   });

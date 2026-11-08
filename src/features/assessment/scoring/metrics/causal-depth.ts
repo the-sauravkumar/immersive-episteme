@@ -1,14 +1,3 @@
-/**
- * Causal-chain depth: the number of edges on the longest simple directed path in the graph
- * formed by causal edges, oriented along the causal flow (types listed in `causalTypes`;
- * "reverse" types such as AFFECTED_BY are flipped, so "B AFFECTED_BY A" becomes A -> B).
- *
- * For a participant map only edges that are VALID against the reference (at the validity
- * level) enter the graph. Parallel edges collapse. Undirected edges never enter.
- * The search is an exact depth-first enumeration of simple paths (a node is never revisited),
- * so cycles terminate; a step budget bounds the worst case and yields null when exceeded.
- * Ties between equally long paths are broken by the lexicographically smallest node sequence.
- */
 import { cmp, type ScoringConfig } from "../config";
 import type { CanonicalEdge } from "../types";
 
@@ -20,7 +9,6 @@ export interface CausalDepthResult {
   steps: number;
 }
 
-/** Oriented arcs "from>to" of the causal edges. */
 export function causalArcs(edges: ReadonlyArray<CanonicalEdge>, config: Pick<ScoringConfig, "causalTypes">): Array<[string, string]> {
   const arcs = new Map<string, [string, string]>();
   for (const e of edges) {

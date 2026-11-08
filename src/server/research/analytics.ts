@@ -1,8 +1,3 @@
-/**
- * Research analytics read models (descriptive, observational). Sessions flagged excluded,
- * withdrawn sessions and non-experimental studies are excluded from distributions unless the
- * caller asks otherwise; every result says what it counted.
- */
 import { EVENT_TYPE_REGISTRY } from "@/features/telemetry/contracts";
 import { KNOWLEDGE_CATEGORY_CODES } from "@/lib/validation/enums";
 
@@ -92,7 +87,6 @@ export async function studyOverview(q: Q, studyId: string): Promise<StudyOvervie
   };
 }
 
-/** Values of one metric per condition (one value per session). */
 export interface MetricDistribution {
   metricName: string;
   metricVersion: string;
@@ -218,7 +212,6 @@ export interface TimelinePoint {
 
 const ANALYTIC = new Map(EVENT_TYPE_REGISTRY.map((e) => [e.code, { concept: e.analyticConcept, technical: "isTechnical" in e && e.isTechnical === true }]));
 
-/** Interaction timeline of one session: ms since its first event (client clock, ordered by seq). */
 export async function sessionTimeline(q: Q, sessionId: string): Promise<TimelinePoint[]> {
   const s = await q.query<{ snapshot_id: string | null }>("SELECT snapshot_id FROM study_sessions WHERE id = $1", [sessionId]);
   const facts = s.rows[0]?.snapshot_id ? await loadSnapshotFacts(q, s.rows[0].snapshot_id) : null;

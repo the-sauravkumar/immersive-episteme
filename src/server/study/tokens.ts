@@ -1,23 +1,10 @@
-/**
- * Signed tokens of the study engine (pure; secret passed explicitly). Both use the shared
- * HMAC token format (src/server/auth/signed-token.ts) under their OWN purpose keys, so neither
- * can pass as the participant-session cookie (`participant-session/v1`) or the demo cookie.
- *
- *  - Enrolment token (`study-enrolment/v1`): the short window between entering the study code
- *    and the consent decision, before any study session exists. Claims: participant id + study
- *    id. It grants nothing but the consent page of that participant.
- *  - Participation history (`study-history/v1`): which studies this browser has enrolled in
- *    (study id -> participant id), used only to detect repeat enrolment. Pseudonymous ids only.
- */
 import { z } from "zod";
 
 import { signToken, verifyToken } from "@/server/auth/signed-token";
 
 export const ENROLMENT_PURPOSE = "study-enrolment/v1";
 export const HISTORY_PURPOSE = "study-history/v1";
-/** Time to read the information sheet and decide. */
 export const ENROLMENT_TTL_SECONDS = 60 * 60 * 2;
-/** Long enough to span a data-collection period (CN-23: about two weeks of main study). */
 export const HISTORY_TTL_SECONDS = 60 * 60 * 24 * 180;
 export const HISTORY_MAX_ENTRIES = 20;
 
@@ -60,7 +47,6 @@ const historyClaims = z.strictObject({
   exp: z.number().int().positive(),
 });
 
-/** [studyId, participantId] pairs, newest last. */
 export type HistoryEntries = [string, string][];
 
 export async function signHistory(entries: HistoryEntries, secret: string, opts: { now?: number } = {}): Promise<string> {

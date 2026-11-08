@@ -1,16 +1,3 @@
-/**
- * Study configuration service (research console): create, configure, version, activate, close.
- *
- * - Configuration is protocol-as-data in `studies.config` (studyConfigSchema from the study
- *   contracts). Every change writes an append-only audit_log row with
- *   the before and after state, which is the study's configuration history.
- * - Versioning: an active or closed study is frozen by the database; a protocol change is made
- *   by `newStudyVersion`, which clones the study (conditions, battery, config, pins) into a new
- *   draft with a new protocol version and slug.
- * - Activation is guarded twice: here, a freshly generated parity report must pass (no critical
- *   failure) and is stored with the decision; in the database (migration 0023), the snapshot must
- *   be published and a non-demo study's battery locked.
- */
 import { createHash, randomBytes } from "node:crypto";
 
 import { z } from "zod";
@@ -28,10 +15,6 @@ import { audit, inTransaction, queryAll, ResearchActionError, type Actor, type Q
 import type { Pool, PoolClient } from "pg";
 
 export const researchStudyConfigSchema = studyConfigSchema;
-/**
- * What a DRAFT may hold: as above, but traditions may still be empty while the researcher
- * configures the study (the parity report and the study engine require at least one).
- */
 export const draftStudyConfigSchema = researchStudyConfigSchema.extend({ traditionSlugs: z.array(slugSchema).default([]) });
 export type ResearchStudyConfig = z.infer<typeof draftStudyConfigSchema>;
 
@@ -150,7 +133,6 @@ async function requireDraft(q: Q, studyId: string): Promise<Record<string, unkno
   return row;
 }
 
-/** Creates a draft study with its two conditions (2D and 3D, equal allocation weight). */
 export async function createStudy(pool: Pool | PoolClient, actor: Actor, input: z.infer<typeof createStudySchema>): Promise<string> {
   const data = createStudySchema.parse(input);
   if (data.slug.startsWith("demo")) throw new ResearchActionError("Slugs starting with 'demo' are reserved for demo studies.");
@@ -195,7 +177,6 @@ function pickProtocol(row: Record<string, unknown>) {
   return { title: row.title, description: row.description, protocol_version: row.protocol_version, design: row.design, snapshot_id: row.snapshot_id, manifest_id: row.manifest_id, config: row.config };
 }
 
-/** Replaces the assessment battery (order = phase then position) of a draft study. */
 export async function setBattery(pool: Pool | PoolClient, actor: Actor, studyId: string, items: z.input<typeof batteryItemSchema>[]): Promise<void> {
   const rows = z.array(batteryItemSchema).max(40).parse(items);
   const seen = new Set<string>();
@@ -284,11 +265,6 @@ export interface ActivationResult {
   failures: string[];
 }
 
-/**
- * Activates a draft study. A new parity report is generated and stored in the same transaction;
- * the study is activated only when it passes, and only if the inputs the report judged are still
- * the study's (row locked). A refused activation keeps the stored report as evidence.
- */
 export async function activateStudy(pool: Pool | PoolClient, actor: Actor, studyId: string): Promise<ActivationResult> {
   return inTransaction(pool, async (c) => {
     await requireDraft(c, studyId);
@@ -301,7 +277,6 @@ export async function activateStudy(pool: Pool | PoolClient, actor: Actor, study
     const current = await loadParityInput(c, studyId);
     if (parityInputHash(current.study) !== stored.report.inputSha256) throw new ResearchActionError("The study changed while it was being checked; run the activation again.");
     const pins = activationPins(current.study.config);
-    // The pins go into the config in the same statement that activates (the config is frozen afterwards).
     await c.query("UPDATE studies SET config = $3::jsonb, status = 'active', activated_by = $2, activated_at = now() WHERE id = $1", [studyId, actor.userId, JSON.stringify(pins.config)]);
     await audit(c, actor, "study.activate", "study", studyId, {
       after: { status: "active", parityReportId: stored.id, parityInputSha256: stored.report.inputSha256, ...pins.recorded },
@@ -310,13 +285,6 @@ export async function activateStudy(pool: Pool | PoolClient, actor: Actor, study
   });
 }
 
-/**
- * What activation fixes in the config before it freezes:
- *  - a secret allocation seed when none is configured (final review study-07). The engine's
- *    fallback seed is derived from the study id and protocol version, which staff can see, so
- *    the allocation sequence would be predictable. Only a fingerprint is journalled, never the seed;
- *    exports leave it out until the study is closed.
- */
 function activationPins(rawConfig: unknown): { config: Record<string, unknown>; recorded: Record<string, unknown> } {
   const config = { ...(rawConfig as Record<string, unknown>) };
   const allocation = { ...((config.allocation as Record<string, unknown> | undefined) ?? {}) };
@@ -339,7 +307,6 @@ export async function closeStudy(pool: Pool | PoolClient, actor: Actor, studyId:
   });
 }
 
-/** The config of a new version without its secret seed: reusing it would repeat the allocation sequence. */
 function withoutActivationPins(raw: unknown): unknown {
   const config = { ...((raw as Record<string, unknown>) ?? {}) };
   const allocation = { ...((config.allocation as Record<string, unknown> | undefined) ?? {}) };
@@ -348,7 +315,6 @@ function withoutActivationPins(raw: unknown): unknown {
   return config;
 }
 
-/** Clones a study into a new draft protocol version (conditions, battery, config and pins). */
 export async function newStudyVersion(pool: Pool | PoolClient, actor: Actor, studyId: string, input: { slug: string; protocolVersion: string }): Promise<string> {
   const slug = slugSchema.parse(input.slug);
   const protocolVersion = z.string().trim().min(1).max(64).parse(input.protocolVersion);
@@ -397,7 +363,6 @@ export async function studyHistory(q: Q, studyId: string): Promise<HistoryEntry[
   return r.rows;
 }
 
-/** Snapshots a draft study may pin (the parity report judges whether they are usable). */
 export async function pinOptions(q: Q, isDemo: boolean) {
   const snaps = await q.query<{ id: string; versionLabel: string; status: string; kind: string; isDemo: boolean }>(
     `SELECT id, version_label AS "versionLabel", status::text AS status, kind, is_demo AS "isDemo" FROM content_snapshots
@@ -416,7 +381,6 @@ export async function assessmentOptions(q: Q, isDemo: boolean) {
   return r.rows;
 }
 
-/** Tradition slugs in a snapshot payload (for the configuration form). */
 export async function snapshotTraditions(q: Q, snapshotId: string): Promise<{ slug: string; name: string }[]> {
   const r = await q.query<{ slug: string; name: string }>(
     `SELECT t->>'slug' AS slug, t->>'name' AS name FROM content_snapshots, jsonb_array_elements(payload->'traditions') t WHERE id = $1 ORDER BY 1`,

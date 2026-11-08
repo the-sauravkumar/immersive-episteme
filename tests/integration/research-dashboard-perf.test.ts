@@ -1,13 +1,3 @@
-/**
- * Integration: the research dashboard's fast, real-time data path on a reduced load fixture
- * (scripts/research/dashboard-fixture.ts; the full-size run is scripts/research/bench-dashboard.ts).
- *  - per-session rollups give exactly the numbers of the full recompute, also after events are
- *    appended, a late lower seq arrives, a session ends, and after a metrics-version change;
- *  - only changed sessions are recomputed; ended sessions never are;
- *  - statement-level NOTIFY: one notification per statement per study, at commit only;
- *  - the fingerprint moves on every change and reads telemetry_events through an index;
- *  - the bench runs (reduced size) and reports its measurements.
- */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { appendEvents, buildDashboardFixture, generateEvents, insertEvents, type Fixture } from "../../scripts/research/dashboard-fixture";
@@ -58,7 +48,6 @@ describe.skipIf(!TEST_URL)("research dashboard: rollups, notifications, fingerpr
 
   it("catches a late, lower seq in an open session (count check) and a session that ends", async () => {
     const a = f.active[1]!;
-    // Leave a hole at the end, then fill it after a later event arrived.
     const ev = generateEvents(777, 4, f.concepts, f.sourceId, a.nextSeq, a.clientMs);
     const s = { studyId: f.studyId, participantId: a.participantId, sessionId: a.sessionId, conditionId: a.conditionId };
     await insertEvents(t.pool, s, [ev[0]!, ev[1]!, ev[3]!], f.snapshotLabel);
@@ -88,16 +77,14 @@ describe.skipIf(!TEST_URL)("research dashboard: rollups, notifications, fingerpr
     const got: string[] = [];
     n.subscribe(f.studyId, (id) => got.push(id));
     expect(await n.ready()).toBe(true);
-    // Connecting wakes every subscribed study once (changes may have been missed before LISTEN).
     expect(got).toEqual([f.studyId]);
     got.length = 0;
     const v0 = n.version(f.studyId);
     try {
-      await appendEvents(t.pool, f, 2, 100); // one batch row + one 100-row INSERT, autocommit each
+      await appendEvents(t.pool, f, 2, 100);
       await new Promise((r) => setTimeout(r, 300));
       expect(got).toEqual([f.studyId, f.studyId]);
       expect(n.version(f.studyId)).not.toBe(v0);
-      // A rolled-back change sends nothing.
       const c = await t.pool.connect();
       try {
         await c.query("BEGIN");
@@ -108,7 +95,6 @@ describe.skipIf(!TEST_URL)("research dashboard: rollups, notifications, fingerpr
       }
       await new Promise((r) => setTimeout(r, 300));
       expect(got).toHaveLength(2);
-      // Session-keyed tables resolve the study through study_sessions.
       await t.pool.query("INSERT INTO telemetry_quarantine (session_id, reason, raw) VALUES ($1, 'schema: test', '{}')", [f.active[2]!.sessionId]);
       await new Promise((r) => setTimeout(r, 300));
       expect(got).toHaveLength(3);

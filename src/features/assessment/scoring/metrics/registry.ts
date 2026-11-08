@@ -1,17 +1,6 @@
-/**
- * Metric names and versions. Bump a metric's version whenever its definition, defaults or
- * edge cases change, so stored derived_scores stay attributable (names follow the
- * derived_scores.metric_name CHECK: ^[a-z][a-z0-9_.]{0,63}$).
- */
 import type { MatchLevel } from "../config";
 import type { ScoreItem } from "../types";
 
-/*
- * 1.1.0 (final review scoring-05, -06): optionalMatch now defaults to "neutral", which changes the
- * default output of every metric built on valid edges or on precision (valid_relationships,
- * cross_category.valid, causal_chain_depth, precision, f1); cross_category.valid_normalised and
- * causal_chain_depth_normalised are now coverage proportions bounded by 1.
- */
 export const METRIC_VERSIONS = {
   "cmap.valid_relationships": "1.1.0",
   "cmap.incorrect_relationships": "1.0.0",
@@ -36,7 +25,6 @@ export const METRIC_VERSIONS = {
 } as const;
 export type MetricFamily = keyof typeof METRIC_VERSIONS;
 
-/** Short level suffixes used in metric names, e.g. cmap.f1.dl. */
 export const LEVEL_SUFFIX: Record<MatchLevel, string> = {
   undirected_unlabelled: "uu",
   directed_unlabelled: "du",
@@ -59,7 +47,6 @@ export function scoreItem(
   };
 }
 
-/** a / b, or null when b is 0. */
 export function ratio(a: number, b: number): number | null {
   return b === 0 ? null : a / b;
 }

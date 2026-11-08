@@ -1,15 +1,3 @@
-/**
- * Import content/ into the database and build the REVIEW snapshot.
- *
- *   npm run content:import                  -> DATABASE_URL
- *   npm run content:import -- --test        -> TEST_DATABASE_URL
- *   npm run content:import -- --no-snapshot -> import only
- *   npm run content:import -- --content <dir>
- *
- * Read-only on content/. Idempotent (see src/server/content/import-content.ts). Prints the
- * per-table outcome and the review snapshot id, label and payload hash. Exit code 2 when the
- * content has error-level integrity issues (nothing is written).
- */
 import { resolve } from "node:path";
 
 import { nodeSha256 } from "../../src/features/knowledge/graph/hash-node";

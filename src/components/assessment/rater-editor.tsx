@@ -1,6 +1,5 @@
 "use client";
 
-/** Expert-rater wrapper: the same editor, with "expected" flags, saved only on submit. */
 import { useRouter } from "next/navigation";
 
 import { submitRaterMapAction } from "@/server/assessment/research-actions";

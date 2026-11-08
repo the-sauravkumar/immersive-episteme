@@ -1,9 +1,3 @@
-/**
- * Study photographs from sources other than the V&A (DR-057): each
- * source's credit and licence, the full-size file with no cap or term (DR-118), the refusal of a crop on the
- * no-alteration sources (Sahapedia, PARI) and of a missing photographer, and the held kind-A
- * entries in content/review/process-photo-proposals.json, which the ingest skips.
- */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

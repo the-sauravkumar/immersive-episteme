@@ -1,15 +1,3 @@
-/**
- * Participant data removal from the command line (DR-030; the same service as the research
- * console's "Participant data" section, src/server/study/purge.ts).
- *
- *   npx tsx scripts/db/purge.ts --study <slug> --by <PI email> --retention            # list who is due (dry run)
- *   npx tsx scripts/db/purge.ts --study <slug> --by <PI email> --retention --confirm  # remove their data
- *   npx tsx scripts/db/purge.ts --study <slug> --by <PI email> --participant P-XXXXXXXXXX --reason "asked on 16 Oct" --confirm
- *
- * `--by` must be an active staff account holding participants.purge (the principal
- * investigator); every removal is journalled under that account with its reason. Without
- * --confirm nothing is deleted. --test targets TEST_DATABASE_URL instead of DATABASE_URL.
- */
 import { parseArgs } from "node:util";
 
 import { drizzle } from "drizzle-orm/node-postgres";

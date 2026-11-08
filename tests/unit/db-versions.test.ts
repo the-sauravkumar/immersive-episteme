@@ -1,8 +1,3 @@
-/**
- * scripts/db/_shared.ts refuses to run against a database whose server major or extension
- * versions differ from the pinned ones (docker-compose.yml / CI pin the image by digest; Neon's
- * PostgreSQL 18 ships pgvector 0.8.6, accepted as well: decision record "Neon").
- */
 import { describe, expect, it } from "vitest";
 
 import { assertDbVersions } from "../../scripts/db/_shared";

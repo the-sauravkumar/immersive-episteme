@@ -1,17 +1,8 @@
-/**
- * Shared Zod primitives. Each mirrors a database CHECK constraint in db/schema/* so that
- * invalid input is rejected at the boundary with a readable message before Postgres would
- * reject it with a constraint name. Pure (zod only): safe for client and server.
- */
 import { z } from "zod";
 
-/** kebab-case slug (db: SLUG_RE). */
 export const SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-/** Lowercase hex sha256 (db: SHA256_HEX_RE). */
 export const SHA256_REGEX = /^[0-9a-f]{64}$/;
-/** Concept key `<namespace>.<type>.<kebab-name>` (content/FORMAT.md; db: concepts_key_ck). */
 export const CONCEPT_KEY_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*\.[a-z_]+\.[a-z0-9]+(-[a-z0-9]+)*$/;
-/** Relationship type code, e.g. PRECEDES (db: relationship_types_code_ck). */
 export const RELATIONSHIP_TYPE_CODE_REGEX = /^[A-Z][A-Z0-9_]*$/;
 
 export const DEMO_TITLE_PREFIX = "Demo:";
@@ -40,12 +31,10 @@ export function wordCount(text: string): number {
   return trimmed.length === 0 ? 0 : trimmed.split(/\s+/).length;
 }
 
-/** Verbatim quote, at most 25 words (FORMAT.md; db: *_quote_ck). */
 export const quoteSchema = z
   .string()
   .refine((q) => wordCount(q) <= MAX_QUOTE_WORDS, `Quotes are limited to ${MAX_QUOTE_WORDS} words`);
 
-/** Tiptap / ProseMirror JSON document (db: concepts_body_ck). Node contents are open. */
 export type TiptapNode = {
   type: string;
   attrs?: Record<string, unknown>;
@@ -70,13 +59,8 @@ export const tiptapDocSchema = z.object({
 });
 export type TiptapDoc = z.infer<typeof tiptapDocSchema>;
 
-/** Plain JSON object (jsonb columns constrained to objects). */
 export const jsonObjectSchema = z.record(z.string(), z.unknown());
 
-/**
- * Demo rule shared by every demo-capable entity: demo rows carry is_demo = true, a
- * "Demo:"-prefixed title and a key/slug starting with "demo"; real rows never do.
- */
 export function demoConsistencyIssue(input: {
   isDemo: boolean;
   title?: string;

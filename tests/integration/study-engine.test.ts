@@ -1,10 +1,3 @@
-/**
- * Integration: the study engine (src/server/study/engine.ts) against a throwaway database with
- * active studies: enrolment, consent, the condition-blind pre-allocation steps, allocation after
- * the pre-test with a stratum from the scored pre-test (D3), device check and WebGL policy,
- * questionnaire steps with condition filters and instrument checks (D7, D8), the learning end by
- * the participant's finish or the cap, resume, withdrawal and completion.
- */
 import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -90,7 +83,6 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     return a.id;
   }
 
-  /** An active between-subjects study with the given battery ([code, phase]) and config. */
   async function activeStudy(config: Record<string, unknown>, battery: [string, "pre" | "post"][]): Promise<EnrollableStudy> {
     const slug = `study-${++n}`;
     const s = await createStudy(t.pool, { slug, snapshotId, manifestId });
@@ -120,7 +112,6 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     return position(sessionId);
   };
   const pre = (sessionId: string, values: Record<string, string[]> = {}) => submitAssessment(t.pool, { sessionId, step: "pre_test", assessmentId: ids["se-pre"]!, values });
-  /** Pre-test, allocation, device check: returns the allocated session. */
   async function allocated(study: EnrollableStudy, preValues: Record<string, string[]> = {}): Promise<OpenedSession & { condition: "2d" | "immersive" }> {
     const s = await consented(study);
     await pre(s.sessionId, preValues);
@@ -154,7 +145,6 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     const likert = (key: string) => ({ key, kind: "likert", prompt: `Rate ${key}`, config: { kind: "likert", points: 5, anchors: {} } });
     await assessment("se-q-pre", "questionnaire", [likert("a")]);
     await assessment("se-q-load", "questionnaire", [likert("b")]);
-    // Limited to the immersive condition by its definition; items carry their source wording.
     await assessment(
       "se-q-presence",
       "questionnaire",
@@ -193,9 +183,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     expect(await one(t.pool, "SELECT condition_id, allocation_id, status FROM study_sessions WHERE id = $1", [s.sessionId])).toEqual({ condition_id: null, allocation_id: null, status: "in_progress" });
     expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM allocations WHERE participant_id = $1", [p.participantId])).n).toBe(0);
     expect(await position(s.sessionId)).toMatchObject({ kind: "step", step: "pre_test" });
-    // No allocation before the blind steps and the device check are done.
     await expect(allocateSession(t.pool, s.sessionId)).rejects.toMatchObject({ code: "not_current_step" });
-    // An unallocated session cannot store telemetry (events carry a condition).
     const tel = await ingestTelemetryBatch(t.pool, { kind: "participant", participantId: s.participantId, sessionId: s.sessionId }, {
       idempotencyKey: `b:${s.sessionId}:0-0`, sessionId: s.sessionId, schemaVersion: 1, appBuild: BUILD, contentVersion: "v-study", clientSentAt: new Date().toISOString(),
       events: [{ eventId: randomUUID(), schemaVersion: 1, sessionId: s.sessionId, seq: 0, type: "page_entered", clientTs: new Date().toISOString(), metadata: {} }],
@@ -224,7 +212,6 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     expect(alloc).toEqual({ algorithm: "block", seed: `seed-${study.slug}`, sequence_index: 0, stratum: null, study_protocol_version: "p1" });
     const ss = await one<{ condition_id: string; allocation_id: string }>(t.pool, "SELECT condition_id, allocation_id FROM study_sessions WHERE id = $1", [s.sessionId]);
     expect(ss.condition_id).toBe(a.conditionId);
-    // The allocation is attached once: it can never change afterwards.
     const other = await one<{ id: string }>(t.pool, "SELECT id FROM study_conditions WHERE study_id = $1 AND id <> $2", [study.id, a.conditionId]);
     await expect(t.pool.query("UPDATE study_sessions SET condition_id = $2 WHERE id = $1", [s.sessionId, other.id])).rejects.toThrow(/immutable|allocation/);
     const j = (await state(s.sessionId)).journal.find((e) => e.action === "study.allocated")!;
@@ -360,7 +347,6 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     expect([sus8.prompt, sus8.config.provenance.original, sus8.config.provenance.secondary]).toEqual(["I found the system very awkward to use.", "I found the system very cumbersome to use.", true]);
     expect(await seedInstrumentDefinitions(t.pool)).toEqual([]);
 
-    // Every seeded instrument is showable; a definition with pending wording is not.
     const study0 = await createStudy(t.pool, { slug: "demo-instruments", snapshotId, manifestId, isDemo: true, allowUnverified: true });
     await assessment("pending-scale", "questionnaire", [{ key: "a", kind: "likert", prompt: "Rate a", config: { kind: "likert", points: 5, provenance: { original: "Rate a" } } }], {
       instrument: { pendingItems: [{ key: "b", reason: "wording not verified" }] },

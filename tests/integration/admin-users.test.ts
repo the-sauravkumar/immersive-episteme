@@ -1,8 +1,3 @@
-/**
- * Integration: admin services (src/server/admin) against a throwaway database (schema-harness).
- * Non-admin roles are refused; account creation, role grants, locking and the last-admin and
- * self-protection rules; every mutation leaves an audit_log row.
- */
 import { join } from "node:path";
 
 import { drizzle } from "drizzle-orm/node-postgres";
@@ -83,8 +78,6 @@ describe.skipIf(!TEST_URL)("admin services", () => {
       await expectCode(roleHolderCounts(t.pool, actor), "forbidden");
       await expectCode(() => effectiveSettings(actor, {}), "forbidden");
       if (role !== "principal_investigator") {
-        // The principal investigator holds admin.audit (matrix.ts), which also opens the /admin
-        // overview; nobody else outside platform_admin holds an admin permission.
         await expectCode(getHealthReport(t.pool, actor), "forbidden");
         await expectCode(queryAuditLog(t.pool, actor, parseAuditFilter({})), "forbidden");
         await expectCode(auditEntities(t.pool, actor), "forbidden");
@@ -102,7 +95,6 @@ describe.skipIf(!TEST_URL)("admin services", () => {
     const row = await one<{ after: unknown }>(t.pool, "SELECT after FROM audit_log WHERE action = 'admin.user_created' AND entity_id = $1", [userId]);
     expect(JSON.stringify(row.after)).not.toContain("a-long-password-1");
     expect(JSON.stringify(row.after)).toContain("curator@example.test");
-    // The same email again is refused rather than silently granting a role.
     await expectCode(createStaffUser(deps(), admin, { name: "Again", email: "curator@example.test", password: "a-long-password-2", role: "researcher" }), "email_taken");
 
     await grantStaffRole(t.pool, admin, { userId, role: "researcher" });
@@ -117,12 +109,10 @@ describe.skipIf(!TEST_URL)("admin services", () => {
 
   it("keeps the last active platform admin and refuses self-removal", async () => {
     await expectCode(revokeStaffRole(t.pool, admin, { userId: admin.userId, role: "platform_admin" }), "self_revoke");
-    // A second admin cannot remove the only other (last remaining after a lock) admin role.
     const second = await createUser(t.pool, "admin_two");
     await grant(second, "platform_admin");
     const secondActor: Actor = { userId: second, roles: ["platform_admin"] };
     await t.pool.query("UPDATE users SET disabled_at = now() WHERE id = $1", [second]);
-    // admin_two is locked, so admin_one is the last active holder.
     const thirdActor: Actor = { userId: "admin_three_virtual", roles: ["platform_admin"] };
     await expectCode(revokeStaffRole(t.pool, thirdActor, { userId: admin.userId, role: "platform_admin" }), "last_admin");
     await expectCode(lockStaffUser(t.pool, secondActor, { userId: admin.userId, reason: "testing last admin" }), "last_admin");
@@ -131,7 +121,6 @@ describe.skipIf(!TEST_URL)("admin services", () => {
   });
 
   it("two admins locking each other at once leave one active admin (security-10)", async () => {
-    // Exactly two active admins for this case: admin_one is set aside meanwhile.
     const a = await createUser(t.pool, "race_admin_a");
     const b = await createUser(t.pool, "race_admin_b");
     await grant(a, "platform_admin");
@@ -223,13 +212,12 @@ describe.skipIf(!TEST_URL)("admin services", () => {
     const roles = await queryAuditLog(t.pool, admin, parseAuditFilter({ action: "admin.role" }));
     expect(roles.rows.every((r) => r.action.startsWith("admin.role"))).toBe(true);
     const literal = await queryAuditLog(t.pool, admin, parseAuditFilter({ action: "admin_" }));
-    expect(literal.rows).toHaveLength(0); // "_" is matched literally, not as a wildcard
+    expect(literal.rows).toHaveLength(0);
     const reason = await queryAuditLog(t.pool, admin, parseAuditFilter({ q: "left the" }));
     expect(reason.rows.map((r) => r.action)).toContain("admin.user_locked");
     const bad = parseAuditFilter({ page: "-3", from: "yesterday" });
     expect(bad.page).toBe(1);
     expect(bad.from).toBeUndefined();
-    // audit_log is append-only.
     await expect(t.pool.query("UPDATE audit_log SET reason = 'x'")).rejects.toThrow(/append-only/);
   });
 

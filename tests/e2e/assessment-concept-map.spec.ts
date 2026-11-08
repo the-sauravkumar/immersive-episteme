@@ -1,14 +1,3 @@
-/**
- * Assessment end to end: a participant builds and submits a concept map (keyboard form and a link
- * drawn on the canvas), then a researcher adjudicates the expert reference map's tie, finalises
- * it and scores the map in the research console, and exports the scores.
- *
- * Fixture (development database, DATABASE_URL): demo data only. A fresh demo reconstruction
- * assessment over seeded demo concepts, an active demo study whose protocol starts with the
- * pre-learning reconstruction, a participant session with the device check passed, a researcher
- * account, and a demo reference map with two rater maps that tie on one edge. Requires the
- * seeded demo snapshot (`npm run db:seed` or `npm run dev:bootstrap`).
- */
 import { randomBytes } from "node:crypto";
 
 import { expect, newContext, test, type Page } from "./fixtures";
@@ -43,13 +32,11 @@ test.beforeAll(async () => {
   ids.concepts = KEYS.map((k) => byKey.get(k)!.id);
   ids.titles = KEYS.map((k) => byKey.get(k)!.title);
 
-  // Researcher account (Better Auth hashing via the bootstrap script).
   createE2eStaff(RESEARCHER, "E2E Researcher", "researcher", PASSWORD);
   const researcher = await one<{ id: string }>("SELECT id FROM users WHERE email = $1", [RESEARCHER]);
   const otherRater = `e2e-rater-${tag}`;
   await pool.query("INSERT INTO users (id, name, email) VALUES ($1, 'E2E second rater', $2)", [otherRater, `${otherRater}@example.test`]);
 
-  // Demo reconstruction assessment, published.
   ids.assessment = (
     await one<{ id: string }>("INSERT INTO assessments (code, version, kind, title, is_demo) VALUES ($1, 1, 'reconstruction', $2, true) RETURNING id", [
       `demo-e2e-map-${tag}`,
@@ -65,7 +52,6 @@ test.beforeAll(async () => {
   ).id;
   await pool.query("UPDATE assessments SET status = 'locked' WHERE id = $1", [ids.assessment]);
 
-  // Active demo study: pre-learning reconstruction, then learning.
   const rs = await one<{ id: string }>(
     `INSERT INTO mapping_rule_sets (name, version, config, is_demo) VALUES ($1, 1, '{"schemaVersion":1,"rules":[]}', true) RETURNING id`,
     [`Demo: assessment e2e rules ${tag}`],
@@ -115,7 +101,6 @@ test.beforeAll(async () => {
     [ids.code, ids.session, JSON.stringify({ outcome: "passed" })],
   );
 
-  // Demo reference map: both raters agree on two PRECEDES edges; only the researcher adds "stage 1 USES stage 3" (a tie).
   ids.reference = (
     await one<{ id: string }>("INSERT INTO reference_maps (assessment_id, version, title, nodes, is_demo, created_by) VALUES ($1, 1, $2, $3, true, $4) RETURNING id", [
       ids.assessment,
@@ -155,11 +140,8 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   test.setTimeout(180_000);
   const [s1, s2, s3] = ids.titles as [string, string, string];
 
-  // --- Participant -------------------------------------------------------------------------
   const participant = await newContext(browser);
   const token = await signParticipantSession({ participantId: ids.participant, sessionId: ids.session, condition: "2d" }, process.env.BETTER_AUTH_SECRET!);
-  // The server reads `ie_study_session` in development and `__Host-ie_study_session` in a
-  // production build (src/server/auth/cookie-names.ts); set both so the spec runs against either.
   const host = new URL(baseURL!).hostname;
   await participant.addCookies([
     { name: "ie_study_session", value: token, url: baseURL! },
@@ -170,14 +152,11 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   await expect(page.getByRole("heading", { level: 1, name: "Connect the concepts" })).toBeVisible();
   await expect(page.getByText("After the learning task")).toBeVisible();
   await expect(page.locator(".react-flow__node")).toHaveCount(3);
-  // Withdrawal at any point (S16): the same footer link as every other in-session step.
   await expect(page.getByRole("link", { name: "Withdraw from the study" })).toBeVisible();
 
-  // Keyboard path: stage 1 precedes stage 2.
   await addRelationship(page, s1, "precedes", s2);
   await expect(page.getByText(`${s1} precedes ${s2}`, { exact: true })).toBeVisible();
 
-  // Canvas path: draw stage 2 -> stage 3, then choose the type in the form.
   const handle = page.locator(".react-flow__node", { hasText: s2 }).locator(".react-flow__handle.source");
   const target = page.locator(".react-flow__node", { hasText: s3 }).locator(".react-flow__handle.target");
   const from = (await handle.boundingBox())!;
@@ -192,13 +171,11 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   await form.getByRole("button", { name: "Add relationship" }).click();
   await expect(page.getByText(`${s2} precedes ${s3}`, { exact: true })).toBeVisible();
 
-  // Revise: add a wrong link, reverse it, then delete it.
   await addRelationship(page, s3, "uses", s1);
   await page.getByRole("button", { name: `Reverse: ${s3} uses ${s1}` }).click();
   await page.getByRole("button", { name: `Delete: ${s1} uses ${s3}` }).click();
   await expect(page.getByRole("heading", { name: "Your relationships (2)" })).toBeVisible();
 
-  // At 390 px the actions take the full row width, as on every other study step (StudyActions).
   await page.setViewportSize({ width: 390, height: 844 });
   for (const name of ["Add relationship", "Submit map"]) {
     const button = (await page.getByRole("button", { name, exact: true }).boundingBox())!;
@@ -212,9 +189,6 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toContainText("2 relationships");
   await dialog.getByRole("button", { name: "Submit map" }).click();
-  // The submission locks the editor ("Submitted. Thank you.") and returns straight to the session
-  // hub (reconstruction-task.tsx). In a production build the hub can replace the page before the
-  // status line is ever painted, so the hub is the observable end state.
   await page.waitForURL((u) => u.pathname === "/study/session");
   await expect(page.getByRole("heading", { level: 1, name: "Your Session" })).toBeVisible();
 
@@ -228,7 +202,6 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   expect(stored.raw.editLog[1]!.via).toBe("canvas");
   await participant.close();
 
-  // --- Researcher --------------------------------------------------------------------------
   const staff = await newContext(browser);
   const r = await staff.newPage();
   await signInStaff(r, RESEARCHER, PASSWORD);
@@ -251,9 +224,9 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   const row = r.getByRole("row", { name: new RegExp(ids.code) });
   await expect(row).toBeVisible();
   const cells = row.getByRole("cell");
-  await expect(cells.nth(4)).toHaveText("2"); // valid
-  await expect(cells.nth(5)).toHaveText("0"); // incorrect
-  await expect(cells.nth(6)).toHaveText("0"); // missing
+  await expect(cells.nth(4)).toHaveText("2");
+  await expect(cells.nth(5)).toHaveText("0");
+  await expect(cells.nth(6)).toHaveText("0");
 
   await row.getByRole("link", { name: /Breakdown/ }).click();
   await expect(r.getByRole("heading", { name: "Participant relationships" })).toBeVisible();

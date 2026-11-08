@@ -1,6 +1,3 @@
-/** Small descriptive helpers for the console (the inferential work lives in analysis/). */
-
-/** Tukey five numbers [min, q1, median, q3, max] with linear interpolation (type 7); null when empty. */
 export function fiveNumbers(values: readonly number[]): [number, number, number, number, number] | null {
   if (values.length === 0) return null;
   const s = [...values].sort((a, b) => a - b);

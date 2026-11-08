@@ -1,12 +1,3 @@
-/**
- * Who is uploading telemetry? Same precedence as the learning guard
- * (src/server/auth/learning-decision.ts): a participant study-session cookie, when present,
- * always decides (an invalid one is refused, never downgraded to demo or preview); otherwise a
- * signed-in staff member is a preview; otherwise a valid public-demo cookie is a demo.
- *
- * The participant cookie is only verified cryptographically here; ingestion then checks the
- * `study_sessions` row (exists, same participant, not withdrawn). Pure: no request APIs.
- */
 import { isStaffRole } from "@/lib/permissions/roles";
 import { verifyDemoSession } from "@/server/auth/demo-session";
 import { verifyParticipantSession } from "@/server/auth/participant-session-token";
@@ -19,7 +10,6 @@ export async function resolveTelemetryPrincipal(
   input: {
     participantCookie: string | undefined;
     demoCookie: string | undefined;
-    /** Lazily resolved; only consulted without a participant cookie. */
     staff: () => Promise<{ userId: string; roles: readonly string[] } | null>;
   },
   deps: { secret: string; now?: number },
@@ -40,7 +30,6 @@ export async function resolveTelemetryPrincipal(
   return { ok: false, reason: "no_credential" };
 }
 
-/** Rate-limit bucket key for a principal. */
 export function principalKey(p: TelemetryPrincipal): string {
   switch (p.kind) {
     case "participant":

@@ -1,8 +1,3 @@
-/**
- * Filesystem reader for content/ (Node only: scripts and tests). Read-only.
- * Finds content/shared/*.json, content/comparisons.json and
- * content/traditions/<slug>/tradition.json, plus content/review/source-manifest.tsv.
- */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 

@@ -1,17 +1,3 @@
-/**
- * The ONE definitions table for every metric the research dashboard shows (/research/dashboard,
- * "Definitions" panel and CSV headers). Each entry gives the metric name and version, what it
- * measures, its unit, the file that computes it and its citation.
- *
- * Citation rule (docs/research/citation-policy.md, lead instruction): a citation is quoted
- * VERBATIM from docs/research/study-decisions.md, with the source and locator given there; no
- * other quote is used. tests/unit/research/metric-definitions.test.ts checks every quote against
- * that file (whitespace-normalised). A metric with no literature source says "Project definition".
- *
- * Versions come from the code that computes the metric (METRIC_VERSIONS, TIMING_METRICS_VERSION,
- * KEY_MATCH_METRIC, SCALE_SCORE_VERSION); the two server-side constants that cannot be imported
- * here (assessment.key_match_total, rubric ratings) are pinned by the same unit test.
- */
 import { METRIC_VERSIONS } from "@/features/assessment/scoring/metrics/registry";
 import { TIMING_METRICS_VERSION } from "@/features/telemetry/metrics";
 
@@ -93,30 +79,23 @@ const commonRating = (key: string, label: string, measures: string): Omit<Metric
 export type MetricGroup = "primary" | "secondary" | "knowledge" | "questionnaire" | "telemetry" | "quality";
 
 export interface Citation {
-  /** Source as named in study-decisions.md. */
   source: string;
-  /** Page / locator as given in study-decisions.md. */
   locator: string;
-  /** Verbatim from study-decisions.md. */
   quote: string;
-  /** study-decisions.md marks the source secondary (a reprint; the original was not accessible). */
   secondary?: boolean;
 }
 
 export interface MetricDefinition {
   key: string;
-  /** Preregistration role, from metricRole() (one source). */
   role: MetricRole;
   label: string;
   group: MetricGroup;
   version: string;
   measures: string;
   unit: string;
-  /** How it is computed and where (repository path). */
   computation: string;
   computedIn: string;
   citation: Citation | null;
-  /** Shown when there is no citation, or to say what the citation does and does not support. */
   note?: string;
 }
 
@@ -234,7 +213,6 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
     },
     note: "A raw count grows with map size, so it is a comparability measure only (D2).",
   },
-  // ---- Knowledge test and transfer ----------------------------------------------------------
   {
     key: "assessment.key_match_total",
     label: "Knowledge test and transfer: keyed items correct",
@@ -259,7 +237,6 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
     citation: null,
     note: PROJECT,
   },
-  // ---- Questionnaires (D7) -----------------------------------------------------------------
   {
     key: "cl.intrinsic",
     label: "Cognitive load: intrinsic",
@@ -550,7 +527,6 @@ export function metricDefinition(key: string): MetricDefinition {
   return d;
 }
 
-/** "name@version" list for CSV header rows. */
 export function metricVersionHeader(keys: readonly string[]): string {
   return keys.map((k) => `${k}@${metricDefinition(k).version}`).join("; ");
 }

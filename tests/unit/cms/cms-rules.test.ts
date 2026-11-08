@@ -1,8 +1,3 @@
-/**
- * Unit: CMS rules that do not need a database — rich-text sanitising (curator notes), the review
- * transition table against the permission matrix, subgraph views, snapshot diffs and the
- * staff-only graph editor route.
- */
 import { describe, expect, it } from "vitest";
 
 import { canAny } from "@/lib/permissions/can";

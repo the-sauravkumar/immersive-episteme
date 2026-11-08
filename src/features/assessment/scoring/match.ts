@@ -1,8 +1,3 @@
-/**
- * Preparation and edge matching: turns raw participant / reference maps into canonical edges,
- * applies scope and duplicate rules, and classifies every participant and reference edge.
- * Everything is sorted by canonical key (then edge key), so input order never matters.
- */
 import { canonicaliseEdge, ScoringInputError, assertConceptId, uniqSorted } from "./canonical";
 import { cmp, MATCH_LEVELS, type MatchLevel, type ScoringConfig } from "./config";
 import type {
@@ -25,7 +20,6 @@ export function atLeast(level: MatchLevel | null, min: MatchLevel): boolean {
 
 export interface PreparedReferenceEdge extends CanonicalEdge {
   status: ReferenceEdgeBreakdown["status"];
-  /** "expected" counts towards recall / missing; everything else is optional. */
   expected: boolean;
   weight: number;
 }
@@ -33,16 +27,10 @@ export interface PreparedReferenceEdge extends CanonicalEdge {
 export interface PreparedReference {
   conceptIds: string[];
   conceptSet: ReadonlySet<string>;
-  /** One edge per canonical labelled key, sorted by that key. */
   edges: PreparedReferenceEdge[];
   index: Record<MatchLevel, Map<string, PreparedReferenceEdge[]>>;
 }
 
-/**
- * Status of a reference edge: explicit `status`, else `required` -> expected, else the
- * configured status for non-required edges. Duplicates after canonicalisation are merged:
- * expected beats optional beats uncertain beats disputed, weight = max.
- */
 export function prepareReference(reference: ReferenceMapInput, config: ScoringConfig): PreparedReference {
   const byKey = new Map<string, PreparedReferenceEdge>();
   const rank = { expected: 4, optional: 3, uncertain: 2, disputed_as_optional: 1 } as const;
@@ -90,12 +78,6 @@ export interface PreparedParticipantEdge {
   duplicateOf?: string;
 }
 
-/**
- * Resolves node keys to concept ids and canonicalises. An edge is out of scope when an endpoint
- * is a free node, a concept outside `conceptSet`, or both endpoints are the same concept.
- * Among in-scope edges with the same labelled key, the one with the smallest edge key is kept;
- * the others are marked `duplicateOf`. Pass `conceptSet = null` to accept every concept.
- */
 export function prepareParticipant(
   map: ParticipantMapInput,
   conceptSet: ReadonlySet<string> | null,
@@ -144,7 +126,6 @@ export function prepareParticipant(
   return out.sort((a, b) => cmp(a.edgeKey, b.edgeKey));
 }
 
-/** In-scope, non-duplicate participant edges, sorted by labelled key. */
 export function keptEdges(prepared: ReadonlyArray<PreparedParticipantEdge>): CanonicalEdge[] {
   return prepared
     .filter((p) => p.canonical && !p.duplicateOf)
@@ -165,7 +146,6 @@ export interface Classification {
   referenceEdges: ReferenceEdgeBreakdown[];
 }
 
-/** Classifies every participant edge and every reference edge (see docs, "Edge classes"). */
 export function classify(prepared: ReadonlyArray<PreparedParticipantEdge>, ref: PreparedReference, config: ScoringConfig): Classification {
   const v = config.validityLevel;
   const participantEdges = prepared.map((p): ParticipantEdgeBreakdown => {
@@ -192,7 +172,6 @@ export function classify(prepared: ReadonlyArray<PreparedParticipantEdge>, ref: 
     else if (level === "directed_unlabelled") cls = "wrong_type";
     else if (level === "undirected_unlabelled") cls = "wrong_direction";
     else cls = "unsupported";
-    // Validity is judged at the configured level, against expected edges first.
     const atV = ref.index[v].get(p.canonical.keys[v]) ?? [];
     const matchesExpected = atV.some((h) => h.expected);
     const matchesOptionalOnly = !matchesExpected && atV.length > 0;

@@ -1,10 +1,3 @@
-/**
- * Participant study-session token: pure sign/verify (secret passed explicitly, testable).
- * Participants never get a Better Auth account: their identity is a pseudonymous participant
- * id + study session id + assigned condition, signed with HMAC-SHA256 (WebCrypto) under a key
- * derived from BETTER_AUTH_SECRET for this purpose only (see ./signed-token.ts).
- * Cookie helpers live in ./participant-session.ts.
- */
 import { z } from "zod";
 
 import { LEARNING_CONDITIONS, type LearningCondition } from "@/lib/permissions/learning";
@@ -12,10 +5,8 @@ import { LEARNING_CONDITIONS, type LearningCondition } from "@/lib/permissions/l
 import { signToken, verifyToken } from "./signed-token";
 
 export const PARTICIPANT_SESSION_PURPOSE = "participant-session/v1";
-/** Upper bound; a study session is a single sitting. */
 export const PARTICIPANT_SESSION_TTL_SECONDS = 60 * 60 * 6;
 
-/** Pseudonymous ids only: opaque tokens, no emails/names. */
 const opaqueId = z
   .string()
   .min(1)
@@ -27,7 +18,6 @@ const claimsSchema = z
     t: z.literal("participant"),
     pid: opaqueId,
     sid: opaqueId,
-    /** null while the participant is not yet allocated (allocation after the pre-test, D3). */
     cond: z.enum(LEARNING_CONDITIONS).nullable(),
     iat: z.number().int().nonnegative(),
     exp: z.number().int().positive(),
@@ -45,7 +35,6 @@ export type ParticipantSessionClaims = {
 export type ParticipantSessionInput = {
   participantId: string;
   sessionId: string;
-  /** null before allocation; the cookie is re-issued with the condition once allocated. */
   condition: LearningCondition | null;
 };
 

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { classifyRenderer, hardwareGpu, rendererMismatch } from "../../e2e/gpu-mode";
 
-// Renderer strings as this laptop's browsers report them (vendor | renderer, ANGLE on D3D11).
 const NVIDIA = "Google Inc. (NVIDIA) | ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F99) Direct3D11 vs_5_0 ps_5_0, D3D11)";
 const INTEL = "Google Inc. (Intel) | ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)";
 const SWIFTSHADER = "Google Inc. (Google) | ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)";

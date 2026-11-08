@@ -1,15 +1,3 @@
-/**
- * Reviews the ingested study photographs as a named second curator, through the SAME service the
- * CMS media library uses (`reviewAsset` in src/server/cms/media/service.ts):
- *
- *   npx tsx scripts/content/review-study-photos.ts --as <curator email> --reason "<why>" (--dry-run | --apply)
- *
- * Only the assets whose SHA-256 equals a planned study photograph (every "proposed" entry that
- * scripts/content/ingest-study-photos.ts plans, read from scripts/content/study-photos/) are read or
- * changed. Each asset under review is verified with every media evidence check confirmed and the
- * reason recorded. The service refuses what the CMS refuses: the uploader or an editor of the asset
- * (separation of duties) and a missing credit, caption, alt text or provenance. --dry-run reads only; exit code 1 if any planned photograph is not verified.
- */
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";

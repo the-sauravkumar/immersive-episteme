@@ -1,16 +1,3 @@
-/**
- * Graph-derived structure diagrams (DR-018; DESIGN.md 9.9, 12.3). Run over the REAL curated
- * content (read-only), built into a review snapshot exactly as the pipeline does:
- *
- *  - a diagram states nothing beyond the graph: every node is a concept of the bundle, labelled
- *    only with its own title; every edge is a relationship of the bundle, of the diagram type's
- *    stated relationship types, between two drawn nodes, labelled with the registry's label;
- *  - the diagram types are equal for the three study traditions, in the same sections;
- *  - balancing keeps a type only when every tradition in scope has it;
- *  - the layout stays inside the 3:2 slot and no two boxes overlap;
- *  - the structure-diagram switch removes every diagram (both conditions read the same switch);
- *  - short citation labels are derived, never cut mid-word.
- */
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -75,7 +62,6 @@ describe.skipIf(!present)("structure diagrams over the real content", () => {
           expect(c, `node ${n.key} is a concept`).toBeDefined();
           expect(n.key).toBe(c!.key);
           expect(n.title).toBe(c!.title);
-          // The label is exactly the Title Case title, wrapped (nothing added, nothing dropped).
           expect(n.lines.join(" ").replace(/- /g, "-")).toBe(titleCase(c!.title).replace(/\s+/g, " "));
         }
         for (const e of d.edges) {
@@ -88,13 +74,10 @@ describe.skipIf(!present)("structure diagrams over the real content", () => {
           expect(conceptById.get(e.target)!.key).toBe(r!.target);
           expect(nodeIds.has(e.source) && nodeIds.has(e.target)).toBe(true);
         }
-        // Band labels only repeat edge labels.
         const edgeLabels = new Set(d.edges.map((e) => e.label));
         for (const b of d.bands) for (const part of b.label.split(" / ")) expect(edgeLabels.has(part)).toBe(true);
-        // Every node is connected by a drawn edge (no free-floating concepts).
         const touched = new Set(d.edges.flatMap((e) => [e.source, e.target]));
         expect([...nodeIds].every((id) => touched.has(id))).toBe(true);
-        // The anchor is a concept of this tradition, in the type's section, with a claim to anchor to.
         const anchor = conceptById.get(d.anchor.conceptId)!;
         expect(anchor.traditionId).toBe(t.id);
         const section = EPISTEMIC_SECTIONS.find((s) => s.id === DIAGRAM_SECTION[d.type])!;
@@ -204,7 +187,6 @@ describe("shortCitationLabel", () => {
   const base = { title: "A title", locator: null };
   it("uses the first author or publisher short name, the year and the locator", () => {
     expect(shortCitationLabel({ ...base, author: "Victoria and Albert Museum", publisher: "V&A", year: 2007, locator: "p. 2" })).toBe("Victoria and Albert Museum (2007), p. 2");
-    // The locator's abbreviation stays with its number (no break inside "PDF p. 4").
     expect(shortCitationLabel({ ...base, author: "Khamir", publisher: null, year: 2020, locator: "PDF p. 4" })).toBe("Khamir (2020), PDF p. 4");
     expect(shortCitationLabel({ ...base, author: "Gauri Kathju; Radha Kashyap", publisher: null, year: 2025 })).toBe("Gauri Kathju (2025)");
     expect(shortCitationLabel({ ...base, author: "Lath, Aparajita", publisher: null, year: 2013 })).toBe("Lath (2013)");

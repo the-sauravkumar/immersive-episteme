@@ -1,18 +1,3 @@
-/**
- * Research dashboard live updates (docs/research/design-process/modules/research-dashboard.md):
- * a telemetry event inserted AFTER the page has loaded appears without a manual reload, pushed
- * through NOTIFY → SSE → in-place rows update (router.refresh() follows for the rest of the page),
- * in under 2 s (measured three times; the times are printed), and the dashboard's responses
- * (page, probe, stream, CSV) carry no-store.
- *
- * The latency is timed IN the page (a MutationObserver stamps the moment the cell shows the new
- * count), not by when a Playwright assertion next polls: toHaveText retries after 100, 250, 500
- * and then every 1000 ms, which alone adds up to a second to a measured time.
- *
- * Runs against the dev server and database (PLAYWRIGHT_BASE_URL). Demo data only: the demo
- * fixture study of ./study-fixtures.ts, a throwaway researcher account (scripts/create-admin.ts),
- * and the inserted event is purged afterwards with a recorded purge reason.
- */
 import { randomBytes, randomUUID } from "node:crypto";
 
 import { expect, test } from "./fixtures";
@@ -77,14 +62,12 @@ test("new telemetry appears without a reload, and nothing is cached", async ({ p
   const eventsCell = page.getByRole("table", { name: /Per-Session Telemetry/ }).getByRole("row", { name: new RegExp(`^${session!.code}\\b`) }).getByRole("cell").nth(3);
   await expect(eventsCell).toHaveText(String(session!.events));
 
-  // The live probe and the CSV: same permission check, never cached.
   const probe = await page.request.get(`/api/research/dashboard?study=${studyId}`);
   expect(probe.status()).toBe(200);
   expect(probe.headers()["cache-control"]).toBe("no-store");
   const csv = await page.request.get(`/research/dashboard/csv?study=${studyId}&table=dashboard_telemetry_sessions`);
   expect(csv.status()).toBe(200);
   expect(csv.headers()["cache-control"]).toBe("no-store");
-  // The stream: event-stream, no-store (read the headers, then abort).
   const stream = await page.evaluate(async (url) => {
     const ac = new AbortController();
     const r = await fetch(url, { signal: ac.signal });
@@ -97,9 +80,6 @@ test("new telemetry appears without a reload, and nothing is cached", async ({ p
   const latencies: number[] = [];
   for (let i = 0; i < 3; i++) {
     const eventId = randomUUID();
-    // Armed (awaited) before the insert; resolves with the browser's Date.now() (same machine
-    // clock) at the first DOM change that shows the expected count (15 s cap: then the assertion
-    // below fails).
     await page.evaluate(
       ([code, want]) => {
         (window as unknown as { __shownAt: Promise<number> }).__shownAt = new Promise<number>((resolve) => {
@@ -134,7 +114,6 @@ test("new telemetry appears without a reload, and nothing is cached", async ({ p
   console.log(`insert-to-UI latency (ms): ${latencies.join(", ")}`);
   expect([...latencies].sort((a, b) => a - b)[1]!).toBeLessThan(TARGET_MS);
 
-  // Fallback: with the stream unreachable the page switches to polling the fingerprint.
   await page.route("**/api/research/dashboard/stream**", (route) => route.abort());
   await page.reload();
   await expect(page.getByTestId("dashboard-updated")).toHaveAttribute("data-mode", "polling", { timeout: 30_000 });

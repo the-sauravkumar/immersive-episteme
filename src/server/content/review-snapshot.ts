@@ -1,30 +1,3 @@
-/**
- * REVIEW snapshot from the database.
- *
- * Reads the real (non-demo) knowledge rows, adapts them into the knowledge-graph model, runs the
- * same validators and snapshot builder as `scripts/content/build-snapshot.ts`
- * (src/features/knowledge/graph/snapshot.ts, kind "review"), binds the bundle to the database
- * row ids, and stores it as `content_snapshots` row with `kind = 'review'`, `status = 'draft'`,
- * `includes_unverified = true`, `is_demo = false`, plus one `snapshot_items` row per entity.
- *
- * Why a draft row with kind 'review' (see db/migrations/0006, 0007):
- *  - the publishing schema allows non-publishable drafts; a review snapshot holds
- *    under_review / needs_evidence content, which only an `includes_unverified` snapshot may hold;
- *  - `content_snapshots_review_ck` forbids a review snapshot from ever being published, and the
- *    study activation trigger (0005) only activates on a published snapshot, so no study can run
- *    on it; 0007 additionally stops any non-demo study (even a draft) from referencing it or a
- *    manifest compiled from it. A demo study may reference it (non-experimental).
- *
- * Snapshots are immutable by convention here too: the version label is
- * `review-<first 12 hex of the content hash>`, and an existing row with that label is reused,
- * never rewritten. New content therefore always produces a new row.
- *
- * Which rows: every non-demo tradition, source, concept and relationship whose state is
- * under_review, needs_evidence, verified or published (draft, rejected and archived rows are
- * left out), and relationships only between included concepts.
- *
- * Not `server-only` (scripts and integration tests call it).
- */
 import type { PoolClient } from "pg";
 
 import { knowledgeBundleSchema, type KnowledgeBundle, type SnapshotItem } from "@/features/knowledge/contracts";
@@ -37,16 +10,13 @@ import type { ConceptType, KnowledgeCategoryCode, ProvenanceKind, SourceReliabil
 
 type Q = Pick<PoolClient, "query">;
 
-/** Review states admitted into a review snapshot. */
 export const REVIEW_SNAPSHOT_STATES: readonly VerificationState[] = ["under_review", "needs_evidence", "verified", "published"];
 
 interface DbModel {
   model: KnowledgeGraphModel;
-  /** name-based id (contentIds) -> database id, for every entity in the model. */
   dbIdByNameId: Map<string, string>;
 }
 
-/** Adapts the real knowledge rows into the validator/builder model. */
 export async function loadModelFromDb(q: Q, hasher: Sha256Hasher): Promise<DbModel> {
   const states = REVIEW_SNAPSHOT_STATES as string[];
   const pk = await q.query<{ id: string; slug: string; kind: string; source_path: string | null; file_sha256: string | null; name: string; alt_names: string[]; summary: string | null }>(
@@ -108,7 +78,6 @@ export async function loadModelFromDb(q: Q, hasher: Sha256Hasher): Promise<DbMod
   const ids = contentIds(hasher);
   const dbIdByNameId = new Map<string, string>();
 
-  // Sources: global ref = <package slug>#<local id>; CMS-authored sources (no package) use cms#<id>.
   const refBySourceId = new Map<string, string>();
   const sources: GraphSource[] = so.rows.map((s) => {
     const packageSlug = s.package_slug ?? "cms";
@@ -182,7 +151,6 @@ export async function loadModelFromDb(q: Q, hasher: Sha256Hasher): Promise<DbMod
     const refs = (xs: string[] | null) => (xs ?? []).map((sid) => refBySourceId.get(sid)).filter((r): r is string => !!r);
     return {
       key: c.key,
-      // A tradition concept belongs to its tradition (the builder keys traditionId by package slug).
       packageSlug: c.tradition_slug ?? c.package_slug ?? "cms",
       type: c.type,
       category: c.category_code,
@@ -234,7 +202,6 @@ export async function loadModelFromDb(q: Q, hasher: Sha256Hasher): Promise<DbMod
   return { model: { packages, sources, concepts, relationships }, dbIdByNameId };
 }
 
-/** Replaces every name-based id in the bundle by its database id; re-sorts id-ordered arrays. */
 function bindToDbIds(bundle: KnowledgeBundle, map: ReadonlyMap<string, string>): KnowledgeBundle {
   const swap = (id: string) => map.get(id) ?? id;
   const byId = <T extends { id: string }>(a: T, b: T) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
@@ -258,7 +225,6 @@ export type ReviewSnapshotBuild =
   | { ok: true; envelope: SnapshotEnvelope }
   | { ok: false; refusals: SnapshotRefusal[] };
 
-/** Builds (does not store) the review snapshot envelope from the current database rows. */
 export async function buildReviewSnapshotFromDb(q: Q, opts: { hasher: Sha256Hasher; generatedAt: string }): Promise<ReviewSnapshotBuild> {
   const { model, dbIdByNameId } = await loadModelFromDb(q, opts.hasher);
   const issues = validateGraph(model);
@@ -298,10 +264,6 @@ export interface StoredReviewSnapshot {
   created: boolean;
 }
 
-/**
- * Builds the review snapshot and stores it unless a snapshot with the same content label
- * already exists (then that row is returned untouched). Runs in its own transaction.
- */
 export async function storeReviewSnapshot(
   client: PoolClient,
   opts: { hasher: Sha256Hasher; generatedAt?: string; createdBy?: string | null },

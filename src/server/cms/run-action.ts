@@ -1,11 +1,3 @@
-/**
- * Wrapper used by every CMS / admin server action:
- *   1. assertPermission (server-side, from the session; never trusts the client),
- *   2. Zod validation of the raw input,
- *   3. the service call (which re-checks the permission, writes and audits in one transaction),
- *   4. refresh() so the page re-renders with the new state.
- * Errors become an ActionState for the form; unexpected errors are logged and reported generically.
- */
 import "server-only";
 
 import { refresh } from "next/cache";
@@ -57,7 +49,6 @@ export async function runAction<S extends z.ZodType>(
   }
 }
 
-/** FormData -> plain object (repeated keys become arrays; `$ACTION_` keys dropped). */
 export function formObject(fd: FormData): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [k, v] of fd.entries()) {

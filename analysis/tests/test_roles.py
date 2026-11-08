@@ -1,5 +1,3 @@
-"""Preregistration roles (stdlib only): cd analysis && python -B -m unittest tests.test_roles"""
-
 from __future__ import annotations
 
 import unittest

@@ -1,9 +1,3 @@
-/**
- * Knowledge-graph validation for the staff relationship editor, using the existing validator
- * (src/features/knowledge/graph validateGraph) over the database model
- * (src/server/content/review-snapshot.ts loadModelFromDb), with the relationship-type registry
- * read from `relationship_types`.
- */
 import { nodeSha256 } from "@/features/knowledge/graph/hash-node";
 import type { GraphRelationship, IntegrityIssue } from "@/features/knowledge/graph/types";
 import { relationshipId, sortIssues, validateGraph } from "@/features/knowledge/graph/validate";
@@ -17,7 +11,6 @@ export interface GraphIntegrity {
   issues: IntegrityIssue[];
 }
 
-/** Integrity issues of everything in the review pipeline (what the next release would contain). */
 export async function graphIntegrity(q: Q, limit = 400): Promise<GraphIntegrity> {
   const registry = await relationshipRegistry(q);
   const { model } = await loadModelFromDb(q, nodeSha256);
@@ -27,11 +20,6 @@ export async function graphIntegrity(q: Q, limit = 400): Promise<GraphIntegrity>
   return { counts, issues: issues.filter((i) => i.severity !== "info").slice(0, limit) };
 }
 
-/**
- * Issues the given relationship would raise if it entered the review pipeline (e.g. on submit):
- * the edge is added to the pipeline model as `under_review` and validated with everything else;
- * only issues attributed to this edge (entity = "source|TYPE|target") are returned.
- */
 export async function edgeIssues(q: Q, id: string): Promise<IntegrityIssue[]> {
   const r = await q.query<{
     source_key: string; target_key: string; type_code: string; explanation: string | null; conditions: string | null; ordinal: number | null; strength: number | null;

@@ -1,23 +1,3 @@
-/**
- * Development bootstrap: one command that leaves the local database with real data for every
- * later work stream.
- *
- *   npm run dev:bootstrap     (runs `docker compose up -d --wait` first, see package.json)
- *
- * Steps (all idempotent; safe to re-run after content changes):
- *  1. migrate the main and the test database;
- *  2. seed reference data and the demo dataset (db/seeds);
- *  3. import content/ (src/server/content/import-content.ts);
- *  4. build the REVIEW snapshot from the database (kind 'review', draft, never publishable);
- *  5. create / update the demo study `demo-review-walkthrough` pinned to that snapshot: is_demo,
- *     config.nonExperimental, stays in draft (a review snapshot can never be published, so no study
- *     can be activated on it).
- *
- * Steps 3-5 live in scripts/content/public-demo.ts, shared with `npm run content:bootstrap:remote`
- * (production: no migrations of a test database, no demo seed, no users).
- *
- * Refuses to run against a non-local database. Prints the real row counts at the end.
- */
 import { drizzle } from "drizzle-orm/node-postgres";
 
 import { seeds } from "../../db/seeds";

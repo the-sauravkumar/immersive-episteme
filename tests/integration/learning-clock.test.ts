@@ -1,7 +1,3 @@
-/**
- * Integration: the server-side learning time budget (migration 0009) through the learning
- * context, and the rule that timing data never sits in learning-outcome tables.
- */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { pgLearningContextData, recordLearningEnded, resolveLearningContext } from "../../src/server/learning/context-data";
@@ -41,7 +37,6 @@ describe.skipIf(!TEST_URL)("learning clock and outcome separation", () => {
     await t?.drop();
   });
 
-  /** Active study with `exposure` config and one 2D + one 3D session. */
   async function study(exposure: Record<string, unknown>) {
     n++;
     const s = await createStudy(t.pool, { slug: `clock-${n}`, snapshotId, manifestId });
@@ -116,10 +111,8 @@ describe.skipIf(!TEST_URL)("learning clock and outcome separation", () => {
       [outcome],
     );
     expect(new Set(cols.rows.map((r) => r.table_name)).size).toBe(outcome.length);
-    // (assessments.instrument_citation is the bibliographic reference of an instrument, not a timing.)
     const timing = cols.rows.filter((r) => /(exposure|navigation|pause|dwell|learning_|active_ms|budget|citation_(open|clos|count|ms))/.test(r.column_name));
     expect(timing).toEqual([]);
-    // And no timing metric can be stored as a learning-outcome score.
     const c = await one<{ def: string }>(t.pool, "SELECT pg_get_constraintdef(oid) AS def FROM pg_constraint WHERE conname = 'derived_scores_no_timing_ck'");
     expect(c.def).toMatch(/exposure/);
   });

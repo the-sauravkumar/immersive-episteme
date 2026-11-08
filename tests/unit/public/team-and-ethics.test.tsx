@@ -1,9 +1,3 @@
-/**
- * Team, affiliations, ethics, contact and citation (src/config/institution.ts and
- * src/components/public/team-and-ethics.tsx): the values the project lead supplied, in citation
- * order, rendered by the same components on About and on the study's consent page; never a
- * personal email or phone number.
- */
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
@@ -24,7 +18,6 @@ describe("institution config", () => {
   });
 
   it("uses only the project's contact address, never a personal email or a phone number", () => {
-    // ORCID iDs are identifiers, not phone numbers: left out of the phone check.
     const text = JSON.stringify({ ...INSTITUTION, authors: INSTITUTION.authors.map((a) => ({ ...a, orcid: null })) });
     expect(text.match(/[\w.+-]+@[\w.-]+/g)).toEqual(["cxa.craftecosystem@gmail.com"]);
     expect(text).not.toMatch(/\+?\d[\d\s-]{8,}\d/);

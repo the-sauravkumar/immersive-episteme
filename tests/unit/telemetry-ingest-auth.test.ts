@@ -1,6 +1,3 @@
-/**
- * Telemetry upload principal (who is writing) and the per-principal rate limiter.
- */
 import { describe, expect, it } from "vitest";
 
 import { signDemoSession } from "@/server/auth/demo-session";

@@ -1,43 +1,3 @@
-/**
- * Content importer: content/ interchange files (FORMAT.md v1) -> knowledge tables.
- *
- * Run through `npm run content:import` (scripts/content/import.ts) or `npm run dev:bootstrap`.
- * Not `server-only`: the tsx scripts and the integration tests call it with a plain pg client.
- *
- * Guarantees
- *  - Read-only on content/. The files are validated with the knowledge-graph loader and
- *    validators first; any error-level integrity issue aborts the import (nothing is written).
- *  - Idempotent. New rows get name-based ids derived from their keys (the same
- *    `contentIds()` the snapshot builder uses), rows are upserted on their natural keys
- *    (package slug, tradition slug, concept key, (package, local source id), (concept,
- *    claim position), (source, target, type)), and an update only happens when a column
- *    actually differs. A second import of unchanged files writes nothing but the audit entry.
- *  - Review states are copied from the files (`under_review` / `needs_evidence`; sources, which
- *    carry no state in FORMAT v1, are `under_review`) only while the importer itself set the
- *    current state: once a curator has decided a row's state (the latest verification_records
- *    row has a user actor: needs evidence, rejected, archived, withdrawn, resubmitted), the next
- *    import keeps it and reports it as `keptCurated` (final review knowledge-04). The importer
- *    never sets `verified` or `published`. A row a curator accepted (verified/published) keeps its
- *    acceptance while the files leave it, its claims and its evidence (including a tradition's GI
- *    sources, knowledge-09) unchanged (`keptAccepted`). When the files change any of them, the row
- *    takes the files' content and returns to `under_review` on the record (verification_records
- *    with the import's reason, `returnedToReview` in the summary and the audit entry), so it is
- *    accepted again only by a curator on the new evidence (DR-126).
- *  - `is_demo = false` everywhere (real content; demo rows are a separate seed).
- *  - Relationship evidence (FORMAT.md): each citation of a relationship gets the file's locator
- *    and verbatim quote for that source. A citation the file gives no passage
- *    for keeps the locator and quote it has (e.g. entered in the CMS); the importer never clears them.
- *  - Content removed from a file is pruned for the packages being imported: claims beyond the
- *    file's claim count, claim and relationship evidence links no longer cited, relationships
- *    and media candidates no longer listed. Only relationships the importer created are pruned:
- *    one a curator authored in the CMS (`created_by` set), one held by a snapshot, and one a
- *    spatial manifest encodes are reported (`stale.relationships`) and kept, so a re-import
- *    never deletes curator work and never aborts on the manifests' foreign key (knowledge-04).
- *    A held one the importer created is set `archived`, so no later snapshot carries it.
- *    Concepts, sources and traditions that disappeared from the files are reported (`stale`),
- *    never deleted, because studies, telemetry and assessments may reference them.
- *  - One transaction, plus one append-only `audit_log` row (actor_kind 'system').
- */
 import type { PoolClient } from "pg";
 
 import { contentIds, type ContentIds } from "@/features/knowledge/graph/snapshot";
@@ -52,7 +12,6 @@ export interface ImportInput {
   model: KnowledgeGraphModel;
   issues: readonly IntegrityIssue[];
   hasher: Sha256Hasher;
-  /** Free text recorded in the audit log (e.g. "npm run content:import"). */
   invokedBy?: string;
 }
 
@@ -61,7 +20,6 @@ export interface TableCounts {
   updated: number;
   unchanged: number;
   keptAccepted: number;
-  /** Rows whose curator-decided review state differs from the file and was kept (knowledge-04). */
   keptCurated: number;
 }
 
@@ -73,7 +31,6 @@ export interface ImportSummary {
   claims: TableCounts;
   relationships: TableCounts;
   claimSources: { inserted: number; pruned: number };
-  /** `updated`: citations whose locator and quote the file's relationship evidence changed. */
   relationshipSources: { inserted: number; updated: number; pruned: number };
   traditionSources: { inserted: number; pruned: number };
   mediaCandidates: TableCounts & { pruned: number };
@@ -105,31 +62,18 @@ export class ContentImportRefused extends Error {
 const ACCEPTED = ["verified", "published"];
 const zero = (): TableCounts => ({ inserted: 0, updated: 0, unchanged: 0, keptAccepted: 0, keptCurated: 0 });
 
-/**
- * SQL: the current review state of row `t` (a `kind` entity) was decided by a user, i.e. its latest
- * verification_records row has an actor. The importer writes without one (actor_id NULL), so a
- * state it set itself may still follow the files; a curator's decision may not (knowledge-04).
- * verification_records ids are uuidv7, so the newest row sorts last by id.
- */
 const curatorDecided = (kind: string) =>
   `COALESCE((SELECT vr.actor_id IS NOT NULL FROM verification_records vr
               WHERE vr.entity_kind = '${kind}' AND vr.entity_id = t.id
               ORDER BY vr.created_at DESC, vr.id DESC LIMIT 1), false)`;
 
-/**
- * Upsert helper. `rows` are inserted through jsonb_to_recordset; on a conflict on `conflict`
- * the `update` columns are overwritten only when they differ. An accepted row whose content
- * differs takes the file's content and returns to `under_review`; an accepted row whose content
- * is the file's keeps its state. Returns per-row outcome via `xmax`.
- */
 async function upsert(
   q: Q,
   opts: {
     table: string;
-    columns: readonly [string, string][]; // [name, sql type]
+    columns: readonly [string, string][];
     conflict: string;
     update: readonly string[];
-    /** The verifiable entity kind: keep a curator-decided `verification_state` (knowledge-04). */
     keepCuratedState?: "tradition" | "concept" | "relationship" | "source";
     rows: readonly Record<string, unknown>[];
   },
@@ -139,7 +83,6 @@ async function upsert(
   if (opts.rows.length === 0) return { counts, updatedIds };
   const cols = opts.columns.map(([n]) => n);
   const recordDef = opts.columns.map(([n, t]) => `"${n}" ${t}`).join(", ");
-  // The value each column takes on update: the file's, except a curator-decided review state.
   const content = opts.update.filter((c) => c !== "verification_state");
   const contentDiffers = `(${content.map((c) => `t."${c}"`).join(", ")}) IS DISTINCT FROM (${content.map((c) => `EXCLUDED."${c}"`).join(", ")})`;
   const next = (c: string) =>
@@ -193,7 +136,6 @@ function packageKindOf(p: GraphPackage): string {
   return p.kind;
 }
 
-/** Validates, then imports `model` in one transaction on `client`. */
 export async function importContent(client: PoolClient, input: ImportInput): Promise<ImportSummary> {
   const errors = input.issues.filter((i) => i.severity === "error");
   if (errors.length > 0) {
@@ -230,7 +172,6 @@ async function importInTransaction(
   invokedBy: string,
 ): Promise<ImportSummary> {
   const before = await acceptedRows(q);
-  // ---- packages ---------------------------------------------------------------------------
   const pkgRes = await upsert(q, {
     table: "content_packages",
     columns: [
@@ -266,12 +207,10 @@ async function importInTransaction(
     model.packages.map((p) => p.slug),
   ]);
   const pkgId = new Map(pkgRows.rows.map((r) => [r.slug, r.id]));
-  // Record the import time on every package touched by this run (imported_at is bookkeeping).
   await q.query("UPDATE content_packages SET imported_at = now() WHERE id = ANY($1::uuid[])", [[...pkgId.values()]]);
   const packages = pkgRes.counts;
   packages.unchanged = model.packages.length - packages.inserted - packages.updated;
 
-  // ---- traditions -------------------------------------------------------------------------
   const traditionPackages = model.packages.filter((p) => p.kind === "tradition");
   const traditionState = (slug: string) => model.concepts.find((c) => c.packageSlug === slug && c.type === "tradition")?.verificationState ?? "under_review";
   const tradRes = await upsert(q, {
@@ -340,7 +279,6 @@ async function importInTransaction(
   const traditions = tradRes.counts;
   traditions.keptCurated = tradRows.rows.filter((r) => traditionPackages.some((p) => p.slug === r.slug) && !ACCEPTED.includes(r.verification_state) && r.verification_state !== traditionState(r.slug)).length;
 
-  // ---- sources ----------------------------------------------------------------------------
   const srcRes = await upsert(q, {
     table: "sources",
     columns: [
@@ -392,7 +330,6 @@ async function importInTransaction(
     return want !== undefined && !ACCEPTED.includes(r.verification_state) && r.verification_state !== want;
   }).length;
 
-  // ---- concepts ---------------------------------------------------------------------------
   const conRes = await upsert(q, {
     table: "concepts",
     columns: [
@@ -445,7 +382,6 @@ async function importInTransaction(
     return now !== undefined && !ACCEPTED.includes(now) && now !== c.verificationState;
   }).length;
 
-  // ---- claims -----------------------------------------------------------------------------
   const claimRows = model.concepts.flatMap((c) =>
     c.claims.map((cl, i) => ({ id: ids.claim(c.key, i), concept_id: conceptId.get(c.key)!, position: i, text: cl.text, quote: cl.quote, is_demo: false })),
   );
@@ -506,7 +442,6 @@ async function importInTransaction(
     [JSON.stringify(wantedClaimSources)],
   );
 
-  // ---- tradition sources (GI evidence) -----------------------------------------------------
   const wantedTradSources = traditionPackages.flatMap((p) =>
     [...new Set(p.gi?.sourceRefs ?? [])].map((ref) => ({ tradition_id: traditionId.get(p.slug)!, source_id: sourceId.get(ref)! })),
   );
@@ -525,7 +460,6 @@ async function importInTransaction(
     [JSON.stringify(wantedTradSources)],
   );
 
-  // ---- relationships ----------------------------------------------------------------------
   const relInput = model.relationships.map((r) => ({
     id: ids.relationship(relationshipId(r)),
     source_concept_id: conceptId.get(r.source)!,
@@ -540,11 +474,6 @@ async function importInTransaction(
     verification_state: r.verificationState,
     is_demo: false,
   }));
-  // Prune relationships of the imported packages that the files no longer list (before the
-  // upsert, so a re-typed or re-directed edge never trips the undirected/acyclic rules). Only
-  // edges the importer created (created_by NULL; the CMS always sets it) and that nothing holds:
-  // a snapshot item or a spatial manifest's encoding (ON DELETE restrict). Those, and accepted
-  // edges, are reported as stale instead (knowledge-04); the ones the importer created are archived.
   const importedPkgIds = model.packages.map((p) => pkgId.get(p.slug)!);
   const relGone = `r.package_id = ANY($1::uuid[]) AND NOT r.is_demo
         AND NOT EXISTS (SELECT 1 FROM jsonb_to_recordset($2::jsonb) AS x(source_concept_id uuid, target_concept_id uuid, type_code text)
@@ -602,8 +531,6 @@ async function importInTransaction(
   }).length;
 
   const importedRels = model.relationships.map((r, i) => ({ r, id: importedRelIds[i]! }));
-  // Each citation carries the file's located verbatim passage for that source, if the file gives
-  // one (FORMAT.md "Relationship evidence"; at most one per source, the schema refuses more).
   const wantedRelSources = importedRels.flatMap(({ r, id }) =>
     [...new Set(r.sourceRefs)].map((ref) => {
       const e = (r.evidence ?? []).find((x) => x.ref === ref);
@@ -617,10 +544,6 @@ async function importInTransaction(
                          WHERE x.relationship_id = rs.relationship_id AND x.source_id = rs.source_id)`,
     [importedRelIds, JSON.stringify(wantedRelSources)],
   );
-  // A file passage replaces the stored locator and quote (an accepted relationship whose passage
-  // changes goes back to review, ie_evidence_changed); a citation the file gives no passage for
-  // keeps what it has, so a locator and quote entered in the CMS are never wiped by a re-import of
-  // a file that does not carry them.
   const relSourceRows = await q.query<{ inserted: boolean }>(
     `INSERT INTO relationship_sources AS t (relationship_id, source_id, locator, quote, is_demo)
      SELECT relationship_id, source_id, locator, quote, false
@@ -634,7 +557,6 @@ async function importInTransaction(
   const relSourcesInserted = relSourceRows.rows.filter((r) => r.inserted).length;
   const relSourcesUpdated = relSourceRows.rows.length - relSourcesInserted;
 
-  // ---- media candidates -------------------------------------------------------------------
   const mediaInput = model.packages.flatMap((p) =>
     p.mediaCandidates.map((m) => ({
       id: nameBasedUuid(hasher, "media-candidate", p.slug, m.url, m.depicts ?? ""),
@@ -683,7 +605,6 @@ async function importInTransaction(
   const mediaCandidates = { ...mediaRes.counts, pruned: prunedMedia.rowCount ?? 0 };
   mediaCandidates.unchanged = mediaInput.length - mediaCandidates.inserted - mediaCandidates.updated;
 
-  // ---- stale (reported, never deleted) ------------------------------------------------------
   const staleConcepts = conRows.rows.filter((r) => r.package_id && importedPkgIds.includes(r.package_id) && !importedKeys.has(r.key)).map((r) => r.key);
   const staleSources = srcRows.rows
     .filter((r) => model.packages.some((p) => p.slug === r.slug) && !importedRefs.has(`${r.slug}#${r.local_key}`))

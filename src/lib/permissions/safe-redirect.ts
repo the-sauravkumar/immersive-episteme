@@ -1,7 +1,3 @@
-/**
- * Open-redirect guard for `?next=` parameters: only same-origin, absolute paths are allowed.
- * Rejects protocol-relative (`//evil`), backslash tricks (`/\evil`), schemes and control chars.
- */
 export function safeNextPath(value: unknown, fallback = "/"): string {
   if (typeof value !== "string" || value.length === 0 || value.length > 2048) return fallback;
   if (!value.startsWith("/")) return fallback;

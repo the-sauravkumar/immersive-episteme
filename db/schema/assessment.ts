@@ -1,19 +1,3 @@
-/**
- * Assessment domain: versioned instruments, raw responses, participant concept maps,
- * expert reference maps (with raters and adjudication), rubrics and derived scores.
- *
- * Raw data and derived scores are kept separate: `responses` / `concept_maps` hold exactly
- * what the participant produced; `derived_scores` hold versioned computations over them.
- *
- * Raw-data immutability (migration 0005 triggers): `responses` are append-only (a new attempt
- * is a new row); a `concept_maps` row is frozen once `is_final`, and every saved state is
- * copied into the append-only `concept_map_revisions`, so autosaves never overwrite history;
- * `derived_scores` are append-only (rescoring adds rows keyed by reference map / rubric).
- * The only way to remove raw participant data is a reasoned purge
- * (`app.research_purge_reason`, e.g. consent withdrawal).
- * Instruments are never presented as validated unless a citation is recorded
- * (MP:593 "Do not invent a supposedly validated instrument").
- */
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -88,7 +72,6 @@ export const assessments = pgTable(
   ],
 );
 
-/** The assessment battery of a study, in protocol order. */
 export const studyAssessments = pgTable(
   "study_assessments",
   {
@@ -120,7 +103,6 @@ export const assessmentItems = pgTable(
     position: smallint().notNull(),
     kind: assessmentItemKindEnum().notNull(),
     prompt: text().notNull(),
-    /** Options, scale anchors, concept set for concept-map items, ... */
     config: jsonb().notNull().default(sql`'{}'::jsonb`),
     answerKey: jsonb(),
     conceptId: uuid().references(() => concepts.id, { onDelete: "restrict" }),
@@ -136,7 +118,6 @@ export const assessmentItems = pgTable(
   ],
 );
 
-/** Raw item responses. */
 export const responses = pgTable(
   "responses",
   {
@@ -201,7 +182,6 @@ export const scoringRubrics = pgTable(
   ],
 );
 
-/** Expert reference map for a reconstruction assessment, versioned and adjudicated. */
 export const referenceMaps = pgTable(
   "reference_maps",
   {
@@ -213,7 +193,6 @@ export const referenceMaps = pgTable(
     version: integer().notNull(),
     title: text().notNull(),
     description: text(),
-    /** Concept set of the map: [{ conceptId, label }]. */
     nodes: jsonb().notNull().default(sql`'[]'::jsonb`),
     status: referenceMapStatusEnum().notNull().default("draft"),
     adjudicatedBy: actorId(),
@@ -253,9 +232,7 @@ export const referenceMapEdges = pgTable(
     }),
     directed: boolean().notNull().default(true),
     weight: doublePrecision().notNull().default(1),
-    /** Must appear for full credit (vs. acceptable-but-optional). */
     required: boolean().notNull().default(false),
-    /** Inter-rater agreement for this edge in [0, 1], if computed. */
     agreement: doublePrecision(),
     notes: text(),
   },
@@ -272,7 +249,6 @@ export const referenceMapEdges = pgTable(
   ],
 );
 
-/** Individual expert submissions that the adjudicated reference map was built from. */
 export const referenceMapRaters = pgTable(
   "reference_map_raters",
   {
@@ -289,7 +265,6 @@ export const referenceMapRaters = pgTable(
   (t) => [unique("reference_map_raters_uq").on(t.referenceMapId, t.raterId, t.role)],
 );
 
-/** A participant's raw concept map (nodes inline; edges normalised for scoring/export). */
 export const conceptMaps = pgTable(
   "concept_maps",
   {
@@ -299,9 +274,7 @@ export const conceptMaps = pgTable(
     assessmentId: uuid().notNull(),
     itemId: uuid().notNull(),
     phase: conceptMapPhaseEnum().notNull(),
-    /** [{ key, conceptId|null, label, x, y }] exactly as produced by the editor. */
     nodes: jsonb().notNull().default(sql`'[]'::jsonb`),
-    /** Full editor state for audit. */
     raw: jsonb().notNull().default(sql`'{}'::jsonb`),
     revision: integer().notNull().default(1),
     isFinal: boolean().notNull().default(false),
@@ -344,7 +317,6 @@ export const conceptMapEdges = pgTable(
       onDelete: "restrict",
       onUpdate: "cascade",
     }),
-    /** Free-text label typed by the participant, if the editor allows it. */
     label: text(),
     directed: boolean().notNull().default(true),
     createdAt: createdAt(),
@@ -356,11 +328,6 @@ export const conceptMapEdges = pgTable(
   ],
 );
 
-/**
- * Append-only history of a participant concept map: one row per saved revision (autosave or
- * final submission), written by trigger from `concept_maps`. `raw` is the full editor state,
- * including edges, so the exact structure at every revision can be reconstructed.
- */
 export const conceptMapRevisions = pgTable(
   "concept_map_revisions",
   {
@@ -380,7 +347,6 @@ export const conceptMapRevisions = pgTable(
   ],
 );
 
-/** Versioned scores derived from raw responses / concept maps. */
 export const derivedScores = pgTable(
   "derived_scores",
   {

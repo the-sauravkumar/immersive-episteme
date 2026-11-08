@@ -1,15 +1,3 @@
-/**
- * CMS / admin service core: the acting staff member, permission checks, transactions that carry
- * the actor into the database triggers, the append-only audit log and error mapping.
- *
- * Every CMS and admin mutation runs as:
- *   server action -> assertPermission (src/server/auth/staff.ts) -> Zod parse -> service(pool, actor, input)
- * and the service re-checks the permission with `ensure()` (defence in depth; it is also what the
- * integration tests exercise), runs in `inActorTx` and appends an `audit_log` row in the SAME
- * transaction, so a mutation and its audit entry commit or roll back together.
- *
- * Not `server-only`: integration tests call the services with their own pool.
- */
 import type { Pool, PoolClient } from "pg";
 
 import { canAny } from "@/lib/permissions/can";
@@ -18,13 +6,11 @@ import type { StaffRole } from "@/lib/permissions/roles";
 
 export type Q = Pick<PoolClient, "query">;
 
-/** The acting staff member. `StaffPrincipal` (src/server/auth/staff.ts) satisfies it. */
 export interface Actor {
   readonly userId: string;
   readonly roles: readonly StaffRole[];
 }
 
-/** A refused CMS operation. `code` is stable (tests and UI key on it); `message` is for people. */
 export class CmsError extends Error {
   constructor(
     readonly code: string,
@@ -37,7 +23,6 @@ export class CmsError extends Error {
   }
 }
 
-/** Throws `forbidden` unless the actor holds (any of) the permission(s). */
 export function ensure(actor: Actor, permission: Permission | readonly Permission[]): void {
   const anyOf: readonly Permission[] = typeof permission === "string" ? [permission] : permission;
   if (!canAny(actor, anyOf)) {
@@ -45,10 +30,6 @@ export function ensure(actor: Actor, permission: Permission | readonly Permissio
   }
 }
 
-/**
- * Runs `fn` in a transaction with `app.actor_id` and `app.change_reason` set, so the
- * verification-record trigger (migration 0003/0005) records who changed a review state and why.
- */
 export async function inActorTx<T>(pool: Pool, actor: Actor, reason: string | null, fn: (c: PoolClient) => Promise<T>): Promise<T> {
   const client = await pool.connect();
   try {
@@ -65,7 +46,6 @@ export async function inActorTx<T>(pool: Pool, actor: Actor, reason: string | nu
   }
 }
 
-/** Sets the change reason for the rest of the transaction (verification records read it). */
 export async function setChangeReason(q: Q, reason: string | null): Promise<void> {
   await q.query("SELECT set_config('app.change_reason', $1, true)", [reason ?? ""]);
 }
@@ -79,7 +59,6 @@ export interface AuditEntry {
   reason?: string | null;
 }
 
-/** Appends one audit_log row for a staff action (audit_log is append-only, migration 0003). */
 export async function audit(q: Q, actor: Actor, e: AuditEntry): Promise<string> {
   const r = await q.query<{ id: string }>(
     `INSERT INTO audit_log (actor_kind, actor_id, action, entity, entity_id, before, after, reason)
@@ -104,10 +83,6 @@ interface PgError {
   detail?: string;
 }
 
-/**
- * Database refusals become CmsErrors: integrity triggers raise SQLSTATE 23514 with an "ie: "
- * message (migration 0003), constraints raise 23514/23505/23503.
- */
 export function mapDbError(err: unknown): unknown {
   if (err instanceof CmsError) return err;
   const e = err as PgError;

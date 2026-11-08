@@ -54,7 +54,6 @@ export function demoBundle(): KnowledgeBundle {
       compares: [...c.compares],
       provenanceKind: "historical_documentation" as const,
       verificationState: "verified" as const,
-      // Every concept cites source A; the shared mechanism alone cites source B.
       claims: [
         {
           id: deterministicUuid("claim", c.key),

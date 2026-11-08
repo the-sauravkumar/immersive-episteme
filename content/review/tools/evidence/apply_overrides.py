@@ -1,6 +1,3 @@
-"""Pin the correct supporting passage for claims whose automatic excerpt was wrong or incomplete.
-Each pinned excerpt is the sentence (from the same archived source, located segment) that matches
-the regex; it is prepended to that claim-source's excerpts. Reviewed by hand (review-weak.txt)."""
 import json, os, re, sys
 sys.stdout.reconfigure(encoding="utf-8")
 SCR = sys.argv[1]
@@ -9,7 +6,6 @@ from verify_quotes import norm
 SEG = json.load(open(os.path.join(SCR, "evidence", "segments.json"), encoding="utf-8"))
 rows = json.load(open(os.path.join(SCR, "evidence", "evidence.json"), encoding="utf-8"))
 
-# (claim key, claim index, source id) -> regex that the supporting sentence must contain
 PINS = [
  ("comparisons.comparison.community-specific-design", 0, "ajrakh:S7", r"distinct style, a distinct colou?r palette"),
  ("shared.scientific_mechanism.iron-tannin-black", 5, "S5", r"most achromatic shade"),
@@ -36,7 +32,6 @@ PINS = [
  ("ajrakh.outcome.traditional-garments", 1, "S6", r"width of the cloth is 1 metre"),
  ("shared.scientific_mechanism.tannin-pre-mordanting", 4, "S5", r"contains 28% tannins"),
 ]
-# Pairs whose decisive passage could not be extracted verbatim; the note tells the curator where to look.
 NOTES = {
  ("shared.scientific_mechanism.tannin-pre-mordanting", 4, "S5"):
   "The statement that tannin behaves as a mordant is on PDF p. 11, in a passage whose extracted text is corrupted (doubled glyphs); check it against the PDF page.",
@@ -54,7 +49,7 @@ for key, idx, sid, rx in PINS:
     if not r:
         missing.append((key, idx, sid, "no claim-source row")); continue
     hit = next(((loc, s) for loc, s in sentences(r["url"]) if re.search(rx, s)), None)
-    if not hit:  # abbreviations such as "A.D." break sentence splitting: fall back to a word window
+    if not hit:
         for sg in SEG.get(r["url"], []):
             t = norm(sg["text"]); m = re.search(rx, t)
             if m:
@@ -64,7 +59,7 @@ for key, idx, sid, rx in PINS:
         missing.append((key, idx, sid, rx)); continue
     loc, s = hit
     w = s.split()
-    if len(w) > 60:  # trim to a 60-word window around the match
+    if len(w) > 60:
         m = re.search(rx, s); pre = len(s[:m.start()].split())
         a = max(0, pre - 25); s = " ".join(w[a:a + 60])
     ex = {"locator": loc, "quote": s, "pinned": True}

@@ -1,13 +1,3 @@
-/**
- * Drizzle implementation of the StudySessionLookup port (./study-session-port.ts) over
- * `study_sessions` + `study_conditions` (assigned interface) + `participants` (status).
- *
- * Not `server-only` so integration tests can run it against `episteme_test`; app code reaches
- * it through `getStudySessionLookup()`.
- *
- * A session id that is not a uuid can never exist, so it short-circuits to null instead of
- * letting Postgres raise `invalid input syntax for type uuid`.
- */
 import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
@@ -35,7 +25,6 @@ export function drizzleStudySessionLookup(db: AnyPgDatabase): StudySessionLookup
           participantStatus: participants.status,
         })
         .from(studySessions)
-        // Left join: a session has no condition until it is allocated (allocation after the pre-test).
         .leftJoin(studyConditions, eq(studyConditions.id, studySessions.conditionId))
         .innerJoin(participants, eq(participants.id, studySessions.participantId))
         .where(eq(studySessions.id, sessionId))

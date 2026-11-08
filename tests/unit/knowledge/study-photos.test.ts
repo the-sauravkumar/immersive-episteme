@@ -1,14 +1,3 @@
-/**
- * Study photographs (DR-020 and its addendum): the three V&A textile photographs reach learners
- * only through the shared figure resolution, identically in both conditions.
- *
- *  - the anchor-claim gate: a photograph shows only once its concept's claims are verified;
- *  - the protocol switch `figures.photos` removes photographs from BOTH conditions together, in the
- *    read model's resolution and in the content parity engine's figure balance;
- *  - the ingest plan: one photograph per study tradition, each on a context concept, anchored after
- *    the claim that names the object, credited as the V&A requires (the cropped one says so), at
- *    the full size of the V&A file, never a public plate (DR-118).
- */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 

@@ -1,19 +1,3 @@
-/**
- * Staff account administration: list, create, lock/unlock, lift sign-in locks, reset passwords,
- * grant/revoke roles.
- *
- * Rules (foundation.md §1-2):
- *  - accounts are never hard-deleted (40 actor FKs keep provenance); an administrator locks one
- *    with `users.disabled_at`, and locking also ends the user's live sessions;
- *  - an administrator cannot lock themselves, nor remove their own platform_admin role;
- *  - the last active (non-locked) platform_admin role holder can never lose the role, so the
- *    platform always keeps an operator;
- *  - creating an existing email is refused (the bootstrap helper is idempotent and would
- *    otherwise silently grant a role to an existing account);
- *  - every mutation writes one audit_log row (never a password).
- *
- * Not `server-only`: integration tests call these with their own pool and auth instance.
- */
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Pool, PoolClient } from "pg";
 import { z } from "zod";
@@ -94,13 +78,10 @@ export async function createStaffUser(
   raw: CreateStaffInput,
 ): Promise<{ userId: string }> {
   ensure(actor, "admin.users");
-  // Granting the initial role is a role assignment too.
   ensure(actor, "admin.roles");
   const input = createStaffInput.parse(raw);
   const exists = await deps.pool.query("SELECT 1 FROM users WHERE email = $1", [input.email]);
   if (exists.rowCount) throw new CmsError("email_taken", "A staff account with this email already exists. Assign roles to it instead.", 409);
-  // Better Auth's internal adapter writes the user + credential with its own scrypt hasher;
-  // it uses its own connection, so the audit row follows immediately after.
   const res = await createStaffAccount(deps.auth, deps.db, input, actor.userId);
   await inActorTx(deps.pool, actor, null, (c) =>
     audit(c, actor, {
@@ -124,13 +105,6 @@ async function loadUser(q: Q, userId: string): Promise<{ id: string; email: stri
   return u;
 }
 
-/**
- * Serialises every change that can reduce the set of active platform administrators (lock,
- * revoke). Taken FIRST, before any row lock, so all admin mutations lock in the same order. Under
- * READ COMMITTED the waiting transaction's next statement sees the committed change, so two
- * admins locking (or revoking) each other at once cannot both pass the last-admin check
- * (final review security-10).
- */
 async function lockAdminHolders(c: PoolClient): Promise<void> {
   await c.query("SELECT pg_advisory_xact_lock(hashtext('admin.platform_admin_holders'))");
 }
@@ -260,7 +234,6 @@ export async function revokeStaffRole(pool: Pool, actor: Actor, raw: z.input<typ
     throw new CmsError("self_revoke", "You cannot remove your own administrator role.", 409);
   }
   return inActorTx(pool, actor, null, async (c) => {
-    // Serialise concurrent revocations and locks so two admins cannot remove each other at once.
     if (input.role === "platform_admin") await lockAdminHolders(c);
     await loadUser(c, input.userId);
     if (input.role === "platform_admin") {
@@ -276,12 +249,10 @@ export async function revokeStaffRole(pool: Pool, actor: Actor, raw: z.input<typ
   });
 }
 
-/** Drizzle over the transaction's client, so role writes join the audited transaction. */
 function drizzleOn(c: PoolClient) {
   return drizzle(c, { casing: "snake_case" });
 }
 
-/** Holders per staff role (non-locked accounts). */
 export async function roleHolderCounts(pool: Pool, actor: Actor): Promise<Record<StaffRole, number>> {
   ensure(actor, ["admin.roles", "admin.users"]);
   const r = await pool.query<{ role: StaffRole; n: number }>(

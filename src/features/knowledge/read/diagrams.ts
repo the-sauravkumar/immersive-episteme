@@ -1,32 +1,3 @@
-/**
- * Graph-derived structure diagrams (DR-018; DESIGN.md 9.9 "Figure kinds", 12.3 rules 8-9).
- *
- * A pure generator: from ONE knowledge bundle it builds, for a tradition, the data and the layout
- * of three diagram types, which the shared `KnowledgeFigure` renders as SVG identically in both
- * conditions:
- *
- *  - `process-sequence`: the tradition's PRECEDES chain of process stages, stage titles as node
- *    labels (anchor: the first stage of the chain; process section).
- *  - `materials-tools`: the USES / REQUIRES edges from one process stage to material and tool
- *    concepts (anchor: the stage with the most such edges, other than the sequence anchor;
- *    process section).
- *  - `colour-mechanism`: the chain from the tradition's stages and materials to outcome concepts,
- *    through SCIENTIFICALLY_EXPLAINED_BY hops to a scientific mechanism that PRODUCES an outcome
- *    (anchor: a science-section concept of the tradition; science section).
- *
- * What a diagram may show (the DR-018 rule "a figure states nothing the claims and relationships
- * do not state"): every node is a concept of the bundle with its title, and every edge is a
- * relationship of the bundle, of the diagram type's stated relationship types, drawn in its own
- * direction and labelled with the registry's own label for that type. Nothing else is drawn or
- * written, apart from the band labels of the colour diagram, which repeat the edge labels of the
- * edges in that band. tests/unit/knowledge/diagrams.test.ts checks this against the real content.
- *
- * Balance (12.3 rule 9): `balanceDiagramSets` keeps a diagram type only when EVERY tradition in
- * scope has it, so each study tradition gets the same types in the same sections.
- *
- * Layout: fixed 576 x 384 viewBox (3:2, the figure slot), deterministic, no measurement of real
- * text (an average character width is used, with a safety margin), so server and client agree.
- */
 import type { KnowledgeBundle } from "@/features/knowledge/contracts";
 import { titleCase } from "@/lib/text/title-case";
 import type { ConceptType } from "@/lib/validation/enums";
@@ -37,21 +8,18 @@ type BundleRelationship = KnowledgeBundle["relationships"][number];
 export const STRUCTURE_DIAGRAM_TYPES = ["process-sequence", "materials-tools", "colour-mechanism"] as const;
 export type StructureDiagramType = (typeof STRUCTURE_DIAGRAM_TYPES)[number];
 
-/** The relationship types each diagram type may draw (and nothing else). */
 export const DIAGRAM_EDGE_TYPES: Record<StructureDiagramType, readonly string[]> = {
   "process-sequence": ["PRECEDES"],
   "materials-tools": ["USES", "REQUIRES"],
   "colour-mechanism": ["SCIENTIFICALLY_EXPLAINED_BY", "PRODUCES"],
 };
 
-/** The tradition-page section (EPISTEMIC_SECTIONS id) whose concept anchors each type. */
 export const DIAGRAM_SECTION: Record<StructureDiagramType, "process" | "science"> = {
   "process-sequence": "process",
   "materials-tools": "process",
   "colour-mechanism": "science",
 };
 
-/** Interface wording of the diagram types (caption lead). Not craft content. */
 export const DIAGRAM_TYPE_LABELS: Record<StructureDiagramType, string> = {
   "process-sequence": "Process sequence",
   "materials-tools": "Materials and tools",
@@ -62,46 +30,35 @@ export const DIAGRAM_WIDTH = 576;
 export const DIAGRAM_HEIGHT = 384;
 
 export interface DiagramNode {
-  /** Concept id (uuid). */
   id: string;
   key: string;
-  /** The concept title exactly as in the bundle. */
   title: string;
   type: ConceptType;
-  /** The anchor concept: drawn with the one indigo accent. */
   current: boolean;
   x: number;
   y: number;
   w: number;
   h: number;
-  /** Title Case label, wrapped into lines. */
   lines: string[];
 }
 
 export interface DiagramEdge {
   relationshipId: string;
-  /** Relationship type code (one of DIAGRAM_EDGE_TYPES[type]). */
   type: string;
-  /** The registry label of the type ("precedes", "uses", ...). */
   label: string;
-  /** Concept ids. */
   source: string;
   target: string;
-  /** SVG path (absolute coordinates). */
   d: string;
-  /** Where the edge's own label is printed; null when its band label carries it. */
   labelAt: { x: number; y: number; anchor: "start" | "middle" | "end" } | null;
 }
 
 export interface DiagramBand {
-  /** The registry label shared by every edge in the band. */
   label: string;
   x: number;
   y: number;
 }
 
 export interface StructureDiagram {
-  /** Stable id: `<type>:<tradition slug>`. */
   id: string;
   type: StructureDiagramType;
   traditionSlug: string;
@@ -110,29 +67,20 @@ export interface StructureDiagram {
   anchor: { conceptId: string; conceptKey: string; claimIndex: number };
   width: number;
   height: number;
-  /** Type sizes used by the layout (px in viewBox units). */
   fontSize: number;
   lineHeight: number;
   labelSize: number;
   nodes: DiagramNode[];
   edges: DiagramEdge[];
   bands: DiagramBand[];
-  /** Text equivalent: every node and edge in reading order (the figure's alt text). */
   alt: string;
-  /** Caption without the "Fig. n" prefix: names the concepts shown and the anchor statement. */
   caption: string;
 }
-
-// ---------------------------------------------------------------------------------------
-// Graph extraction (what a diagram shows)
-// ---------------------------------------------------------------------------------------
 
 export interface DiagramGraph {
   type: StructureDiagramType;
   anchorKey: string;
-  /** Concept keys, in reading order. */
   nodeKeys: string[];
-  /** Relationship ids, in reading order. */
   edgeIds: string[];
 }
 
@@ -161,7 +109,6 @@ function indexBundle(bundle: KnowledgeBundle): Index {
 
 const hasClaims = (c: BundleConcept | undefined) => !!c && c.claims.length > 0;
 
-/** The tradition's process chain: ordinalled PRECEDES edges between its process stages, by ordinal. */
 function processChain(ix: Index, traditionId: string): { steps: string[]; edges: BundleRelationship[] } {
   const isStage = (k: string) => {
     const c = ix.conceptByKey.get(k);
@@ -233,7 +180,6 @@ function colourGraph(ix: Index, traditionId: string): DiagramGraph | null {
     .filter((c) => c.traditionId === traditionId && SEED_TYPES.includes(c.type))
     .sort((a, b) => stageOrder(a.key) - stageOrder(b.key) || byString(a.key, b.key));
 
-  // Every path seed -SEB-> ... -SEB-> mechanism -PRODUCES-> outcome (acyclic, bounded depth).
   const edgeIds = new Set<string>();
   const onPath = new Set<string>();
   const seedsOnPath: string[] = [];
@@ -262,12 +208,6 @@ function colourGraph(ix: Index, traditionId: string): DiagramGraph | null {
   }
   if (edgeIds.size === 0) return null;
 
-  // Anchor: a science-section concept OF THIS TRADITION (12.3 rule 9 places this type in the
-  // science section), chosen by rule so it is always drawn in the diagram:
-  //  1. one that lies on a colour path;
-  //  2. else one that a stage on a colour path is SCIENTIFICALLY_EXPLAINED_BY (edge added);
-  //  3. else one that explains the process stage nearest in the PRECEDES order to a stage on a
-  //     colour path (that stage and edge added); ties by concept key.
   const candidates = ix.bundle.concepts
     .filter((c) => c.traditionId === traditionId && SCIENCE_TYPES.includes(c.type) && hasClaims(c))
     .sort((a, b) => byString(a.key, b.key));
@@ -316,7 +256,6 @@ function colourGraph(ix: Index, traditionId: string): DiagramGraph | null {
   return { type: "colour-mechanism", anchorKey, nodeKeys: [...onPath].sort(byString), edgeIds: rels.map((r) => r.id) };
 }
 
-/** The graph content of every available diagram type for a tradition (no layout). */
 export function extractDiagramGraphs(bundle: KnowledgeBundle, traditionSlug: string): DiagramGraph[] {
   const t = bundle.traditions.find((x) => x.slug === traditionSlug);
   if (!t) return [];
@@ -327,22 +266,12 @@ export function extractDiagramGraphs(bundle: KnowledgeBundle, traditionSlug: str
   return [seq, mat, col].filter((g): g is DiagramGraph => g !== null);
 }
 
-// ---------------------------------------------------------------------------------------
-// Layout
-// ---------------------------------------------------------------------------------------
-
 const PAD = 8;
-/**
- * Average glyph advance as a share of the font size, with a safety margin. Set for Inter; it stays
- * a safe bound for Atkinson Hyperlegible Next (DR-022), whose measured 62 characters per 34rem line
- * at 20 px is about 0.44 em per character, narrower than Inter (about 0.47 em).
- */
 const ADVANCE = 0.56;
 const BOX_PAD_X = 8;
 const BOX_PAD_Y = 6;
 
 function wrap(text: string, maxChars: number): string[] {
-  // Words longer than a line break after their hyphens ("Iron-" / "Catalysed"); nothing else is cut.
   const words = text
     .split(/\s+/)
     .filter(Boolean)
@@ -398,7 +327,6 @@ function layoutProcess(cx: Ctx): Layout {
   const rows = Math.ceil(n / cols);
   const gapX = cols === 3 ? 64 : 52;
   const w = (DIAGRAM_WIDTH - 2 * PAD - (cols - 1) * gapX) / cols;
-  // Each row is as tall as its tallest label, so one long stage title does not inflate every row.
   let chosen: { s: Sized; lines: string[][]; rowH: number[]; gapY: number } | null = null;
   for (const s of SIZES) {
     const lines = cx.graph.nodeKeys.map((k) => wrap(titleCase(cx.ix.conceptByKey.get(k)!.title), maxCharsFor(w, s.font)));
@@ -435,13 +363,11 @@ function layoutProcess(cx: Ctx): Layout {
       return { ...base, d: `M${r1(a.x + w)} ${r1(y)} H${r1(b.x)}`, labelAt: { x: r1(a.x + w + gapX / 2), y: r1(y - 5), anchor: "middle" } };
     }
     if (j === i + 1) {
-      // Row wrap: down from the end of a row, across, and down into the start of the next.
       const midY = a.y + a.h + gapY / 2;
       const sx = a.x + w / 2;
       const tx = b.x + w / 2;
       return { ...base, d: `M${r1(sx)} ${r1(a.y + a.h)} V${r1(midY)} H${r1(tx)} V${r1(b.y)}`, labelAt: { x: r1((sx + tx) / 2), y: r1(midY + 3.5), anchor: "middle" } };
     }
-    // Not adjacent in the chain order (a discontinuous chain): a straight connector.
     const sx = a.x + w / 2;
     const sy = a.y + a.h;
     const tx = b.x + w / 2;
@@ -451,7 +377,6 @@ function layoutProcess(cx: Ctx): Layout {
   return { nodes, edges, bands: [], fontSize: s.font, lineHeight: s.lh, labelSize: s.label };
 }
 
-/** Stacks boxes of their own heights in [top, bottom], evenly spaced, centred when there is room. */
 function stack(heights: number[], top: number, bottom: number): number[] {
   const total = heights.reduce((a, b) => a + b, 0);
   const free = bottom - top - total;
@@ -507,9 +432,6 @@ function layoutMaterials(cx: Ctx): Layout {
 function layoutColour(cx: Ctx): Layout {
   const concept = (k: string) => cx.ix.conceptByKey.get(k)!;
   const rels = cx.graph.edgeIds.map((id) => cx.ix.bundle.relationships.find((x) => x.id === id)!);
-  // Columns by depth along the drawn edges: seeds (stages, materials) first, outcomes last, and
-  // every explanation or mechanism one column after the deepest concept that leads to it, so
-  // every edge points rightwards.
   const depth = new Map<string, number>(cx.graph.nodeKeys.map((k) => [k, SEED_TYPES.includes(concept(k).type) ? 0 : 1]));
   for (let pass = 0; pass < cx.graph.nodeKeys.length; pass++) {
     let changed = false;
@@ -531,7 +453,6 @@ function layoutColour(cx: Ctx): Layout {
   const columns: string[][] = used.map(() => []);
   for (const k of cx.graph.nodeKeys) columns[colOfKey(k)]!.push(k);
 
-  // Column 0 in process order; later columns by the mean position of their predecessors.
   const { steps } = processChain(cx.ix, cx.traditionId);
   const order = new Map<string, number>();
   const stageOrder = (k: string) => {
@@ -578,8 +499,6 @@ function layoutColour(cx: Ctx): Layout {
         labelAt: null,
       };
     });
-    // Band labels: the registry label of the edges leaving each column (every edge in the band
-    // carries it); neighbouring bands with the same label are printed once, centred across them.
     const raw: { label: string; from: number; to: number }[] = [];
     for (let ci = 0; ci < cols - 1; ci++) {
       const leaving = rels.filter((r) => colOfKey(r.source) === ci);
@@ -598,10 +517,6 @@ function layoutColour(cx: Ctx): Layout {
   return out!;
 }
 
-// ---------------------------------------------------------------------------------------
-// Text equivalent and caption
-// ---------------------------------------------------------------------------------------
-
 const listJoin = (items: string[], conj = "and") => (items.length <= 1 ? (items[0] ?? "") : `${items.slice(0, -1).join(", ")} ${conj} ${items[items.length - 1]}`);
 
 function altOf(cx: Ctx, nodes: DiagramNode[]): string {
@@ -610,7 +525,6 @@ function altOf(cx: Ctx, nodes: DiagramNode[]): string {
   if (cx.graph.type === "process-sequence") {
     return `Stages in order: ${cx.graph.nodeKeys.map(title).join("; ")}. Each stage ${cx.ix.labelOf("PRECEDES")} the next.`;
   }
-  // Edges grouped by source and type, in node reading order.
   const order = new Map(nodes.map((n, i) => [n.key, i]));
   const groups = new Map<string, { source: string; label: string; targets: string[] }>();
   for (const r of [...rels].sort((a, b) => (order.get(a.source)! - order.get(b.source)!) || (order.get(a.target)! - order.get(b.target)!))) {
@@ -638,11 +552,6 @@ function captionOf(cx: Ctx, traditionName: string): string {
   }
 }
 
-// ---------------------------------------------------------------------------------------
-// Public API
-// ---------------------------------------------------------------------------------------
-
-/** Every available structure diagram of a tradition, laid out. Pure and deterministic. */
 export function buildStructureDiagrams(bundle: KnowledgeBundle, traditionSlug: string): StructureDiagram[] {
   const t = bundle.traditions.find((x) => x.slug === traditionSlug);
   if (!t) return [];
@@ -667,17 +576,12 @@ export function buildStructureDiagrams(bundle: KnowledgeBundle, traditionSlug: s
   });
 }
 
-/**
- * Balance across traditions (12.3 rule 9): a diagram type is kept only when every tradition in
- * `slugs` has it, so each gets the same types in the same sections (k(section) = the minimum).
- */
 export function balanceDiagramSets(sets: ReadonlyMap<string, readonly StructureDiagram[]>, slugs: readonly string[]): Map<string, StructureDiagram[]> {
   const typesOf = (slug: string) => new Set((sets.get(slug) ?? []).map((d) => d.type));
   const common = STRUCTURE_DIAGRAM_TYPES.filter((type) => slugs.length > 0 && slugs.every((s) => typesOf(s).has(type)));
   return new Map(slugs.map((s) => [s, (sets.get(s) ?? []).filter((d) => common.includes(d.type))]));
 }
 
-/** Text width estimate used by the layout (exported for tests of label fit). */
 export function estimateTextWidth(text: string, fontSize: number): number {
   return textWidth(text, fontSize);
 }

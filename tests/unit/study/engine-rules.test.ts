@@ -45,7 +45,6 @@ describe("study protocol config (Concept Note rev2, section 7)", () => {
     ]);
     const p = parseStudyProtocol({});
     expect(p.steps).toEqual(DEFAULT_STEPS);
-    // The default order needs the practice minutes: refused loudly, never silently dropped.
     expect(p.config.resume).toEqual({ allowed: true });
   });
 
@@ -179,7 +178,6 @@ describe("instrument definitions (D7)", () => {
     expect([cl.version, cl.items.length, cl.pending]).toEqual([2, 14, []]);
     expect(cl.items.filter((i) => i.source.startsWith("Leppink")).map((i) => i.key)).toEqual(["el-instr.4", "el-instr.5", "el-instr.6"]);
     expect(cl.items.some((i) => i.sourceCode === "ECL_I_4")).toBe(true);
-    // Response format option (a): Leppink's 0-10 for all items, the only one with verified labels.
     expect(cl.responseScale).toMatchObject({ points: 11, min: 0, anchors: { "0": "not at all the case", "10": "completely the case" }, anchorsVerified: true });
     expect(neutralise("The interaction technique used in the simulation was very unclear.")).toBe("The interaction technique used in the learning environment was very unclear.");
     expect(neutralise("The virtual environment was full of irrelevant content.")).toBe("The learning environment was full of irrelevant content.");
@@ -228,7 +226,6 @@ describe("participant cookie before and after allocation", () => {
     expect(await resolveParticipantSession(token, { secret: SECRET, lookup: lookup(record("immersive")) })).toEqual({ allowed: false, redirectTo: "/study/allocate" });
     const learn = await resolveLearningAccess({ condition: "immersive", participantCookie: token, demoCookie: undefined, staff: async () => null }, { secret: SECRET, lookup: lookup(record("immersive")) });
     expect(learn).toMatchObject({ allowed: false, redirectTo: "/study/session" });
-    // A cookie for one condition never passes for another.
     const twoD = await signParticipantSession({ participantId: P, sessionId: S, condition: "2d" }, SECRET);
     expect(await resolveParticipantSession(twoD, { secret: SECRET, lookup: lookup(record("immersive")) })).toMatchObject({ allowed: false, redirectTo: "/study/exit?reason=invalid-session" });
   });

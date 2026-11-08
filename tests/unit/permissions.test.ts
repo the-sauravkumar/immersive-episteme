@@ -1,11 +1,3 @@
-/**
- * Table-driven tests over the WHOLE role x permission matrix.
- *
- * EXPECTED is written out independently of src/lib/permissions/matrix.ts: every one of the
- * |ROLES| x |PERMISSIONS| cells is asserted both ways (granted and denied), so any change to
- * the matrix must be made deliberately in two places. Policy invariants (separation of duties,
- * pseudonymised analysts, ...) are asserted separately so a reader can see the rules.
- */
 import { describe, expect, it } from "vitest";
 
 import {
@@ -124,7 +116,6 @@ const EXPECTED: Record<Role, Permission[]> = {
   public: [...LEARN],
 };
 
-/** Permissions that change state (anything but reading/viewing/learning). */
 const WRITE_PERMISSIONS: Permission[] = PERMISSIONS.filter(
   (p) =>
     ![
@@ -135,7 +126,6 @@ const WRITE_PERMISSIONS: Permission[] = PERMISSIONS.filter(
       "admin.audit",
       "learn.2d",
       "learn.immersive",
-      // Pseudonymised export, the parity check and the metric recompute are derivations of existing data.
       "exports.create",
       "parity.run",
       "metrics.recompute",
@@ -358,7 +348,6 @@ describe("console route table", () => {
         expect(canAny({ roles: [role] }, routeByPath.get(target!)!.anyOf), `${role} switcher -> ${target}`).toBe(true);
       }
     }
-    // The regression: curators and content editors cannot open /research itself.
     expect(canAny({ roles: ["curator"] }, consoleRoute("/research").anyOf)).toBe(false);
     expect(areaLanding({ roles: ["curator"] }, "research")).toBe("/research/parity");
     expect(staffLanding({ roles: ["curator"] })).toBe("/cms");

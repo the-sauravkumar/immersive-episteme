@@ -1,8 +1,3 @@
-/**
- * Dashboard row 4 (DESIGN.md 11.9): per-item statistics are aggregated only from stored derived
- * values, conditions in the order given (the page passes 2D first). No value is imputed: an
- * undefined score is counted apart, and a condition without data is null.
- */
 import { describe, expect, it } from "vitest";
 
 import { itemStatistics, traditionGains, type TraditionItemRow } from "@/app/(research)/research/dashboard/_components/dashboard-extras";
@@ -53,18 +48,15 @@ describe("traditionGains (11.9 Figure 3)", () => {
   it("is post minus pre proportion correct per session and tradition, traditions in the canonical order", () => {
     const g = traditionGains(
       [
-        // s1 (2D): Sanganeri pre 1/2, post 2/2 -> +0.5; Ajrakh pre 0/1, post 1/1 -> +1
         row("s1", "c2d", "sanganeri", "Sanganeri", "pretest", 1),
         row("s1", "c2d", "sanganeri", "Sanganeri", "pretest", 0),
         row("s1", "c2d", "sanganeri", "Sanganeri", "posttest", 1),
         row("s1", "c2d", "sanganeri", "Sanganeri", "posttest", 1),
         row("s1", "c2d", "ajrakh", "Ajrakh", "pretest", 0),
         row("s1", "c2d", "ajrakh", "Ajrakh", "posttest", 1),
-        // s2 (3D): Sanganeri pre 1/1, post 0/1 -> -1; Ajrakh only a pre-test answer -> not counted
         row("s2", "c3d", "sanganeri", "Sanganeri", "pretest", 1),
         row("s2", "c3d", "sanganeri", "Sanganeri", "posttest", 0),
         row("s2", "c3d", "ajrakh", "Ajrakh", "pretest", 1),
-        // ignored: transfer items, undefined scores, sessions of other conditions
         row("s2", "c3d", "sanganeri", "Sanganeri", "transfer", 1),
         row("s2", "c3d", "sanganeri", "Sanganeri", "posttest", null),
         row("s9", "other", "ajrakh", "Ajrakh", "pretest", 0),

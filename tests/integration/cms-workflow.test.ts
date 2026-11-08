@@ -1,9 +1,3 @@
-/**
- * Integration: CMS knowledge authoring, review workflow and release publishing against a
- * throwaway database (schema-harness). Covers the separation-of-duties rules, the citation
- * policy (page/locator + verbatim quote per claim), claims-only learner text and the refusal of
- * a release while anything in the review pipeline is unverified.
- */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { loadSnapshotPayload } from "@/server/knowledge/snapshot-store";
@@ -106,7 +100,6 @@ describe.skipIf(!TEST_URL)("CMS workflow and release", () => {
     expect(parse([{ ...base, quote: "" }]).success).toBe(false);
     expect(parse([{ ...base, sources: [] }]).success).toBe(false);
     expect(parse([{ ...base, quote: Array.from({ length: 26 }, () => "word").join(" ") }]).success).toBe(false);
-    // Relationship citations follow the same rule.
     expect(relationshipSchema.safeParse({ sourceConceptId: materialId, targetConceptId: traditionConceptId, typeCode: "USES", provenanceKind: "hypothesis", sources: JSON.stringify([{ sourceId, locator: "p. 1", quote: "" }]) }).success).toBe(false);
   });
 
@@ -114,11 +107,9 @@ describe.skipIf(!TEST_URL)("CMS workflow and release", () => {
     const other = (await createConcept(t.pool, curatorA, { packageSlug: "tst", type: "tool", name: "block", categoryCode: "tools", title: "Block", provenanceKind: "historical_documentation", localTerms: [] })).id;
     await saveClaims(t.pool, curatorA, other, [claim("Blocks are carved from wood.")]);
     await submit(curatorA, "concept", other);
-    // Simulate an imported claim without locator/quote (FORMAT v1 claims carry neither).
     await t.pool.query("UPDATE concept_claims SET quote = NULL WHERE concept_id = $1", [other]);
     const err = await expectCmsError(verify(curatorB, "concept", other), "citation_incomplete");
     expect(JSON.stringify(err.details)).toContain("claim_no_quote");
-    // Take it out of the pipeline so it does not block the release below.
     await transition(t.pool, curatorB, { entityKind: "concept", entityId: other, to: "rejected", reason: "test fixture", evidenceChecked: [] });
   });
 
@@ -137,7 +128,6 @@ describe.skipIf(!TEST_URL)("CMS workflow and release", () => {
       await submit(curatorA, kind, id);
     }
     await expectCmsError(verify(curatorA, "concept", materialId), "self_verification");
-    // An edit makes the editor an author too.
     await updateConcept(t.pool, curatorB, { conceptId: materialId, categoryCode: "materials", title: "Indigo dye", provenanceKind: "historical_documentation", localTerms: ["nil"], compares: [] });
     await expectCmsError(verify(curatorB, "concept", materialId), "self_verification");
   });
@@ -195,7 +185,6 @@ describe.skipIf(!TEST_URL)("CMS workflow and release", () => {
     expect(indigo.body).toBeNull();
     expect(bundle.relationships[0]!.sources[0]).toMatchObject({ locator: "p. 12 (PDF p. 4)", quote: "Indigo is fermented in a vat" });
 
-    // Immutable: the database refuses changes to a published snapshot.
     await expect(t.pool.query("UPDATE content_snapshots SET title = 'x' WHERE id = $1", [r.id])).rejects.toThrow(/immutable/);
     const audit = await one<{ actor_id: string }>(t.pool, "SELECT actor_id FROM audit_log WHERE action = 'cms.release.published' AND entity_id = $1", [r.id]);
     expect(audit.actor_id).toBe(pi.userId);
@@ -214,9 +203,8 @@ describe.skipIf(!TEST_URL)("CMS workflow and release", () => {
     await saveClaims(t.pool, curatorA, materialId, [claim("Indigo is fermented in a vat."), claim("The vat is kept warm."), claim("The vat is stirred daily.")]);
     const s = await one<{ verification_state: string }>(t.pool, "SELECT verification_state FROM concepts WHERE id = $1", [materialId]);
     expect(s.verification_state).toBe("under_review");
-    await expectCmsError(verify(curatorB, "concept", materialId), "self_verification"); // edited it earlier
+    await expectCmsError(verify(curatorB, "concept", materialId), "self_verification");
     await verify(pi, "concept", materialId);
-    // The edge went back to review with its endpoint (trigger cascade).
     const rel = await one<{ verification_state: string }>(t.pool, "SELECT verification_state FROM relationships WHERE id = $1", [relId]);
     expect(rel.verification_state).toBe("under_review");
     await verify(curatorB, "relationship", relId);

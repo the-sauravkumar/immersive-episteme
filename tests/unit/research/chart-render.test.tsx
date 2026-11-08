@@ -1,11 +1,3 @@
-/**
- * The research charts as rendered by ECharts (SVG renderer) in jsdom (DESIGN.md 10; WP5 review):
- *  - the accessible name of every plot is the authored label ("Figure n. Title: values"), never
- *    ECharts' generated aria description, which used to overwrite it;
- *  - dot-and-interval plots print a direct label under each group ("2D (n = 3)", R-A13), 2D left;
- *  - value axes print each tick once, with the decimals of the tick interval and no "-0", and an
- *    axis pinned at zero starts at 0 even when an interval reaches below it.
- */
 import { render, waitFor } from "@testing-library/react";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -14,7 +6,6 @@ import { fixed, niceScale } from "@/components/analytics/encoding";
 
 const restore: (() => void)[] = [];
 beforeAll(() => {
-  // jsdom has no layout: give every element a size so ECharts lays the chart out.
   for (const [prop, value] of [
     ["clientWidth", 640],
     ["clientHeight", 320],
@@ -23,7 +14,6 @@ beforeAll(() => {
     Object.defineProperty(HTMLElement.prototype, prop, { configurable: true, get: () => value });
     restore.push(() => (before ? Object.defineProperty(HTMLElement.prototype, prop, before) : undefined));
   }
-  // ...and a text measurer (jsdom has no canvas): about 7 px per character at 12 px.
   const getContext = HTMLCanvasElement.prototype.getContext;
   HTMLCanvasElement.prototype.getContext = function () {
     return { font: "", measureText: (s: string) => ({ width: s.length * 7 }) };

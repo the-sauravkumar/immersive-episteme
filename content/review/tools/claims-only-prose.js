@@ -1,6 +1,3 @@
-// Make learner-facing text provable: rebuild each concept's summary and body_md
-// from its own source-cited claims, and move the previous free prose to a
-// curator-only archive (content/review/prose-archive.json). Run from content/.
 const fs = require("fs");
 const path = require("path");
 

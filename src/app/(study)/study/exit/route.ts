@@ -1,13 +1,3 @@
-/**
- * GET /study/exit?reason=invalid-session|session-ended
- *
- * Where the participant guards send a browser whose participant cookie no longer grants
- * anything (src/server/auth/learning-decision.ts). Cookies cannot be deleted while a Server
- * Component renders, so this Route Handler does it, then shows /study with the reason.
- *
- * It re-checks the cookie first and only deletes a dead one: a cross-site link to this URL
- * cannot end a live study session (a live session is sent back to /study/session).
- */
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 

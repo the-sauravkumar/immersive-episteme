@@ -1,17 +1,3 @@
-/**
- * Assessment items as delivered by the study engine: parsing item configuration, validating a
- * submitted answer against it, and scoring objective items. Pure (no database).
- *
- * Supported item kinds: single_choice, multiple_choice, short_text, long_text, likert, numeric,
- * ranking (sequence cards), matching (cloth state images to stages) and sketch (layout strokes).
- * concept_map is not delivered here: it belongs to the reconstruction page.
- *
- * Answers are stored and scored in the shared format of src/features/assessment/responses.ts
- * (answer keys { optionId } | { optionIds } | { value, tolerance }, as the assessment authoring
- * console writes them). long_text and ratings are never scored automatically; short_text has no
- * automatic key either (rubric scoring).
- * An item without a usable key is not scored (and is not counted as wrong).
- */
 import { createHash } from "node:crypto";
 
 import { keyMatch, type ResponseRaw } from "@/features/assessment/responses";
@@ -42,7 +28,6 @@ export function isDeliverable(kind: string): kind is DeliverableItemKind {
   return (DELIVERABLE_ITEM_KINDS as readonly string[]).includes(kind);
 }
 
-/** The item's validated configuration, or null when it is malformed or not deliverable. */
 export function itemConfig(item: Pick<DeliveredItem, "kind" | "config">): ItemConfig | null {
   if (!isDeliverable(item.kind)) return null;
   const parsed = itemConfigSchema.safeParse(item.config);
@@ -50,10 +35,6 @@ export function itemConfig(item: Pick<DeliveredItem, "kind" | "config">): ItemCo
   return parsed.data;
 }
 
-/**
- * Option order shown to this session: canonical, or a per-session permutation when the item
- * asks for `shuffle` (seeded by session and item, so a reload shows the same order).
- */
 export function optionOrder(sessionId: string, item: Pick<DeliveredItem, "id" | "kind" | "config">): string[] {
   const cfg = itemConfig(item);
   if (!cfg || (cfg.kind !== "single_choice" && cfg.kind !== "multiple_choice" && cfg.kind !== "ranking" && cfg.kind !== "matching")) return [];
@@ -90,7 +71,6 @@ function validStrokes(text: string, maxStrokes: number): boolean {
   return strokes.every((stroke) => Array.isArray(stroke) && stroke.every((p) => Array.isArray(p) && p.length === 2 && p.every((n) => typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 1000)));
 }
 
-/** Validates the raw form values of one item (`values` = all values posted for it). */
 export function parseAnswer(item: DeliveredItem, values: readonly string[]): ParsedAnswer {
   const cfg = itemConfig(item);
   if (!cfg) return { status: "invalid", message: "This question cannot be answered here." };
@@ -111,7 +91,6 @@ export function parseAnswer(item: DeliveredItem, values: readonly string[]): Par
     }
     case "short_text":
     case "long_text": {
-      // Keep exactly what was typed (apart from the empty check above); only bound the length.
       const text = values.join("\n");
       if (text.length > cfg.maxLength) return { status: "invalid", message: `Use at most ${cfg.maxLength} characters.` };
       return { status: "answered", value: text };
@@ -153,12 +132,10 @@ export function parseAnswer(item: DeliveredItem, values: readonly string[]): Par
   }
 }
 
-/** The stored raw answer (shared format, src/features/assessment/responses.ts). */
 export function toResponseRaw(item: Pick<DeliveredItem, "kind">, value: AnswerValue, assessmentVersion: number): ResponseRaw {
   return { value, itemKind: item.kind, assessmentVersion };
 }
 
-/** Does the item carry an answer key the shared rule scores (single/multiple choice, numeric)? */
 export function isKeyedItem(item: Pick<DeliveredItem, "kind" | "answerKey">): boolean {
   return (item.kind === "single_choice" || item.kind === "multiple_choice" || item.kind === "numeric" || item.kind === "ranking" || item.kind === "matching") && item.answerKey !== null && item.answerKey !== undefined;
 }

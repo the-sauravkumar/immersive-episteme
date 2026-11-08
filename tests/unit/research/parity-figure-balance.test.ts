@@ -1,15 +1,3 @@
-/**
- * Figure balance (DESIGN.md 9.9, 11.10, 12.3 rules 8-10; DR-018, DR-020): the content parity
- * engine's `a.figures` check and the `figureBalance` matrix the CMS Figure Balance table shows.
- *
- *  - a balanced study (graph-derived diagrams only, or one photograph per tradition in the same
- *    section) passes;
- *  - an unbalanced photograph set fails the CRITICAL check, so the study cannot be activated, with
- *    an issue that names the section and the counts;
- *  - at most one figure per concept; the structure diagram takes the slot while the protocol shows
- *    diagrams; unapproved, expired, mis-anchored or below-cap photographs never count silently;
- *  - over the real curated content, the three study traditions show the same figures per section.
- */
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
@@ -99,7 +87,6 @@ describe("figure balance", () => {
     input.figureAssets = [photo(input, "demo-alpha.tool.block"), photo(input, "demo-alpha.tool.block"), photo(input, "demo-beta.tool.block")];
     const c = balanceOf(input);
     expect(c.issues.map((x) => x.code)).toEqual(["figure_per_concept"]);
-    // Only one of the two is shown, so the section itself stays balanced.
     expect(c.metrics.photos).toBe(2);
     expect(c.metrics.photosHeldBack).toBe(1);
   });
@@ -113,7 +100,6 @@ describe("figure balance", () => {
     expect(c.passed).toBe(true);
     expect(c.metrics.photosHeldBack).toBe(1);
 
-    // Switched off (both conditions together), the same photograph is shown and unbalances its section.
     const off = passingInput();
     off.structureDiagrams = false;
     off.figureAssets = input.figureAssets;
@@ -174,7 +160,6 @@ describe("figure balance per knowledge layer (DR-024: a section can span two lay
   it("fails when the sections balance but one tradition's figure sits in another layer of the same section", () => {
     const input = passingInput();
     const bundle = structuredClone(bundleOf(input));
-    // "Science and environment" holds both the science types and environmental conditions (overview layer).
     const beta = bundle.concepts.find((c) => c.key === "demo-beta.scientific_mechanism.bond")!;
     beta.type = "environmental_condition";
     const assets = [photo(input, "demo-alpha.scientific_mechanism.bond"), photo(input, "demo-beta.scientific_mechanism.bond")];

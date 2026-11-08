@@ -1,13 +1,3 @@
-/**
- * The production environment catalogue shared by the deploy kit (preflight.ts, push-env.ps1 via
- * env-json.ts, and the comments in .env.production.example). One place says which variables the
- * app reads in production, which are secrets, and which must never be set on Vercel.
- *
- * Sources of truth this mirrors (read-only here; another workflow owns them):
- *   src/lib/env.ts (serverEnvSchema), src/server/cms/media/storage.ts (mediaEnvSchema),
- *   src/lib/client-ip.ts, src/lib/security/csp.ts. Facts about Vercel are quoted in
- *   docs/deploy/RESEARCH.md (section numbers below).
- */
 import { readFileSync } from "node:fs";
 
 import { parse } from "dotenv";
@@ -17,13 +7,10 @@ export type VarKind = "secret" | "config";
 export interface CatalogEntry {
   name: string;
   kind: VarKind;
-  /** required: preflight fails without it in production. */
   need: "required" | "conditional" | "optional";
-  /** One line: where the value comes from. */
   source: string;
 }
 
-/** Variables pushed to Vercel Production. Order = push order. */
 export const CATALOG: readonly CatalogEntry[] = [
   { name: "DATABASE_URL", kind: "secret", need: "required", source: "Neon POOLED string (host ep-...-pooler.ap-southeast-1.aws.neon.tech) for role episteme_app, ?sslmode=verify-full (RUNBOOK step 1)" },
   { name: "DATABASE_URL_UNPOOLED", kind: "secret", need: "conditional", source: "Neon DIRECT string (same host without -pooler), same role; dashboard LISTEN + migrations. Required when DATABASE_URL is pooled" },
@@ -46,11 +33,6 @@ export const CATALOG: readonly CatalogEntry[] = [
   { name: "AWS_REGION", kind: "config", need: "conditional", source: "the same as MEDIA_S3_REGION, only together with AWS_ROLE_ARN" },
 ] as const;
 
-/**
- * Never set on Vercel. Reason shown by preflight and push-env.
- * NODE_ENV: Next assigns "production" for every command except `next dev`
- * (node_modules/next/dist/docs/01-app/02-guides/environment-variables.md).
- */
 export const FORBIDDEN: Readonly<Record<string, string>> = {
   NODE_ENV: "Next.js sets it (production for build/start); do not override",
   TEST_DATABASE_URL: "test database only; never in production",
@@ -72,20 +54,17 @@ export function isVercelSystemName(name: string): boolean {
   return name === "VERCEL" || name.startsWith("VERCEL_");
 }
 
-/** Reads and parses a dotenv file (same parser the repo's scripts use). Blank values are dropped. */
 export function readEnvFile(path: string): Record<string, string> {
   const parsed = parse(readFileSync(path));
   return Object.fromEntries(Object.entries(parsed).filter(([, v]) => v.trim() !== ""));
 }
 
-/** Total bytes of NAME=value pairs, for Vercel's 64 KB per-deployment limit (RESEARCH.md section 5). */
 export function envBytes(env: Record<string, string>): number {
   return Object.entries(env).reduce((n, [k, v]) => n + Buffer.byteLength(k) + Buffer.byteLength(v), 0);
 }
 
 export const VERCEL_ENV_LIMIT_BYTES = 64 * 1024;
 
-/** Password-free form of a connection string, for logs. */
 export function redactUrl(url: string): string {
   try {
     const u = new URL(url);

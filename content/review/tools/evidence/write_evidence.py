@@ -1,5 +1,3 @@
-"""Write the verified evidence excerpts into the content files as claims[].evidence[].
-Every quote is re-checked to occur verbatim (after normalisation) in its located source segment."""
 import json, os, sys, collections
 sys.stdout.reconfigure(encoding="utf-8")
 SCR, CONTENT = sys.argv[1], sys.argv[2]
@@ -17,7 +15,7 @@ for r in rows:
         hit = [k for k, i in enumerate(occ) if q in same[i]]
         if not hit:
             bad.append((r["key"], r["claim_index"], r["source_id"], e["locator"], q[:80])); continue
-        if len(occ) > 1:  # the same heading occurs more than once on the page: say which one
+        if len(occ) > 1:
             e["locator"] = f"{e['locator']} (occurrence {hit[0] + 1} of {len(occ)})"
     by[(r["file"], r["key"], r["claim_index"])].append(r)
 if bad:

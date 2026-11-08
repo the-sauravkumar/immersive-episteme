@@ -87,10 +87,6 @@ export interface StoredParityReport {
   report: ParityReport;
 }
 
-/**
- * Generates and stores a report. `parity_reports` needs a snapshot (NOT NULL), so a study
- * without one gets an unsaved report (returned with id null).
- */
 export async function runAndStoreParityReport(q: Q, studyId: string, actor: Actor | null): Promise<{ id: string | null; report: ParityReport; reportSha256: string | null }> {
   const report = await generateParityReport(q, studyId);
   if (!report.snapshotId) return { id: null, report, reportSha256: null };

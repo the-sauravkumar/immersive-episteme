@@ -1,21 +1,3 @@
-/**
- * Publishing: immutable content snapshots. A study binds to exactly one snapshot, so both
- * learning conditions provably read the same knowledge bundle.
- *
- * Immutability (migration 0003 triggers):
- *  - a `published` snapshot rejects every UPDATE and DELETE;
- *  - its snapshot_items reject INSERT/UPDATE/DELETE;
- *  - a non-demo snapshot cannot contain demo entities, and (unless `includes_unverified`)
- *    only verified/published concepts, relationships and sources.
- * Publication (migration 0005): a snapshot is inserted as draft and published by UPDATE only
- * after its payload header matches the row, the payload's entity set equals its items, every
- * item is rechecked against the LIVE entity (demo flag, review state), `item_sha256` is set to
- * the sha256 of the item's payload slice (caller values are overwritten) and `item_count` is
- * recounted. None of the three tables can be truncated.
- *
- * `payload_sha256` is a generated column: sha256 of the payload's canonical jsonb text
- * (PostgreSQL normalises jsonb key order), so the hash can never drift from the payload.
- */
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -50,20 +32,13 @@ export const contentSnapshots = pgTable(
     title: text().notNull(),
     description: text(),
     status: snapshotStatusEnum().notNull().default("draft"),
-    /**
-     * `release` (default): may be published and bound to a study. `review`: a researcher review
-     * build that may hold unverified content; it can never be published and no non-demo study
-     * may reference it (migration 0007). Immutable.
-     */
     kind: text().notNull().default("release"),
-    /** Snapshot bundle format version (see src/features/knowledge/contracts.ts). */
     schemaVersion: integer().notNull().default(1),
     payload: jsonb().notNull(),
     payloadSha256: text()
       .notNull()
       .generatedAlwaysAs(sql`ie_jsonb_sha256(payload)`),
     itemCount: integer().notNull().default(0),
-    /** True when a researcher explicitly allowed non-verified content (recorded in exports). */
     includesUnverified: boolean().notNull().default(false),
     isDemo: isDemo(),
     createdBy: actorId(),
@@ -77,7 +52,6 @@ export const contentSnapshots = pgTable(
     check("content_snapshots_payload_ck", sql`jsonb_typeof(${t.payload}) = 'object'`),
     check(
       "content_snapshots_published_ck",
-      // Demo snapshots may be published by the seed script (no human actor); real ones may not.
       sql`${t.status} <> 'published' OR (${t.publishedAt} IS NOT NULL AND (${t.publishedBy} IS NOT NULL OR ${t.isDemo}))`,
     ),
     check(
@@ -90,13 +64,11 @@ export const contentSnapshots = pgTable(
   ],
 );
 
-/** Index of the entities frozen into a snapshot (for traceability and parity queries). */
 export const snapshotItems = pgTable(
   "snapshot_items",
   {
     snapshotId: uuid().notNull(),
     itemKind: snapshotItemKindEnum().notNull(),
-    /** uuid of the source row (concept, relationship, ...); category/type rows use their code. */
     entityRef: text().notNull(),
     entityKey: text(),
     itemSha256: text().notNull(),

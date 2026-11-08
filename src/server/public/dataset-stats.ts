@@ -1,21 +1,3 @@
-/**
- * Public-page reads (DESIGN.md 11.1, 11.2, 13): live counts of the knowledge dataset, one real
- * claim for the home specimen and the About pull-quote, the published image credits, and the
- * stored interface parity report.
- *
- * Honesty rules (DESIGN.md 13):
- *  - Every number comes from the database at request time; nothing is hard-coded. The page
- *    wrappers (`get*`) call `connection()` first, so they never run during prerendering and
- *    their callers sit inside <Suspense> (cacheComponents).
- *  - Demonstration records (`is_demo`) are never counted or shown.
- *  - The claim shown is a real dataset claim with its real source record and verbatim passage,
- *    and carries its real curator status (records under review are labelled so).
- *  - A failure to read (database down) returns `null`, and the caller renders its static,
- *    number-free fallback instead of an invented value.
- *
- * The `load*` functions take any `pg`-style queryable, so the integration test runs them
- * against a throwaway database seeded with a different dataset.
- */
 import "server-only";
 
 import { connection } from "next/server";
@@ -26,26 +8,17 @@ import { compareTraditions, STUDY_TRADITION_SLUGS } from "@/features/learning/la
 import type { ProvenanceKind, SourceReliability, VerificationState } from "@/lib/validation/enums";
 import { getPool } from "@/server/db/client";
 
-/** The part of a `pg` Pool or client these reads need. */
 export interface Queryable {
   query<R extends Record<string, unknown>>(text: string, values?: unknown[]): Promise<{ rows: R[] }>;
 }
 
-// ---------------------------------------------------------------------------------------
-// Dataset counts
-// ---------------------------------------------------------------------------------------
-
 export interface TraditionStats {
   slug: string;
-  /** The dataset's own name for the tradition. */
   name: string;
-  /** Short display name derived from the dataset slug ("machilipatnam-kalamkari" -> "Machilipatnam Kalamkari"). */
   shortName: string;
-  /** "District, State" from the dataset's region fields, or null when neither is recorded. */
   region: string | null;
   concepts: number;
   claims: number;
-  /** Distinct sources cited by the tradition's claims. */
   sourcesCited: number;
 }
 
@@ -56,22 +29,15 @@ export interface DatasetStats {
     claims: number;
     relationships: number;
     sources: number;
-    /** Claims citing at least one source. */
     citedClaims: number;
-    /** Claims with at least one located verbatim passage from a cited source. */
     evidencedClaims: number;
-    /** Distinct sources cited by any claim. */
     sourcesCited: number;
-    /** Concepts curators have marked verified or published. */
     verifiedConcepts: number;
   };
-  /** In the canonical (alphabetical) tradition order. */
   traditions: TraditionStats[];
-  /** Shared concepts (no tradition of their own), with their claims and sources. */
   shared: { concepts: number; claims: number; sourcesCited: number };
 }
 
-/** "machilipatnam-kalamkari" -> "Machilipatnam Kalamkari". */
 export function displayNameFromSlug(slug: string): string {
   return slug
     .split("-")
@@ -133,7 +99,6 @@ export async function loadDatasetStats(q: Queryable): Promise<DatasetStats> {
     }
     traditions.push({ slug: r.slug, name: r.name, shortName: displayNameFromSlug(r.slug), region: regionOf(r.region_district, r.region_state), ...counts });
   }
-  // Canonical order (DR-019): alphabetical by display name, the same order everywhere.
   traditions.sort((a, b) => compareTraditions({ name: a.shortName, slug: a.slug }, { name: b.shortName, slug: b.slug }));
 
   return {
@@ -153,60 +118,30 @@ export async function loadDatasetStats(q: Queryable): Promise<DatasetStats> {
   };
 }
 
-// ---------------------------------------------------------------------------------------
-// One real claim (home specimen, About pull-quote)
-// ---------------------------------------------------------------------------------------
-
 export interface FeaturedClaim {
   conceptId: string;
   conceptTitle: string;
   conceptState: VerificationState;
   traditionSlug: string;
   traditionShortName: string;
-  /** 0-based authored position; shown as claim number position + 1. */
   position: number;
   text: string;
   citation: Citation;
 }
 
-/**
- * Selection limits: short enough to set as a specimen inside Plate 1's fixed 4:5 frame (the claim,
- * its source line, the verbatim quote and a three-row record must fit without clipping; asserted
- * in tests/e2e/public-pages.spec.ts).
- */
 const MAX_CLAIM_CHARS = 150;
 const MAX_QUOTE_CHARS = 180;
 const MAX_SPECIMEN_CHARS = 240;
 const MAX_SOURCE_TITLE_CHARS = 90;
-/**
- * The About pull-quote sets only the claim (at 28 px) and its source line, not the quote, and has
- * no fixed frame: only the claim length is limited there, so a short claim reads as a pull-quote.
- */
 const MAX_PULL_QUOTE_CLAIM_CHARS = 160;
 
-/** Which setting the claim is chosen for: the 4:5 Plate 1 specimen, or the About pull-quote. */
 export type FeaturedClaimFit = "specimen" | "pull-quote";
 
-/**
- * One real claim for the home specimen (`fit` "specimen") or the About pull-quote (`fit`
- * "pull-quote", with the specimen's tradition in `excludeSlugs`, so the two pages never repeat
- * one claim).
- *
- * Never from a study tradition (STUDY_TRADITION_SLUGS): a visitor who reads the home page before
- * a pre-test must not be shown a study fact, and no study tradition gets front-page salience.
- * Candidates are claims of a tradition's overview concept that cite exactly one source with a
- * located verbatim passage, within the fit's length limits. Per tradition the shortest candidate
- * (the specimen: claim plus quote; the pull-quote: the claim, whose quote is not shown; then the
- * authored position) is taken; the traditions are then taken in the canonical order, starting at
- * `skip`. Returns null when fewer traditions qualify (never a repeat). Deterministic for a given
- * dataset.
- */
 export async function loadFeaturedClaim(
   q: Queryable,
   opts: { skip?: number; fit?: FeaturedClaimFit; excludeSlugs?: readonly string[] } = {},
 ): Promise<FeaturedClaim | null> {
   const pullQuote = opts.fit === "pull-quote";
-  // Limits per fit; null switches a limit off (the pull-quote does not set the quote).
   const limits = pullQuote
     ? [MAX_PULL_QUOTE_CLAIM_CHARS, null, null, null]
     : [MAX_CLAIM_CHARS, MAX_QUOTE_CHARS, MAX_SPECIMEN_CHARS, MAX_SOURCE_TITLE_CHARS];
@@ -288,10 +223,6 @@ export async function loadFeaturedClaim(
   };
 }
 
-// ---------------------------------------------------------------------------------------
-// Published image credits (About, "Images and Licences")
-// ---------------------------------------------------------------------------------------
-
 export interface ImageCredit {
   id: string;
   title: string;
@@ -301,7 +232,6 @@ export interface ImageCredit {
   sourceUrl: string | null;
 }
 
-/** Image assets curators have verified or published, with credit and licence (never demo records). */
 export async function loadImageCredits(q: Queryable): Promise<ImageCredit[]> {
   const r = await q.query<{ id: string; title: string; credit: string; licence: string; licence_url: string | null; source_url: string | null }>(
     `SELECT id, title, credit, licence, licence_url, source_url FROM assets
@@ -311,10 +241,6 @@ export async function loadImageCredits(q: Queryable): Promise<ImageCredit[]> {
   );
   return r.rows.map((x) => ({ id: x.id, title: x.title, credit: x.credit, licence: x.licence, licenceUrl: x.licence_url, sourceUrl: x.source_url }));
 }
-
-// ---------------------------------------------------------------------------------------
-// Page-facing wrappers: request time only, null on failure
-// ---------------------------------------------------------------------------------------
 
 async function atRequestTime<T>(read: (q: Queryable) => Promise<T>): Promise<T | null> {
   await connection();
@@ -326,10 +252,8 @@ async function atRequestTime<T>(read: (q: Queryable) => Promise<T>): Promise<T |
   }
 }
 
-/** Deduplicated per request (React `cache`): the home page reads the counts in several places. */
 export const getDatasetStats = cache(() => atRequestTime(loadDatasetStats));
 export const getFeaturedClaim = cache(() => atRequestTime((q) => loadFeaturedClaim(q)));
-/** The About pull-quote: a claim from another tradition than the home specimen's. */
 export const getPullQuoteClaim = cache(() =>
   atRequestTime(async (q) => {
     const specimen = await loadFeaturedClaim(q);
@@ -338,7 +262,6 @@ export const getPullQuoteClaim = cache(() =>
 );
 export const getImageCredits = cache(() => atRequestTime(loadImageCredits));
 
-/** "six" for 6; numerals above twelve. Used where a count opens a sentence or heading. */
 export function countWord(n: number): string {
   const words = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"];
   return words[n] ?? String(n);

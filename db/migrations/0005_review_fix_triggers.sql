@@ -1,34 +1,3 @@
--- 0005 review-fix integrity triggers (custom SQL, hand-written). Closes gaps found in review of
--- 0003. Same conventions: violations raise SQLSTATE 23514 with an "ie: " message prefix.
---
--- New transaction-local setting:
---   app.research_purge_reason   must be non-empty to DELETE raw participant research data
---                               (responses, concept maps and their revisions, derived scores),
---                               e.g. after a consent withdrawal.
---
--- Sections:
---   1. helpers
---   2. TRUNCATE guards for snapshots, snapshot items and parity reports
---   3. knowledge: evidence edits and substantive edits send accepted content back to review;
---      every claim must be sourced; an edge is accepted only between accepted concepts
---   4. publishing: a snapshot is published only by UPDATE from draft, after its payload is
---      matched exactly against its items, every item is rechecked against its live entity,
---      item hashes are derived from the payload and item_count is recomputed
---   5. demo isolation for single-column knowledge references (assessments, reference maps,
---      participant concept maps, spatial index, overrides) and at study activation
---   6. studies: release manifests must be released (and frozen once a study uses them);
---      allocation and sessions require granted consent and a participant still taking part;
---      content set / task per period recorded on allocations and copied to sessions
---   7. telemetry: content version, compiler version, concept/tradition membership in the
---      session snapshot, withdrawn participants and ended sessions
---   8. raw participant data: responses and derived scores append-only, final concept maps
---      frozen, every concept-map save kept in concept_map_revisions
---   9. release manifests record the database server and extension versions
-
--- =========================================================================================
--- 1. Helpers
--- =========================================================================================
-
 CREATE OR REPLACE FUNCTION ie_is_accepted(state verification_state)
 RETURNS boolean
 LANGUAGE sql
@@ -37,7 +6,6 @@ AS $$
   SELECT state IN ('verified', 'published')
 $$;--> statement-breakpoint
 
--- The jsonb value when it is an array, else an empty array (payload walking).
 CREATE OR REPLACE FUNCTION ie_jsonb_array(doc jsonb)
 RETURNS jsonb
 LANGUAGE sql
@@ -56,10 +24,6 @@ BEGIN
 END;
 $$;--> statement-breakpoint
 
--- =========================================================================================
--- 2. TRUNCATE guards
--- =========================================================================================
-
 CREATE TRIGGER content_snapshots_no_truncate BEFORE TRUNCATE ON content_snapshots
   FOR EACH STATEMENT EXECUTE FUNCTION ie_no_truncate();--> statement-breakpoint
 CREATE TRIGGER snapshot_items_no_truncate BEFORE TRUNCATE ON snapshot_items
@@ -67,14 +31,6 @@ CREATE TRIGGER snapshot_items_no_truncate BEFORE TRUNCATE ON snapshot_items
 CREATE TRIGGER parity_reports_no_truncate BEFORE TRUNCATE ON parity_reports
   FOR EACH STATEMENT EXECUTE FUNCTION ie_no_truncate();--> statement-breakpoint
 
--- =========================================================================================
--- 3. Knowledge: accepted content stays backed by its evidence
--- =========================================================================================
-
--- Review history now also records state changes made by BEFORE triggers (an automatic return
--- to review). A column-specific `UPDATE OF verification_state` trigger does not fire for
--- those, so the three content tables get a plain AFTER INSERT OR UPDATE trigger; the function
--- itself still writes a row only when the state actually changed.
 CREATE OR REPLACE FUNCTION ie_record_verification()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -110,9 +66,6 @@ CREATE TRIGGER concepts_verification AFTER INSERT OR UPDATE ON concepts
 CREATE TRIGGER relationships_verification AFTER INSERT OR UPDATE ON relationships
   FOR EACH ROW EXECUTE FUNCTION ie_record_verification('relationship');--> statement-breakpoint
 
--- Editing a substantive column of an accepted row (the state staying accepted) sends it back
--- to `under_review`: acceptance covered the old text, not the new one. Bookkeeping columns
--- (state, audit stamps, generated search vector) do not count.
 CREATE OR REPLACE FUNCTION ie_return_edited_to_review()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -128,8 +81,6 @@ BEGIN
 END;
 $$;--> statement-breakpoint
 
--- Runs before concepts_acceptance / relationships_rules (triggers fire in name order:
--- "a_..." sorts first), so an edited row is no longer "accepted" when those rules run.
 CREATE TRIGGER a_traditions_return_to_review BEFORE UPDATE ON traditions
   FOR EACH ROW EXECUTE FUNCTION ie_return_edited_to_review();--> statement-breakpoint
 CREATE TRIGGER a_concepts_return_to_review BEFORE UPDATE ON concepts
@@ -137,8 +88,6 @@ CREATE TRIGGER a_concepts_return_to_review BEFORE UPDATE ON concepts
 CREATE TRIGGER a_relationships_return_to_review BEFORE UPDATE ON relationships
   FOR EACH ROW EXECUTE FUNCTION ie_return_edited_to_review();--> statement-breakpoint
 
--- Accepted concepts: real provenance, at least one claim, and EVERY claim sourced
--- (content/FORMAT.md: "No claim without a source").
 CREATE OR REPLACE FUNCTION ie_concepts_acceptance()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -163,8 +112,6 @@ BEGIN
 END;
 $$;--> statement-breakpoint
 
--- A concept leaving the accepted states takes its accepted relationships back to review
--- (an accepted edge always joins two accepted concepts).
 CREATE OR REPLACE FUNCTION ie_concepts_cascade_review()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -184,7 +131,6 @@ CREATE TRIGGER concepts_cascade_review AFTER UPDATE ON concepts
         AND NEW.verification_state NOT IN ('verified', 'published'))
   EXECUTE FUNCTION ie_concepts_cascade_review();--> statement-breakpoint
 
--- Relationship rules (0003) plus: an accepted edge needs both endpoint concepts accepted.
 CREATE OR REPLACE FUNCTION ie_relationships_rules()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -250,8 +196,6 @@ BEGIN
 END;
 $$;--> statement-breakpoint
 
--- Evidence rows (claims, claim sources, relationship sources): any change while the parent is
--- accepted sends the parent back to review, which also appends a verification_records row.
 CREATE OR REPLACE FUNCTION ie_evidence_changed()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -276,7 +220,7 @@ BEGIN
        CASE WHEN TG_OP <> 'INSERT' THEN OLD.claim_id END,
        CASE WHEN TG_OP <> 'DELETE' THEN NEW.claim_id END
      );
-  ELSE -- relationship_sources
+  ELSE
     relationship_ids := ARRAY[
       CASE WHEN TG_OP <> 'INSERT' THEN OLD.relationship_id END,
       CASE WHEN TG_OP <> 'DELETE' THEN NEW.relationship_id END
@@ -302,12 +246,6 @@ CREATE TRIGGER concept_claim_sources_evidence AFTER INSERT OR UPDATE OR DELETE O
 CREATE TRIGGER relationship_sources_evidence AFTER INSERT OR UPDATE OR DELETE ON relationship_sources
   FOR EACH ROW EXECUTE FUNCTION ie_evidence_changed();--> statement-breakpoint
 
--- =========================================================================================
--- 4. Publishing: what is published is exactly what was checked
--- =========================================================================================
-
--- Every entity a knowledge bundle (src/features/knowledge/contracts.ts, v1) carries, with the
--- payload slice that describes it. Assets are the distinct concept assetIds.
 CREATE OR REPLACE FUNCTION ie_snapshot_payload_entities(doc jsonb)
 RETURNS TABLE (item_kind snapshot_item_kind, entity_ref text, entity_key text, slice jsonb)
 LANGUAGE sql
@@ -340,14 +278,6 @@ AS $$
          jsonb_array_elements(ie_jsonb_array(c->'assetIds')) a
 $$;--> statement-breakpoint
 
--- Publication check for a draft snapshot `snap` (called from the BEFORE UPDATE trigger, so
--- the stored row is still `draft` and its items may still be written):
---  * the payload header agrees with the row (label, demo flag, unverified flag);
---  * the payload lists no entity twice, and its entity set equals the snapshot_items set;
---  * a concept's payload key equals its live key;
---  * every item is rewritten with the sha256 of its payload slice, which re-runs
---    snapshot_items_guard per item: demo isolation and the verified-only rule are checked
---    against the LIVE entities at publication time, not only when the item was added.
 CREATE OR REPLACE FUNCTION ie_check_snapshot_for_publish(snap content_snapshots)
 RETURNS void
 LANGUAGE plpgsql
@@ -453,12 +383,6 @@ BEGIN
 END;
 $$;--> statement-breakpoint
 
--- =========================================================================================
--- 5. Demo isolation for single-column references to knowledge rows
--- =========================================================================================
-
--- A non-demo owner (assessment, reference map, study, manifest, rule set) may never point at a
--- demo concept, relationship or snapshot, whatever table the pointer lives in.
 CREATE OR REPLACE FUNCTION ie_demo_refs_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -522,13 +446,6 @@ CREATE TRIGGER spatial_element_encodings_demo_refs BEFORE INSERT OR UPDATE ON sp
 CREATE TRIGGER manual_overrides_demo_refs BEFORE INSERT OR UPDATE ON manual_overrides
   FOR EACH ROW EXECUTE FUNCTION ie_demo_refs_guard();--> statement-breakpoint
 
--- =========================================================================================
--- 6. Studies, releases, allocation, sessions
--- =========================================================================================
-
--- 0003 rules plus, at activation: a release manifest must be `released`; a non-demo study's
--- battery may not reach demo concepts through its items or reference maps, and every
--- snapshot-bound reference map of the battery must be bound to the study snapshot.
 CREATE OR REPLACE FUNCTION ie_studies_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -660,9 +577,6 @@ BEGIN
 END;
 $$;--> statement-breakpoint
 
--- Releases: once released, only the transition to `withdrawn` is allowed (0003). In addition,
--- a release referenced by an active or closed study keeps its snapshot, spatial manifest,
--- build and recorded environment even while still a candidate.
 CREATE OR REPLACE FUNCTION ie_release_manifests_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -697,8 +611,6 @@ BEGIN
 END;
 $$;--> statement-breakpoint
 
--- Is the participant allowed to take part now? Latest consent decision must be `granted`, and
--- the participant must not be withdrawn or excluded. Returns the reason when not, else NULL.
 CREATE OR REPLACE FUNCTION ie_participant_blocker(participant uuid)
 RETURNS text
 LANGUAGE plpgsql
@@ -727,9 +639,6 @@ BEGIN
 END;
 $$;--> statement-breakpoint
 
--- Allocation: active study, matching protocol version (0003), granted consent and a
--- participant still taking part; a within-subjects allocation names its content set, and a
--- declared `config.contentSets` restricts the codes.
 CREATE OR REPLACE FUNCTION ie_allocations_insert()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -760,9 +669,6 @@ BEGIN
 END;
 $$;--> statement-breakpoint
 
--- Sessions (0003) plus: participant still taking part with granted consent; content set and
--- task copied from the allocation; compiler version taken from the study manifest. All of
--- these are immutable afterwards.
 CREATE OR REPLACE FUNCTION ie_study_sessions_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -820,10 +726,6 @@ BEGIN
   RETURN NEW;
 END;
 $$;--> statement-breakpoint
-
--- =========================================================================================
--- 7. Telemetry: an event can only describe what its session could have shown
--- =========================================================================================
 
 CREATE OR REPLACE FUNCTION ie_telemetry_events_insert()
 RETURNS trigger
@@ -890,11 +792,6 @@ BEGIN
 END;
 $$;--> statement-breakpoint
 
--- =========================================================================================
--- 8. Raw participant data
--- =========================================================================================
-
--- Append-only research records. DELETE only in a reasoned purge.
 CREATE OR REPLACE FUNCTION ie_research_record_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -926,8 +823,6 @@ CREATE TRIGGER concept_map_revisions_append_only BEFORE UPDATE OR DELETE ON conc
 CREATE TRIGGER concept_map_revisions_no_truncate BEFORE TRUNCATE ON concept_map_revisions
   FOR EACH STATEMENT EXECUTE FUNCTION ie_research_record_guard();--> statement-breakpoint
 
--- Concept maps: identity fixed; frozen once final; every content change bumps `revision`.
--- DELETE only in a reasoned purge.
 CREATE OR REPLACE FUNCTION ie_concept_maps_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -981,7 +876,6 @@ CREATE TRIGGER concept_maps_history AFTER INSERT OR UPDATE ON concept_maps
 CREATE TRIGGER concept_maps_no_truncate BEFORE TRUNCATE ON concept_maps
   FOR EACH STATEMENT EXECUTE FUNCTION ie_research_record_guard();--> statement-breakpoint
 
--- Edges of a final concept map are frozen with it (a purge may still remove them).
 CREATE OR REPLACE FUNCTION ie_concept_map_edges_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -1003,10 +897,6 @@ $$;--> statement-breakpoint
 
 CREATE TRIGGER concept_map_edges_guard BEFORE INSERT OR UPDATE OR DELETE ON concept_map_edges
   FOR EACH ROW EXECUTE FUNCTION ie_concept_map_edges_guard();--> statement-breakpoint
-
--- =========================================================================================
--- 9. Release manifests record the database environment
--- =========================================================================================
 
 CREATE OR REPLACE FUNCTION ie_db_environment()
 RETURNS jsonb

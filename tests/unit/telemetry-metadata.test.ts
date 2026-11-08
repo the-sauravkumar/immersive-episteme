@@ -1,8 +1,3 @@
-/**
- * Telemetry metadata is an explicit per-event-type allowlist (src/features/telemetry/contracts.ts).
- * Regression: the old key denylist (/email|name|phone|ip|address/ as a substring) rejected
- * legitimate keys such as relationshipId (relationsh-IP-Id) and let any value through.
- */
 import { randomUUID } from "node:crypto";
 
 import { describe, expect, it } from "vitest";

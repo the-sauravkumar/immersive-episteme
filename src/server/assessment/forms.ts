@@ -1,7 +1,3 @@
-/**
- * Turns the research-console item and rubric forms into service input. Pure (FormData in, plain
- * objects out); the services validate the result against the research contracts.
- */
 import type { RubricLevel } from "./definitions";
 
 type Fail = { ok: false; error: string };
@@ -20,7 +16,6 @@ const lines = (s: string) =>
     .map((l) => l.trim())
     .filter(Boolean);
 
-/** "id: label" lines (options) or "point: label" lines (likert anchors). */
 function pairs(s: string): Array<[string, string]> | null {
   const out: Array<[string, string]> = [];
   for (const l of lines(s)) {
@@ -148,7 +143,6 @@ function matchingImages(s: string): Array<{ id: string; image: { path: string; a
   return out;
 }
 
-/** "value | label | descriptor" lines. */
 export function rubricLevelsFromText(s: string): { ok: true; levels: RubricLevel[] } | Fail {
   const levels: RubricLevel[] = [];
   for (const l of lines(s)) {

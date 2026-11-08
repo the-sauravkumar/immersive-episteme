@@ -1,9 +1,3 @@
-/**
- * Participant study-session cookie. Participants never get a Better Auth account: their
- * identity is a pseudonymous participant id + study session id + assigned condition, carried
- * in a signed, httpOnly cookie and re-validated against `study_sessions` on every guard check
- * (see ./learning-decision.ts). Pure sign/verify lives in ./participant-session-token.ts.
- */
 import "server-only";
 
 import { cookies } from "next/headers";
@@ -19,12 +13,6 @@ import {
 
 export * from "./participant-session-token";
 
-// ---- cookie helpers (request scope) ---------------------------------------------------------
-
-/**
- * Set the participant cookie. Call only from a Server Action or Route Handler, after the study
- * engine has created/resumed the `study_sessions` row and recorded the condition assignment.
- */
 export async function issueParticipantSessionCookie(
   input: ParticipantSessionInput,
   opts: { ttlSeconds?: number } = {},
@@ -44,7 +32,6 @@ export async function clearParticipantSessionCookie(): Promise<void> {
   (await cookies()).set(expiredCookie(PARTICIPANT_COOKIE));
 }
 
-/** Raw cookie value (or undefined). Callers must verify it. */
 export async function readParticipantCookie(): Promise<string | undefined> {
   return (await cookies()).get(PARTICIPANT_COOKIE)?.value;
 }

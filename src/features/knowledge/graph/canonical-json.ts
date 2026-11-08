@@ -1,17 +1,3 @@
-/**
- * Canonical JSON serialisations.
- *
- * - `canonicalJson`: compact JSON with object keys sorted by UTF-16 code unit order
- *   (recursively); `undefined` members are dropped as in JSON.stringify. This is the same
- *   function as db/seeds/_util.ts `canonicalJson`, so item hashes match `snapshot_items`
- *   rows written by the seed. Arrays keep their order: the builder sorts them first.
- * - `postgresJsonbText`: the text PostgreSQL prints for a `jsonb` value (`doc::text`): keys
- *   sorted by byte length then bytes, `", "` and `": "` separators. sha256 of this text
- *   predicts `content_snapshots.payload_sha256` (`ie_jsonb_sha256`). Numbers are printed
- *   with JavaScript's shortest round-trip form, which matches jsonb for the integers and
- *   short decimals used in bundles; exotic magnitudes (1e21) would differ.
- */
-
 function sortKeys(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }

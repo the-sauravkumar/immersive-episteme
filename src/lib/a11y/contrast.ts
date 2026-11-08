@@ -1,14 +1,8 @@
-/**
- * WCAG 2.x contrast helpers. Pure functions, safe on server and client.
- * https://www.w3.org/TR/WCAG22/#dfn-contrast-ratio
- */
-
 export type Rgba = { r: number; g: number; b: number; a: number };
 
 const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const RGB = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)\s*(?:[/,]\s*([\d.]+%?))?\s*\)$/i;
 
-/** Parse `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb(r g b / a)` or `rgba(r, g, b, a)`. */
 export function parseColor(input: string): Rgba {
   const value = input.trim();
   const hex = HEX.exec(value);
@@ -32,7 +26,6 @@ export function parseColor(input: string): Rgba {
   throw new Error(`Unsupported colour: ${input}`);
 }
 
-/** Alpha-composite `fg` over an opaque `bg`. */
 export function composite(fg: Rgba, bg: Rgba): Rgba {
   const a = fg.a;
   return {
@@ -52,7 +45,6 @@ export function relativeLuminance({ r, g, b }: Rgba): number {
   return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
 }
 
-/** Contrast ratio of `fg` on `bg` (translucent colours are composited onto `bg`, then white). */
 export function contrastRatio(fg: string | Rgba, bg: string | Rgba): number {
   const white: Rgba = { r: 255, g: 255, b: 255, a: 1 };
   const b0 = typeof bg === "string" ? parseColor(bg) : bg;

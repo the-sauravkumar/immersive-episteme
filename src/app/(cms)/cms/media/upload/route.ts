@@ -1,15 +1,3 @@
-/**
- * POST /cms/media/upload — local-disk media upload (development fallback; with S3 configured the
- * browser uploads directly through a presigned PUT, see src/server/cms/media/actions.ts).
- *
- * multipart/form-data: `file` plus the asset metadata fields (assetMetadataSchema). Staff with
- * `media.upload` only, same-origin only. The body is size-limited while it streams (no trust in
- * Content-Length), the bytes are sniffed against the declared type, hashed and stored under a
- * content-addressed key; the asset row, its version row and the audit entry commit together.
- *
- * 201 { assetId } | 400 invalid_form | 401/403 | 409 duplicate_asset { assetId } | 413 too_large |
- * 422 validation refusals { error, message, fieldErrors? } | 500 server_error.
- */
 import { NextResponse, type NextRequest } from "next/server";
 import { ZodError } from "zod";
 
@@ -22,7 +10,6 @@ import { getMediaStorage } from "@/server/cms/media/storage";
 import { getPool } from "@/server/db/client";
 import { readLimited } from "@/server/http/read-limited";
 
-/** Multipart overhead allowed on top of the largest file (boundaries + metadata fields). */
 const FORM_OVERHEAD = 256 * 1024;
 
 const json = (status: number, body: Record<string, unknown>) =>

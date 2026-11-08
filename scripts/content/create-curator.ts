@@ -1,19 +1,3 @@
-/**
- * Creates a LOCAL staff account (by default a curator) with a generated password that is written
- * to a file outside the repository and never printed:
- *
- *   npx tsx scripts/content/create-curator.ts --email <email> --password-file <path outside repo> \
- *     [--name "<name>"] [--role curator] [--test]
- *
- * It uses the same code path as scripts/create-admin.ts (`createStaffAccount` in
- * src/server/auth/bootstrap.ts through Better Auth's own password hasher), so the account is
- * exactly what an administrator would create. Rules:
- *  - the password file must not be inside the repository and must not exist yet (it is created
- *    with mode 0600 before the account, so a generated password is never lost);
- *  - an existing account keeps its password and only gains the role; the new file is then
- *    removed, because the generated password was never set;
- *  - it refuses a non-local database (this is for local curation runs only).
- */
 import { randomBytes } from "node:crypto";
 import { rmSync, writeFileSync } from "node:fs";
 import { isAbsolute, relative, resolve } from "node:path";
@@ -30,12 +14,10 @@ import { isLocalHost, makePool, redact, resolveDatabaseUrl } from "../db/_shared
 
 import { REPO_ROOT } from "./_shared";
 
-/** A 32-character URL-safe password (192 bits). */
 export function generatePassword(): string {
   return randomBytes(24).toString("base64url");
 }
 
-/** Null when `target` is outside `repoRoot` (case-insensitively on Windows); otherwise why not. */
 export function passwordFileProblem(target: string | undefined, repoRoot: string = REPO_ROOT): string | null {
   if (!target || !target.trim()) return "give --password-file <path outside the repository>";
   const abs = resolve(target);
@@ -72,7 +54,6 @@ async function main() {
   const env = parseServerEnv({ ...process.env, DATABASE_URL: url });
 
   const password = generatePassword();
-  // Written first (exclusive create, owner-only) so the password exists somewhere before it is set.
   writeFileSync(file, `${password}\n`, { encoding: "utf8", flag: "wx", mode: 0o600 });
 
   const pool = makePool(url);
@@ -92,7 +73,6 @@ async function main() {
         `  role ${role} ${result.roleGranted ? "granted" : "already held"}; roles now: ${result.roles.join(", ")}`,
     );
   } catch (err) {
-    // The account may have been created before the failure, so the file is kept (never printed).
     console.error(`[create-curator] the password file is kept at ${file} in case the account was created; delete it if not`);
     throw err;
   } finally {
@@ -100,7 +80,6 @@ async function main() {
   }
 }
 
-// Run only as a script (the unit tests import the helpers).
 if (process.argv[1] && /create-curator\.ts$/.test(process.argv[1])) {
   main().catch((err: unknown) => {
     if (err && typeof err === "object" && "issues" in err) {

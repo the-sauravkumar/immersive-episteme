@@ -1,10 +1,3 @@
-/**
- * Create (or find) a staff account and grant it a role. Used by scripts/create-admin.ts and by
- * tests; a future /admin/users action should call it too. Not `server-only` (tsx-runnable).
- *
- * Sign-up is disabled on the HTTP API, so accounts are written through Better Auth's internal
- * adapter with its own password hasher (scrypt), exactly as its admin plugin does.
- */
 import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { z } from "zod";
@@ -49,7 +42,6 @@ export async function createStaffAccount(
   let userId: string;
   let created = false;
   if (existing) {
-    // Never overwrite an existing password from a bootstrap call.
     userId = existing.id;
   } else {
     const hash = await ctx.password.hash(data.password);

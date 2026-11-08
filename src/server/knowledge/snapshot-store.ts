@@ -1,15 +1,3 @@
-/**
- * Database access behind the knowledge read model: load a readable snapshot payload by id, and
- * search inside one snapshot with PostgreSQL full-text search plus trigram similarity.
- *
- * Not `server-only` (integration tests run it against throwaway databases); application code
- * goes through src/server/knowledge/read-model.ts, which adds caching.
- *
- * Readable snapshots: `published` snapshots and `review` snapshots. Both are immutable (a
- * published row by trigger, a review row because it can never be published and the importer
- * never rewrites it; its label is its content hash). A draft `release` snapshot is still being
- * assembled by the CMS and is refused, so cached reads can never go stale.
- */
 import type { Pool, PoolClient } from "pg";
 
 import { knowledgeBundleSchema, type KnowledgeBundle } from "@/features/knowledge/contracts";
@@ -50,7 +38,6 @@ export async function loadSnapshotRow(q: Q, snapshotId: string): Promise<Snapsho
     : null;
 }
 
-/** The immutable payload of a published or review snapshot, validated against the bundle contract. */
 export async function loadSnapshotPayload(q: Q, snapshotId: string): Promise<KnowledgeBundle> {
   if (!UUID_RE.test(snapshotId)) throw new SnapshotNotReadableError(snapshotId, "not_found");
   const r = await q.query<{ status: string; kind: string; payload: unknown }>("SELECT status, kind, payload FROM content_snapshots WHERE id = $1", [snapshotId]);

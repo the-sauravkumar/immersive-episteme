@@ -1,6 +1,3 @@
-/**
- * Integration: telemetry ingestion is idempotent and raw events are append-only.
- */
 import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -72,7 +69,6 @@ describe.skipIf(!TEST_URL)("schema: telemetry", () => {
   it("rejects a second batch with the same idempotency key", async () => {
     await batch("batch-key-0001", s2d.sessionId);
     await expect(batch("batch-key-0001", s2d.sessionId)).rejects.toThrow(/telemetry_batches_idempotency_key_unique|duplicate key/);
-    // ON CONFLICT DO NOTHING is how the ingest service recognises a replay.
     const replay = await t.pool.query(
       `INSERT INTO telemetry_batches (idempotency_key, session_id, schema_version, app_build, event_count, accepted_count, status)
        VALUES ('batch-key-0001', $1, 1, 'b', 1, 1, 'accepted') ON CONFLICT (idempotency_key) DO NOTHING RETURNING id`,
@@ -94,7 +90,7 @@ describe.skipIf(!TEST_URL)("schema: telemetry", () => {
   it("deduplicates events by event_id and by (session, seq)", async () => {
     const id = randomUUID();
     const first = await event(s2d, conditions.c2d, 1, "page_entered", id);
-    expect(first.rows[0].snapshot_id).toBeTruthy(); // inherited from the session
+    expect(first.rows[0].snapshot_id).toBeTruthy();
     await expect(event(s2d, conditions.c2d, 2, "page_entered", id)).rejects.toThrow(/telemetry_events_event_id_unique|duplicate key/);
     await expect(event(s2d, conditions.c2d, 1, "page_exited")).rejects.toThrow(/telemetry_events_session_seq_uq/);
   });

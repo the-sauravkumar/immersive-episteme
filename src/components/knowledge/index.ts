@@ -1,8 +1,3 @@
-/**
- * The shared knowledge components (DESIGN.md 9.6-9.12, 12.1 rule 1). BOTH conditions import these
- * from here, so the 2D concept page and the 3D information panel resolve the same module files
- * (parity check P19). No component takes a condition-specific style input.
- */
 export { ClaimList, referencesHeadingId, SheetReferences, type ClaimListProps } from "./claim-list";
 export { FigureLightbox, type FigureLightboxProps } from "./figure-lightbox";
 export { FIGURE_SIZES, KnowledgeFigure, type KnowledgeFigureProps } from "./knowledge-figure";

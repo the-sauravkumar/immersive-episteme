@@ -1,9 +1,3 @@
-/**
- * Subgraph views for the relationship editor (pure).
- *  - tradition: only concepts of that tradition/package and the edges among them;
- *  - types / states: only edges of those relationship types / review states;
- *  - focus + depth: the neighbourhood (both directions) of one concept, across traditions.
- */
 import type { GraphEdge, GraphNode } from "./queries";
 
 export interface SubgraphFilter {

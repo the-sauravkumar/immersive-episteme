@@ -1,17 +1,3 @@
-/**
- * DEMO dataset. Everything here is a placeholder for interface and pipeline testing:
- *  - every row has is_demo = true, a "Demo:" title and a "demo" slug/key/label prefix;
- *  - provenance is always "unverified" and nothing is verified or published as knowledge;
- *  - the traditions are "Demo tradition A/B/C" — no real tradition names, places or facts.
- * The database makes demo rows impossible to use in a non-demo snapshot or study (composite
- * is_demo foreign keys + migration 0003 triggers).
- *
- * Coverage: every concept type, every relationship semantics class (and every registry
- * type), an ordered process sequence per tradition, cross-tradition comparisons, a published
- * demo snapshot, and one draft demo study with an assessment battery skeleton.
- *
- * Idempotent: if the demo packages already exist the seed does nothing.
- */
 import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
@@ -56,8 +42,8 @@ type ConceptSpec = {
   type: ConceptType;
   category: KnowledgeCategoryCode;
   title: string;
-  tradition: string | null; // tradition slug
-  pkg: string; // package slug
+  tradition: string | null;
+  pkg: string;
   state?: VerificationState;
   localTerms?: string[];
   compares?: string[];
@@ -114,7 +100,6 @@ function buildSpecs(): { concepts: ConceptSpec[]; rels: RelSpec[] } {
     r(s3, "SCIENTIFICALLY_EXPLAINED_BY", "demo-shared.scientific_mechanism.mechanism-1");
     r(principle, "ASSOCIATED_WITH", outcome);
   }
-  // Shared science (no tradition).
   for (const i of [1, 2]) {
     cs.push({
       key: `demo-shared.scientific_mechanism.mechanism-${i}`,
@@ -126,7 +111,6 @@ function buildSpecs(): { concepts: ConceptSpec[]; rels: RelSpec[] } {
     });
   }
   rs.push({ source: "demo-shared.scientific_mechanism.mechanism-2", target: "demo-shared.scientific_mechanism.mechanism-1", type: "CAUSES", pkg: "demo-shared" });
-  // Cross-tradition comparisons.
   const mats = TRADITIONS.map((t) => `${ns(t)}.material.material-1`);
   cs.push({
     key: "demo-comparisons.comparison.material-comparison",
@@ -151,7 +135,6 @@ export async function seedDemo(db: NodePgDatabase): Promise<void> {
   if (existing.length > 0) return;
 
   await db.transaction(async (tx) => {
-    // --- packages, traditions, sources -------------------------------------------------
     const pkgSpecs = [
       ...TRADITIONS.map((t) => ({ slug: tSlug(t), kind: "tradition", name: `Demo: Tradition ${T(t)} package` })),
       { slug: "demo-shared", kind: "shared", name: "Demo: Shared science package" },
@@ -201,7 +184,6 @@ export async function seedDemo(db: NodePgDatabase): Promise<void> {
       tradRows.map((r) => ({ traditionId: r.id, sourceId: srcFor(r.slug), purpose: "summary", isDemo: true })),
     );
 
-    // --- concepts and claims ------------------------------------------------------------
     const { concepts: cSpecs, rels: rSpecs } = buildSpecs();
     const conceptRows = await tx
       .insert(concepts)
@@ -252,7 +234,6 @@ export async function seedDemo(db: NodePgDatabase): Promise<void> {
       })),
     );
 
-    // --- relationships ------------------------------------------------------------------
     const relRows = await tx
       .insert(relationships)
       .values(
@@ -273,7 +254,6 @@ export async function seedDemo(db: NodePgDatabase): Promise<void> {
       relRows.map((r) => ({ relationshipId: r.id, sourceId: sourceByPkg.get(r.packageId!)!, locator: "demo", isDemo: true })),
     );
 
-    // --- snapshot (published, demo, includes unverified) --------------------------------
     const bundle = await buildBundleFromDb(tx, DEMO_SNAPSHOT_LABEL);
     const [snap] = await tx
       .insert(contentSnapshots)
@@ -292,7 +272,6 @@ export async function seedDemo(db: NodePgDatabase): Promise<void> {
       .set({ status: "published", publishedAt: new Date() })
       .where(eq(contentSnapshots.id, snap!.id));
 
-    // --- assessment battery skeleton ----------------------------------------------------
     const battery = [
       { code: "demo-pretest", kind: "pretest", title: "Demo: Prior-knowledge test" },
       { code: "demo-reconstruction", kind: "reconstruction", title: "Demo: Relational knowledge reconstruction" },
@@ -327,7 +306,6 @@ export async function seedDemo(db: NodePgDatabase): Promise<void> {
       })),
     );
 
-    // Draft demo reference map for the reconstruction item (the A process chain).
     const [refMap] = await tx
       .insert(referenceMaps)
       .values({
@@ -350,7 +328,6 @@ export async function seedDemo(db: NodePgDatabase): Promise<void> {
       })),
     );
 
-    // --- demo study (draft; activate after a spatial manifest exists) ------------------
     const [study] = await tx
       .insert(studies)
       .values({
@@ -382,12 +359,7 @@ export async function seedDemo(db: NodePgDatabase): Promise<void> {
 
 type Tx = Parameters<Parameters<NodePgDatabase["transaction"]>[0]>[0];
 
-/**
- * Builds a knowledge bundle (contract v1) from the demo rows currently in the database and
- * validates it. A real snapshot builder (CMS) follows the same shape for selected traditions.
- */
 export async function buildBundleFromDb(tx: Tx, versionLabel: string): Promise<KnowledgeBundle> {
-  // Sequential on purpose: one transaction = one connection (pg 9 drops query pipelining).
   const cats = await tx.select().from(knowledgeCategories);
   const types = await tx.select().from(relationshipTypes);
   const trads = await tx.select().from(traditions).where(eq(traditions.isDemo, true));
@@ -477,11 +449,6 @@ export async function buildBundleFromDb(tx: Tx, versionLabel: string): Promise<K
   return knowledgeBundleSchema.parse(bundle);
 }
 
-/**
- * snapshot_items rows for every entity of a bundle. `itemSha256` here is provisional: on
- * publication the database replaces it with the sha256 of the entity's payload slice
- * (migration 0005, ie_check_snapshot_for_publish), so the stored hash always matches the payload.
- */
 export function snapshotItemsFor(snapshotId: string, b: KnowledgeBundle, isDemo: boolean) {
   const row = (itemKind: (typeof snapshotItems.$inferInsert)["itemKind"], entityRef: string, entityKey: string | null, value: unknown) => ({
     snapshotId,

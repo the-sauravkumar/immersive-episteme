@@ -1,7 +1,3 @@
-/**
- * Small synthetic FORMAT v1 packages for the knowledge-graph tests. Placeholder vocabulary
- * only ("Stage one", "Material A"): no craft facts.
- */
 import { loadContentFiles, type ContentFileInput } from "../../../src/features/knowledge/graph/loader";
 import type { KnowledgeGraphModel } from "../../../src/features/knowledge/graph/types";
 
@@ -11,7 +7,6 @@ export function claim(text: string, source_ids: string[] = ["S1"]): Json {
   return { text, source_ids };
 }
 
-/** A concept whose summary/body_md follow the claims-only policy. */
 export function concept(key: string, category: string, title: string, claims: Json[] = [claim(`${title} is documented.`)], extra: Json = {}): Json {
   const texts = claims.map((c) => String(c.text).trim());
   return {
@@ -56,7 +51,6 @@ export function source(id: string, extra: Json = {}): Json {
   };
 }
 
-/** Tradition "alpha": a 3-stage PRECEDES chain, a material, a tool, all linked. */
 export function alphaFile(): Json {
   const ns = "alpha";
   return {
@@ -90,7 +84,6 @@ export function alphaFile(): Json {
   };
 }
 
-/** Comparisons file borrowing alpha's S1 as `alpha:S1`. */
 export function comparisonsFile(): Json {
   return {
     format_version: 1,
@@ -128,7 +121,6 @@ export function codes(issues: readonly { code: string }[]): string[] {
   return [...new Set(issues.map((i) => i.code))].sort();
 }
 
-/** Deterministic Fisher–Yates shuffle (mulberry32). */
 export function shuffled<T>(xs: readonly T[], seed: number): T[] {
   let a = seed >>> 0;
   const rand = () => {

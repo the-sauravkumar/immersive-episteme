@@ -1,11 +1,3 @@
-/**
- * All derived behavioural metrics of one session, from its raw events. Pure; shared by the
- * persistence pipeline (./pipeline.ts) and the export re-import validator, so a stored value can
- * always be recomputed from exported raw records (spec §15.4).
- *
- * Families: time accounting, navigation, stage and walk behaviour (./stage.ts), and
- * navigation-to-map correspondence. All go to derived_metrics, never to derived_scores.
- */
 import { canonicalHash } from "@/lib/canonical-hash";
 import type { TelemetryEvent } from "@/features/telemetry/contracts";
 import { computeTimingMetrics, TIMING_METRIC_DEFINITIONS } from "@/features/telemetry/metrics";
@@ -41,7 +33,6 @@ export interface SessionMetricInput {
   events: readonly (NavEvent & { eventId: string })[];
   concepts: ReadonlyMap<string, ConceptFacts>;
   relationships: readonly SnapshotRelationship[];
-  /** Final post-learning concept map, if any: its id and revision join the input hash. */
   map: { id: string; revision: number; edges: readonly MapEdgeInput[] } | null;
 }
 
@@ -51,7 +42,6 @@ export interface ComputedMetrics {
   inputSha256: string;
 }
 
-/** sha256 over the ordered (event_id, seq) list (+ the concept map's id and revision). */
 export function metricInputHash(events: readonly { eventId: string; seq: number }[], map: { id: string; revision: number } | null): string {
   const ordered = [...events].sort((a, b) => a.seq - b.seq).map((e) => [e.eventId, e.seq]);
   return canonicalHash({ events: ordered, map: map ? [map.id, map.revision] : null });

@@ -1,7 +1,3 @@
-/**
- * Integration: published content snapshots and spatial manifests are immutable, snapshots
- * cannot mix demo and real content, and studies cannot use demo content.
- */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -99,7 +95,6 @@ describe.skipIf(!TEST_URL)("schema: publishing and study integrity", () => {
       await expect(addSnapshotItem(t.pool, realSnap, "concept", demoConceptId)).rejects.toThrow(
         /demo content cannot be included in a non-demo snapshot/,
       );
-      // The item row itself cannot claim to be demo inside a real snapshot (composite FK).
       await expect(addSnapshotItem(t.pool, realSnap, "concept", demoConceptId, true)).rejects.toThrow(
         /snapshot_items_snapshot_fk|demo content cannot be included/,
       );
@@ -164,20 +159,18 @@ describe.skipIf(!TEST_URL)("schema: publishing and study integrity", () => {
     beforeAll(async () => {
       demoSnap = await createSnapshot(t.pool, { label: "demo-study-snap", isDemo: true, includesUnverified: true });
       await addSnapshotItem(t.pool, demoSnap, "concept", demoConceptId, true);
-      await publishSnapshot(t.pool, demoSnap, null); // demo snapshots may be published by the seed
+      await publishSnapshot(t.pool, demoSnap, null);
     });
 
     it("never attach a demo snapshot to a non-demo study (draft or active)", async () => {
       await expect(createStudy(t.pool, { slug: "real-on-demo", snapshotId: demoSnap })).rejects.toThrow(
         /non-demo study cannot use a demo content snapshot/,
       );
-      // Nor by switching the snapshot of an existing real study.
       const realSnap = await publishedRealSnapshot("v-study-1");
       const { studyId } = await createStudy(t.pool, { slug: "real-study-1", snapshotId: realSnap });
       await expect(t.pool.query("UPDATE studies SET snapshot_id = $2 WHERE id = $1", [studyId, demoSnap])).rejects.toThrow(
         /non-demo study cannot use a demo content snapshot/,
       );
-      // Nor by flipping the study's demo flag.
       await expect(t.pool.query("UPDATE studies SET is_demo = true, slug = 'demo-flip', title = 'Demo: flip' WHERE id = $1", [studyId])).rejects.toThrow(
         /is_demo cannot change/,
       );
@@ -220,7 +213,6 @@ describe.skipIf(!TEST_URL)("schema: publishing and study integrity", () => {
         t.pool.query("INSERT INTO study_conditions (study_id, code, label, interface) VALUES ($1, 'extra', 'x', 'conventional_2d')", [studyId]),
       ).rejects.toThrow(/frozen/);
 
-      // Sessions inherit the study's snapshot and manifest.
       const sess = await createSession(t.pool, studyId, conditionIds.c2d, "P-0001");
       const row = await one<{ snapshot_id: string; manifest_id: string }>(
         t.pool,
@@ -231,7 +223,6 @@ describe.skipIf(!TEST_URL)("schema: publishing and study integrity", () => {
       await expect(t.pool.query("UPDATE study_sessions SET app_build = 'other' WHERE id = $1", [sess.sessionId])).rejects.toThrow(/immutable/);
       await expect(t.pool.query("UPDATE allocations SET seed = 'x' WHERE id = $1", [sess.allocationId])).rejects.toThrow(/append-only/);
 
-      // A session cannot claim a condition of another study (composite FK).
       const other = await createStudy(t.pool, { slug: "other-study", snapshotId: snap, manifestId: manifest });
       await expect(
         t.pool.query(

@@ -1,9 +1,3 @@
-/**
- * GET /cms/media/file/<assetId> — staff-only preview/download of a stored asset original.
- * Local store: streams the bytes. S3: redirects to a 5-minute presigned GET (after the same
- * authorisation). Content-Type always comes from the database row (the sniffed type), never from
- * the stored object, with nosniff; images inline, everything else as an attachment.
- */
 import { NextResponse, type NextRequest } from "next/server";
 
 import { authorizeRequest } from "@/server/auth/staff";

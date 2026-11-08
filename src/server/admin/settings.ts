@@ -1,8 +1,3 @@
-/**
- * Effective platform configuration for /admin/settings (read-only). There is no settings
- * table: every value here is fixed by the deployment (environment variables) or by code, and
- * changing one is a deployment change. Secrets are never returned.
- */
 import { googleOAuthCredentials } from "@/lib/env";
 import { DEFAULT_ACCOUNT_THROTTLE } from "@/server/auth/account-throttle";
 import { MIN_PASSWORD_LENGTH } from "@/server/auth/config";
@@ -13,7 +8,6 @@ import { mediaStorageConfig } from "./health";
 export interface SettingItem {
   label: string;
   value: string;
-  /** Where the value comes from (env variable name or source file). */
   source: string;
 }
 

@@ -1,4 +1,3 @@
-/** PASS/FAIL table shared by preflight.ts and smoke.ts. Details never contain secret values. */
 export type Status = "PASS" | "FAIL" | "WARN" | "SKIP" | "INFO";
 
 export interface Check {

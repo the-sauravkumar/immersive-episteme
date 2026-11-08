@@ -1,18 +1,3 @@
-/**
- * Set-overlap measures at each match level. Edges are projected to their level key and
- * de-duplicated, so at "undirected_unlabelled" A->B and B->A are one item.
- *
- *   P = participant keys (in scope, distinct)     E = expected reference keys
- *   O = optional/uncertain reference keys not in E
- *   X = out-of-scope participant edges, only when outOfScopeEdges = "count_as_incorrect"
- *
- *   optionalMatch = "valid":   precision = |P ∩ (E ∪ O)| / (|P| + X)
- *   optionalMatch = "neutral": precision = |(P \ O) ∩ E| / (|P \ O| + X)
- *   recall  = |P ∩ E| / |E|
- *   F1      = 2·p·r / (p + r); 0 when p + r = 0; 0 when P is empty and E is not;
- *             null when recall is undefined (E empty)
- *   Jaccard = |P' ∩ E| / (|P' ∪ E| + X), with P' = P \ O (optional matches neither help nor hurt)
- */
 import { cmp, MATCH_LEVELS, type MatchLevel, type ScoringConfig } from "../config";
 import type { PreparedReference } from "../match";
 import type { CanonicalEdge, ScoreItem } from "../types";

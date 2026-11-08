@@ -1,18 +1,3 @@
-/**
- * Playwright global setup: admits the test browser through the always-on invite gate (S11).
- *
- * The site has no open mode, so every spec starts from a storage state that already holds a valid
- * invite cookie. One demo-labelled code is created in the development database (DATABASE_URL)
- * per run, by the first staff account, with a one-day redemption window; its cookie is signed
- * with BETTER_AUTH_SECRET from .env, exactly as /invite/redeem would sign it. Both cookie names
- * are written: the plain one (`next dev`) and the `__Host-` one (`next start`, NODE_ENV=production;
- * Chromium accepts Secure cookies on http://localhost).
- *
- * The built-in `page` and `context` fixtures get it from playwright.config.ts `use.storageState`.
- * A context a spec opens itself does not inherit `use`: open it with newContext() from fixtures.ts,
- * which applies the same storage state. Specs that test the gate itself pass
- * `storageState: { cookies: [], origins: [] }`.
- */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 

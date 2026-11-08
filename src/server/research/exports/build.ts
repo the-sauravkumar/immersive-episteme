@@ -1,17 +1,3 @@
-/**
- * Research export builder: one self-describing bundle per study (JSON), from which per-table
- * CSV files are derived. Contents: the tables in ./dictionary.ts, the study configuration
- * snapshot, content and manifest manifests (hashes), the data dictionary, reproducibility
- * metadata and per-table checksums (sha256 of the canonical JSON of the rows).
- *
- * Scope:
- *  - "pseudonymised" (exports.create; analysts): participants appear only as their pseudonymous
- *    code; no consent records; no researcher free text (annotations, deviation descriptions,
- *    exclusion and withdrawal reasons; only their categories).
- *  - "identified" (exports.identified; principal investigator): adds consent records,
- *    annotations and the free-text fields.
- * Participant-produced research data (responses, concept maps) is in both scopes.
- */
 import type { Pool } from "pg";
 
 import { canonicalHash } from "@/lib/canonical-hash";
@@ -36,7 +22,6 @@ export interface ContentManifest {
   snapshot: { id: string; versionLabel: string; kind: string; status: string; payloadSha256: string; itemCount: number; includesUnverified: boolean } | null;
   snapshotItems: { kind: string; ref: string; sha256: string }[];
   manifest: { id: string; manifestHash: string; compilerVersion: string; seed: string; traditions: string[]; status: string; ruleSetId: string; ruleSetConfigSha256: string } | null;
-  /** Concept facts needed to join events and recompute navigation metrics. */
   concepts: { id: string; key: string; traditionId: string | null; category: string }[];
   relationships: { id: string; sourceId: string; targetId: string; type: string; directed: boolean }[];
 }
@@ -47,10 +32,6 @@ export interface ExportBundle {
   scope: ExportScope;
   generatedAt: string;
   study: { id: string; slug: string; title: string; status: string; protocolVersion: string; design: string; isDemo: boolean; config: unknown; snapshotId: string | null; manifestId: string | null; activatedAt: string | null; battery: unknown[];
-    /**
-     * The study's analysis reference map per reconstruction assessment (final review scoring-04):
-     * analyses read concept-map scores against these maps only (src/server/research/analysis-reference.ts).
-     */
     analysisReferenceMaps: AnalysisReference[];
   };
   contentManifest: ContentManifest;
@@ -58,7 +39,6 @@ export interface ExportBundle {
     appBuild: string;
     exportSchemaVersion: number;
     metricsPipelineVersion: string;
-    /** Current version of every concept-map metric family; analyses read scores at these versions. */
     scoringMetricVersions: Record<string, string>;
     parityGeneratorVersion: string;
     metricDefinitions: typeof METRIC_DEFINITIONS;
@@ -68,10 +48,6 @@ export interface ExportBundle {
     observationalNotice: string;
   };
   dataDictionary: readonly TableSpec[];
-  /**
-   * Preregistration role of every metric in this export (primary | secondary | exploratory), from
-   * the shared definitions table (src/features/research/metric-definitions.ts, metricRole).
-   */
   metricRoles: ExportMetricRoles;
   tables: Record<string, Row[]>;
   checksums: Record<string, string>;
@@ -84,12 +60,6 @@ export function tableChecksum(rows: readonly Row[]): string {
   return canonicalHash(rows);
 }
 
-/**
- * `buildExportBundle` inside one REPEATABLE READ, READ ONLY transaction: its ~16 queries then
- * read ONE database snapshot, so during live collection no table can hold rows (events,
- * responses, map edges) of a session or map that another table does not have yet, and every
- * session's status matches its events (final review telemetry-04). Use this for downloads.
- */
 export async function buildExportBundleConsistent(pool: Pool, studyId: string, opts: { scope: ExportScope; appBuild: string; now?: Date }): Promise<ExportBundle> {
   await closeStaleSessions(pool, studyId);
   const client = await pool.connect();
@@ -106,11 +76,6 @@ export async function buildExportBundleConsistent(pool: Pool, studyId: string, o
   }
 }
 
-/**
- * Allocation concealment (final review study-07): while a study is open, anyone who knew the seed
- * could recompute the next assignment, so exports carry it only once the study is closed (the
- * allocation audit stays reproducible from then on).
- */
 function concealSeed(config: unknown, status: string): unknown {
   if (status === "closed" || !config || typeof config !== "object") return config;
   const c = config as Record<string, unknown>;
@@ -241,7 +206,6 @@ export async function buildExportBundle(q: Q, studyId: string, opts: { scope: Ex
          FROM session_annotations a JOIN study_sessions ss ON ss.id = a.session_id WHERE ss.study_id = $1 ORDER BY a.created_at, a.id`,
     );
   }
-  // Column order and completeness exactly as the dictionary says.
   for (const [name, list] of Object.entries(tables)) {
     const spec = TABLE_BY_NAME.get(name)!;
     tables[name] = list.map((r) => Object.fromEntries(spec.columns.map((col) => [col.name, r[col.name] ?? null])));
@@ -337,17 +301,11 @@ async function loadContentManifest(q: Q, snapshotId: string | null, manifestId: 
   };
 }
 
-/**
- * Every table of a bundle as CSV in one ZIP, with `manifest.json` (the bundle without its rows:
- * generatedAt, study, dictionary, reproducibility metadata and the per-table checksums). The
- * files come from one bundle, hence one database snapshot; separately downloaded CSV files are
- * built at separate moments and must not be mixed during collection.
- */
 export function bundleCsvZip(bundle: ExportBundle): Uint8Array {
   const names = Object.keys(bundle.tables).filter((t) => TABLE_BY_NAME.has(t));
   const manifest = {
     ...bundle,
-    tables: undefined, // the rows are the CSV files (JSON.stringify drops undefined)
+    tables: undefined,
     csvFiles: names.map((t) => `${t}.csv`),
     csvNotes: [
       "Every CSV file in this archive was built from the same database snapshot (generatedAt).",
@@ -361,7 +319,6 @@ export function bundleCsvZip(bundle: ExportBundle): Uint8Array {
   );
 }
 
-/** One table of a bundle as CSV, columns in dictionary order. */
 export function bundleTableCsv(bundle: ExportBundle, table: string): string {
   const spec = TABLE_BY_NAME.get(table);
   const data = bundle.tables[table];

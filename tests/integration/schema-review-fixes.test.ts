@@ -1,13 +1,3 @@
-/**
- * Integration: regression tests for the integrity rules added in migration 0005 (review fixes).
- *  - published snapshots: payload == items, live recheck at publication, derived item hashes
- *  - accepted knowledge stays backed by its evidence
- *  - demo isolation through single-column references
- *  - consent before allocation, content set per period, release status at activation
- *  - telemetry consistency with the session snapshot
- *  - raw participant data is append-only / frozen once final
- * Every test file gets its own throwaway database (see ./schema-harness.ts).
- */
 import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -59,7 +49,6 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
   const stateOf = async (table: "concepts" | "relationships", id: string) =>
     (await one<{ s: string }>(t.pool, `SELECT verification_state::text AS s FROM ${table} WHERE id = $1`, [id])).s;
 
-  // ---------------------------------------------------------------------------------------
   describe("published snapshots", () => {
     it("cannot be inserted already published", async () => {
       await expect(
@@ -73,7 +62,6 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
 
     it("require the payload entity set to equal the snapshot items", async () => {
       const g = await createRealGraph(t.pool, { prefix: "pl", acceptBy: curator });
-      // Payload lists a (demo) concept that is not an item.
       const extra = await createSnapshot(t.pool, { label: "payload-extra", createdBy: curator });
       await addSnapshotItem(t.pool, extra, "concept", g.conceptIds[0]);
       await t.pool.query(
@@ -83,18 +71,15 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
       );
       await expect(publishSnapshot(t.pool, extra, curator)).rejects.toThrow(/payload contains concept .* which is not a snapshot item/);
 
-      // An item missing from the payload.
       const missing = await createSnapshot(t.pool, { label: "payload-missing", createdBy: curator });
       await addSnapshotItem(t.pool, missing, "concept", g.conceptIds[0]);
       await t.pool.query("UPDATE content_snapshots SET payload = jsonb_set(payload, '{concepts}', '[]') WHERE id = $1", [missing]);
       await expect(publishSnapshot(t.pool, missing, curator)).rejects.toThrow(/is not in the payload/);
 
-      // Header disagreeing with the row (claims to be demo / unverified).
       const header = await createSnapshot(t.pool, { label: "payload-header", createdBy: curator });
       await t.pool.query("UPDATE content_snapshots SET payload = payload || '{\"includesUnverified\": true}' WHERE id = $1", [header]);
       await expect(publishSnapshot(t.pool, header, curator)).rejects.toThrow(/payload header/);
 
-      // A payload key that is not the live concept key.
       const key = await createSnapshot(t.pool, { label: "payload-key", createdBy: curator });
       await addSnapshotItem(t.pool, key, "concept", g.conceptIds[0]);
       await t.pool.query(
@@ -108,7 +93,6 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
       const g = await createRealGraph(t.pool, { prefix: "rj", acceptBy: curator });
       const id = await createSnapshot(t.pool, { label: "recheck-1", createdBy: curator });
       await addSnapshotItem(t.pool, id, "concept", g.conceptIds[0]);
-      // Verified when added, rejected before publication.
       await asCurator((c) => c.query("UPDATE concepts SET verification_state = 'rejected' WHERE id = $1", [g.conceptIds[0]]));
       await expect(publishSnapshot(t.pool, id, curator)).rejects.toThrow(/does not allow unverified content/);
     });
@@ -144,7 +128,6 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------------------
   describe("accepted knowledge and its evidence", () => {
     it("returns a verified concept to review when a claim source is removed, and records it", async () => {
       const g = await createRealGraph(t.pool, { prefix: "ev1", acceptBy: curator });
@@ -159,9 +142,7 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
       );
       expect(rec).toMatchObject({ from_state: "verified", to_state: "under_review" });
       expect(rec.reason).toMatch(/returned to review automatically/);
-      // The relationship that depends on it went back to review too.
       expect(await stateOf("relationships", g.relationshipId)).toBe("under_review");
-      // Re-acceptance with an unsourced claim fails.
       await expect(
         asCurator((c) => c.query("UPDATE concepts SET verification_state = 'verified' WHERE id = $1", [g.conceptIds[0]])),
       ).rejects.toThrow(/every claim of concept .* needs a source/);
@@ -180,7 +161,6 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
       const g = await createRealGraph(t.pool, { prefix: "ev3", acceptBy: curator });
       await t.pool.query("UPDATE concepts SET title = 'Edited title' WHERE id = $1", [g.conceptIds[0]]);
       expect(await stateOf("concepts", g.conceptIds[0])).toBe("under_review");
-      // Bookkeeping-only updates do not.
       await t.pool.query("UPDATE concepts SET updated_at = now() WHERE id = $1", [g.conceptIds[1]]);
       expect(await stateOf("concepts", g.conceptIds[1])).toBe("verified");
       const tr = await one<{ s: string }>(
@@ -209,7 +189,6 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------------------
   describe("demo isolation through single-column references", () => {
     it("rejects demo concepts in non-demo assessments, reference maps, manifests and overrides", async () => {
       const a = await one<{ id: string }>(
@@ -266,7 +245,6 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
           demoConceptId,
         ]),
       ).rejects.toThrow(/spatial_elements of non-demo content cannot reference demo content/);
-      // Real concepts are fine.
       await expect(
         t.pool.query("INSERT INTO spatial_elements (manifest_id, element_id, kind, rule_id, concept_id) VALUES ($1, 'x2', 'exhibit', 'r1', $2)", [
           m.id,
@@ -276,7 +254,6 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------------------
   describe("studies, consent and releases", () => {
     let snap: string;
     let manifest: string;
@@ -291,7 +268,6 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
 
     it("allocates only participants with granted consent who are still taking part", async () => {
       const { studyId, conditionIds } = await createStudy(t.pool, { slug: "consent-study", snapshotId: snap, manifestId: manifest });
-      // The public demo ("auto") is available until a real study becomes active.
       expect(await realStudyActive(t.db)).toBe(false);
       expect(await publicDemoGate(() => t.db, "auto")()).toBe(true);
       await t.pool.query("UPDATE studies SET status = 'active' WHERE id = $1", [studyId]);
@@ -372,7 +348,6 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------------------
   describe("telemetry and raw participant data", () => {
     let studyId: string;
     let conceptInSnapshot: string;

@@ -20,15 +20,8 @@ async function Check() {
   );
 }
 
-/** May block: access is verified against the participant session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
-/**
- * The page before allocation, identical for everyone (the component takes no condition
- * input). It shows the High contrast accommodation chosen once on the consent page, before the
- * pre-test (DR-019; read-only here), then checks the browser. Results, with that display choice,
- * go to study_sessions.device.
- */
 export default function Page() {
   return (
     <>

@@ -1,4 +1,3 @@
-/** node:crypto implementation of `Sha256Hasher` (scripts and tests). */
 import { createHash } from "node:crypto";
 
 import type { Sha256Hasher } from "./hash";

@@ -1,15 +1,3 @@
-/**
- * Assessment definitions: instruments (pre/post tests, transfer tasks, reconstruction, ...),
- * their items, answer keys and rubrics, and versions.
- *
- * Lifecycle: an assessment version is edited as a `draft`; publishing sets `locked`, after which
- * the database refuses any change to it or its items (migration 0003 `ie_lockable_guard` and
- * `ie_locked_parent_guard`). A change after publication is a new version: a draft copy with the
- * next version number under the same code. Rubrics are versioned and locked the same way.
- *
- * Content: every prompt, option, answer key and rubric level is typed in by a researcher. The
- * platform seeds none (demo assessments only, `is_demo`, "Demo:" titles).
- */
 import type { Pool, PoolClient } from "pg";
 import { z } from "zod";
 
@@ -177,7 +165,6 @@ export const assessmentMetaSchema = z
     instrumentName: z.string().trim().max(300).nullable(),
     instrumentCitation: z.string().trim().max(2000).nullable(),
     isValidatedInstrument: z.boolean(),
-    /** Reconstruction only: concept-map scoring configuration (docs/research/concept-map-scoring.md). */
     scoring: z.unknown().optional(),
   })
   .refine((m) => !m.isValidatedInstrument || (m.instrumentName && m.instrumentCitation), {
@@ -209,7 +196,6 @@ export async function updateAssessmentMeta(q: Q, id: string, input: z.input<type
   }
 }
 
-/** Item answer keys: the shared format (src/features/assessment/responses.ts). */
 export const itemFormSchema = z.object({
   id: z.uuid().optional(),
   itemKey: z.string(),
@@ -295,12 +281,6 @@ export async function deleteItem(q: Q, assessmentId: string, itemId: string): Pr
   }
 }
 
-/**
- * Publishes (locks) a draft version. Locked versions are immutable in the database. One
- * transaction with the assessment row locked: the items validated are the items locked (an item
- * write waits for the row, migration 0018), and the lock and its audit row commit together
- * (final review database-08).
- */
 export async function publishAssessment(pool: Pool | PoolClient, actorId: string, id: string): Promise<void> {
   assertUuid(id, "Assessment");
   await inTransaction(pool, async (q) => {
@@ -322,7 +302,6 @@ export async function publishAssessment(pool: Pool | PoolClient, actorId: string
   });
 }
 
-/** A new draft version (same code, next version number) copying metadata and items. */
 export async function createNewVersion(pool: Pool, actorId: string, id: string): Promise<string> {
   assertUuid(id, "Assessment");
   return inTransaction(pool, async (c) => {
@@ -363,7 +342,6 @@ export async function createRubric(q: Q, actorId: string, assessmentId: string, 
   return r.rows[0]!.id;
 }
 
-/** Locks a draft rubric; the lock and its audit row commit together (database-08). */
 export async function lockRubric(pool: Pool | PoolClient, actorId: string, rubricId: string): Promise<void> {
   assertUuid(rubricId, "Rubric");
   await inTransaction(pool, async (q) => {
@@ -378,7 +356,6 @@ export async function lockRubric(pool: Pool | PoolClient, actorId: string, rubri
   });
 }
 
-/** Relationship-type registry (vocabulary a concept-map item may offer). */
 export async function listRelationshipTypes(q: Q): Promise<Array<{ code: string; label: string; directed: boolean }>> {
   const r = await q.query<{ code: string; label: string; directed: boolean }>("SELECT code, label, directed FROM relationship_types ORDER BY code");
   return r.rows;

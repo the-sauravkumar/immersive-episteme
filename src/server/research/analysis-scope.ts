@@ -1,7 +1,3 @@
-/**
- * Which sessions count as analysable experimental data: not excluded, not withdrawn, and not
- * from a demo / non-experimental study. Every analytics view states this filter.
- */
 export interface AnalysableFlags {
   excluded: boolean;
   withdrawn: boolean;

@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * Participant wrapper around the concept-map editor: saves through the participant server action
- * and, after the final submission, returns to the session hub (/study/session). Receives no learning condition.
- */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -39,7 +35,6 @@ export function ReconstructionTask({
         mode="participant"
         onSave={(payload, final) => saveReconstructionMap(itemId, payload, final)}
         onSubmitted={() => {
-          // Back to the study engine, which sees the final map and moves to the next step.
           setDone(true);
           router.replace("/study/session");
         }}

@@ -1,14 +1,3 @@
-/**
- * Integration: final-review fixes of the study engine (src/server/study/engine.ts) and the
- * dashboard attribution after a reassignment, against a throwaway database.
- *  - study-01   the device check refuses what the museum refuses; a WebGL failure reported by
- *               the museum later applies the WebGL-failure policy;
- *  - study-02 / security-06  learning content only during the learning step;
- *  - study-03   attempts per participant; SSQ phase and condition after a reassignment;
- *  - study-04   an all-blank keyed pre-test scores 0 (stratum "low"), not a refusal;
- *  - study-09 / security-03  presentation stamps and map saves only for the current step;
- *  - database-02  the stratification reference map is the one pinned at activation.
- */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -110,7 +99,6 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
   };
   const pre = (sessionId: string, values: Record<string, string[]> = {}) => submitAssessment(t.pool, { sessionId, step: "pre_test", assessmentId: ids["fx-pre"]!, values });
 
-  /** Consent, pre-test and allocation until the session lands in `condition`. */
   async function allocatedTo(study: EnrollableStudy, condition: "2d" | "immersive", beforePre?: (s: OpenedSession) => Promise<void>): Promise<OpenedSession> {
     for (let i = 0; i < 12; i++) {
       const s = await consented(study);
@@ -170,7 +158,6 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
       const study = await activeStudy({ steps: BASIC_STEPS, webglFailurePolicy: policy }, BASIC);
       const s = await allocatedTo(study, "immersive");
       expect(await recordDeviceCheck(t.pool, s.sessionId, report(2))).toEqual({ kind: "passed" });
-      // Before the learning step the report is ignored (only practice and learning show the museum).
       expect(await recordWalkthroughWebglFailure(t.pool, s.sessionId, { webglVersion: 2, softwareRenderer: true }, { appBuild: BUILD })).toEqual({ kind: "ignored" });
       await completeOnboarding(t.pool, s.sessionId);
       const out = await recordWalkthroughWebglFailure(t.pool, s.sessionId, { webglVersion: 2, softwareRenderer: true }, { appBuild: BUILD });
@@ -185,7 +172,6 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
       } else {
         expect(out).toMatchObject({ kind: "reassigned", condition: "2d" });
         if (out.kind !== "reassigned") return;
-        // Only the condition-blind steps are carried: the participant gets the 2D introduction first.
         expect(await position(out.sessionId)).toMatchObject({ step: "onboarding" });
       }
     }
@@ -195,18 +181,18 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     const study = await activeStudy({ steps: ["pre_test", "familiarisation", "onboarding", "learning", "post_test"] }, BASIC);
     const s = await allocatedTo(study, "2d");
     await startFamiliarisation(t.pool, s.sessionId);
-    expect(await learningStepIsCurrent(t.pool, s.sessionId)).toBe(false); // familiarisation
+    expect(await learningStepIsCurrent(t.pool, s.sessionId)).toBe(false);
     await t.pool.query(
       "INSERT INTO audit_log (actor_kind, actor_id, action, entity, entity_id, after, occurred_at) VALUES ('system', 'test', 'study.familiarisation_started', 'study_session', $1, '{}', now() - interval '6 minutes')",
       [s.sessionId],
     );
     await completeFamiliarisation(t.pool, s.sessionId);
-    expect(await learningStepIsCurrent(t.pool, s.sessionId)).toBe(false); // onboarding
+    expect(await learningStepIsCurrent(t.pool, s.sessionId)).toBe(false);
     expect((await one<{ started: Date | null }>(t.pool, "SELECT learning_started_at AS started FROM study_sessions WHERE id = $1", [s.sessionId])).started).toBeNull();
     await completeOnboarding(t.pool, s.sessionId);
     expect(await learningStepIsCurrent(t.pool, s.sessionId)).toBe(true);
     expect(await finished(s.sessionId)).toMatchObject({ step: "post_test" });
-    expect(await learningStepIsCurrent(t.pool, s.sessionId)).toBe(false); // after learning: no content
+    expect(await learningStepIsCurrent(t.pool, s.sessionId)).toBe(false);
 
   });
 
@@ -229,13 +215,13 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
       [["fx-pre", "pre"], ["fx-post", "post"], ["fx-recon", "post"]],
     );
     const s = await consented(study);
-    expect(await currentReconstructionPhase(t.pool, s.sessionId)).toBeNull(); // pre-test
+    expect(await currentReconstructionPhase(t.pool, s.sessionId)).toBeNull();
     await pre(s.sessionId);
     expect(await currentReconstructionPhase(t.pool, s.sessionId)).toBeNull();
     await recordDeviceCheck(t.pool, s.sessionId, report(2));
     await allocateSession(t.pool, s.sessionId);
     await completeOnboarding(t.pool, s.sessionId);
-    expect(await currentReconstructionPhase(t.pool, s.sessionId)).toBeNull(); // learning: no map save
+    expect(await currentReconstructionPhase(t.pool, s.sessionId)).toBeNull();
     expect(await finished(s.sessionId)).toMatchObject({ step: "post_test" });
     expect(await currentReconstructionPhase(t.pool, s.sessionId)).toBeNull();
     await submitAssessment(t.pool, { sessionId: s.sessionId, step: "post_test", assessmentId: ids["fx-post"]!, values: {} });

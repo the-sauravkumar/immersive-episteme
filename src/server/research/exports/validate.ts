@@ -1,13 +1,3 @@
-/**
- * Export re-import validation (spec §10.4 "verify that exported records can be joined by
- * participant, session, condition, concept, and event identifiers"; §15.4 "derived metrics can be
- * recomputed from exported raw records"). Pure: takes a parsed bundle, uses nothing else.
- *
- * Checks: format and version; per-table checksums; required columns; unique keys; joins
- * (participant, session, condition, concept, event, concept map); and recomputation of every
- * exported derived metric from the exported raw events, content facts and concept maps
- * (value and input hash must match).
- */
 import { canonicalHash } from "@/lib/canonical-hash";
 
 import type { MapEdgeInput } from "../metrics/correspondence";
@@ -66,8 +56,6 @@ export function validateExportBundle(bundle: ExportBundle): ExportValidation {
   }
   for (const r of t("sessions")) {
     if (!participants.has(str(r.participant_code))) err(`session ${str(r.session_id)} has unknown participant`);
-    // A session opened at consent has no condition until it is allocated after the pre-test (D3):
-    // a participant still in, or dropped out during, the pre-test keeps condition_id null.
     if (r.condition_id !== null && !conditions.has(str(r.condition_id))) err(`session ${str(r.session_id)} has unknown condition`);
   }
   const eventIds = new Set<string | null>();
@@ -95,7 +83,6 @@ export function validateExportBundle(bundle: ExportBundle): ExportValidation {
     for (const k of ["source_concept_id", "target_concept_id"] as const) if (r[k] && !concepts.has(String(r[k]))) err(`edge ${str(r.edge_key)} references concept ${String(r[k])} not in the content manifest`);
   }
 
-  // Recompute derived metrics from the exported raw records.
   const facts = new Map<string, ConceptFacts>((bundle.contentManifest?.concepts ?? []).map((c) => [c.id, { traditionId: c.traditionId, category: c.category }]));
   const rels = bundle.contentManifest?.relationships ?? [];
   const eventsBySession = new Map<string, Row[]>();

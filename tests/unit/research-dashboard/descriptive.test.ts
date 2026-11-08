@@ -1,4 +1,3 @@
-/** Descriptive statistics of the research dashboard against hand-computed values. */
 import { describe as suite, expect, it } from "vitest";
 
 import { describe, incompleteBeta, tCdf, tQuantile } from "../../../src/features/research/descriptive";
@@ -9,10 +8,8 @@ suite("descriptive statistics", () => {
     expect(d.n).toBe(5);
     expect(d.missing).toBe(0);
     expect(d.mean).toBe(3);
-    // SD = sqrt(((-2)² + (-1)² + 0 + 1² + 2²) / 4) = sqrt(2.5)
     expect(d.sd).toBeCloseTo(Math.sqrt(2.5), 12);
     expect(d.median).toBe(3);
-    // half-width = t(0.975, 4) · sqrt(2.5) / sqrt(5) = 2.776445 · 0.707107 = 1.963243
     expect(d.ciLow).toBeCloseTo(3 - 1.963243, 5);
     expect(d.ciHigh).toBeCloseTo(3 + 1.963243, 5);
   });
@@ -37,7 +34,6 @@ suite("descriptive statistics", () => {
     expect(tQuantile(0.975, 30)).toBeCloseTo(2.042272, 5);
     expect(tQuantile(0.025, 10)).toBeCloseTo(-2.228139, 5);
     expect(tCdf(0, 7)).toBeCloseTo(0.5, 12);
-    // I_x(1, 1) = x
     expect(incompleteBeta(0.3, 1, 1)).toBeCloseTo(0.3, 12);
   });
 });

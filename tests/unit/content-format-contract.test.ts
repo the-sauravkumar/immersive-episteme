@@ -1,9 +1,3 @@
-/**
- * The interchange-format contract (content/FORMAT.md v1, `contentPackageFileSchema`) on
- * SYNTHETIC fixtures, so the application's own test run guards the format without depending on
- * the separately curated files in content/ (those are checked by `npm run test:content`).
- * Fixture text is placeholder only ("Demo:" titles, demo-* keys): no craft facts.
- */
 import { describe, expect, it } from "vitest";
 
 import { checkCrossFileReferences, contentPackageFileSchema } from "@/features/knowledge/contracts";

@@ -1,29 +1,6 @@
-/**
- * Dashboard rows 3 and 4 of DESIGN.md 11.9 that the live read model (src/server/research/
- * dashboard.ts) does not carry: Figure 3 "Gain by Tradition" and Table 2 "Per-Item
- * Statistics". All are read from stored derived values only; nothing is
- * estimated, imputed or sampled.
- *
- *  - Gain by tradition: the knowledge test split by the tradition of each keyed item's concept
- *    (`assessment_items.concept_id` -> `concepts.tradition_id`). Per session and tradition, the
- *    proportion of that tradition's keyed post-test items answered correctly minus the proportion
- *    of its keyed pre-test items answered correctly (stored `item.key_match`, latest attempt). A
- *    session counts for a tradition only when it has scored items of that tradition in both tests.
- *    Items without a concept, or whose concept belongs to no tradition, are not counted. This is
- *    a descriptive breakdown of the knowledge test, not a registered outcome.
- *  - Per-item statistics: the stored `item.key_match` score of each keyed answer
- *    (src/features/assessment/responses.ts KEY_MATCH_METRIC: 1 = matches the answer key): one
- *    score per session and item (latest attempt, latest computation), as keyed scoring itself
- *    scores the latest answered attempt. Proportion correct per item and condition.
- *
- * Scope is the dashboard's: sessions with a condition that are not excluded and not withdrawn
- * (the dashboard labels a demo study as non-experimental as a whole, so demo sessions stay in).
- * The aggregation functions are pure, so tests feed them rows.
- */
 import { inCanonicalOrder } from "@/features/learning/labels";
 import type { Q } from "@/server/research/db";
 
-/** The per-answer keyed score (src/features/assessment/responses.ts). */
 export const ITEM_METRIC = "item.key_match";
 
 export interface ItemScoreRow {
@@ -41,13 +18,11 @@ export interface ItemStat {
   kind: string;
   itemKey: string;
   position: number;
-  /** Per condition (the order given): answers scored, answers with an undefined score, proportion correct. */
   byCondition: { n: number; undefined: number; correct: number | null }[];
 }
 
 const KIND_ORDER: Record<string, number> = { pretest: 0, posttest: 1, transfer: 2 };
 
-/** Proportion correct per keyed item and condition; items in assessment (pre, post, transfer) and position order. */
 export function itemStatistics(rows: readonly ItemScoreRow[], conditionIds: readonly string[]): ItemStat[] {
   const items = new Map<string, ItemStat & { sums: number[]; order: [number, string, number] }>();
   for (const r of rows) {
@@ -85,7 +60,6 @@ export interface TraditionItemRow {
   sessionId: string;
   traditionSlug: string;
   traditionName: string;
-  /** Assessment kind: only `pretest` and `posttest` rows count. */
   kind: string;
   value: number | null;
 }
@@ -93,11 +67,9 @@ export interface TraditionItemRow {
 export interface TraditionGain {
   slug: string;
   name: string;
-  /** Per condition (the order given): one gain per session, post minus pre proportion correct. */
   gains: number[][];
 }
 
-/** Knowledge-test gain per tradition and condition; traditions in the canonical (alphabetical) order. */
 export function traditionGains(rows: readonly TraditionItemRow[], conditionIds: readonly string[]): TraditionGain[] {
   type Cell = { pre: [number, number]; post: [number, number] };
   const traditions = new Map<string, { slug: string; name: string; sessions: Map<string, { ci: number; cell: Cell }> }>();
@@ -120,7 +92,6 @@ export function traditionGains(rows: readonly TraditionItemRow[], conditionIds: 
   });
 }
 
-/** In-scope sessions of the study (the dashboard's rule). */
 const IN_SCOPE = "ss.condition_id IS NOT NULL AND NOT ss.excluded AND NOT ss.withdrawn";
 
 export async function loadItemScoreRows(q: Q, studyId: string): Promise<ItemScoreRow[]> {

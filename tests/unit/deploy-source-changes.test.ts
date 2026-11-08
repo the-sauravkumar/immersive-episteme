@@ -1,8 +1,3 @@
-/**
- * Deployment source changes (docs/deploy/RESEARCH.md s13): S3 (RDS CA), S5 (explicit S3 keys in
- * production), S1 (stream maxDuration), S6/S7 (image caching), S8 (.gitignore), S9 (.vercelignore),
- * S10 (engines), S12 (build version from the Vercel commit).
- */
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 

@@ -1,14 +1,3 @@
-/**
- * GET /research/exports/download?study=<uuid>&scope=pseudonymised|identified&format=json|csv|zip&table=<name>
- *
- * Builds the export on request (nothing is cached or written to disk) and records an audit row.
- * The bundle is read in one database snapshot (`buildExportBundleConsistent`). `zip` serves every
- * CSV table of that one bundle plus `manifest.json` (checksums, dictionary); a single-table CSV
- * is built at its own moment, so separately downloaded CSV files must not be mixed during
- * collection (final review telemetry-04).
- * The scope is decided on the server from the caller's permissions: an identified export needs
- * `exports.identified`; everyone else receives the pseudonymised scope or a 403.
- */
 import { serverEnv } from "@/lib/env";
 import { authorizeRequest } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";

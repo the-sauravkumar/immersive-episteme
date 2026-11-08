@@ -1,14 +1,3 @@
-/**
- * Bootstrap a staff account (normally the first platform_admin).
- *
- *   npx tsx scripts/create-admin.ts --email admin@example.org --name "Ada Admin" [--role platform_admin] [--test]
- *
- * The password is read from the ADMIN_PASSWORD environment variable (preferred: keeps it out
- * of shell history and process listings) or from --password. Minimum 12 characters.
- * Idempotent: an existing account keeps its password and just gains the role.
- * --test targets TEST_DATABASE_URL instead of DATABASE_URL.
- * Requires the auth tables to exist (run `npm run db:migrate` first).
- */
 import { parseArgs } from "node:util";
 
 import { drizzle } from "drizzle-orm/node-postgres";

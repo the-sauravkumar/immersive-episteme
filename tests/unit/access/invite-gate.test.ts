@@ -1,8 +1,3 @@
-/**
- * Invite gate (deployment source change S11): codes, the signed cookie, the gate paths and the
- * service's SQL contract (with a fake query function; the database rules themselves are in
- * migration 0020 and need an integration run).
- */
 import { describe, expect, it } from "vitest";
 
 import { INVITE_PATH, inviteNextPath, invitePath, isInviteExemptPath, withoutInviteParam } from "@/lib/access/invite-paths";
@@ -28,7 +23,7 @@ describe("invite codes", () => {
     expect(normaliseInviteCode(` ${code.toLowerCase().replaceAll("-", " ")} `)).toBe(canonical);
     expect(normaliseInviteCode("O1IL".repeat(5))).toBe("0111".repeat(5));
     expect(normaliseInviteCode("ABCD-EFGH")).toBeNull();
-    expect(normaliseInviteCode("U".repeat(20))).toBeNull(); // U is not in the alphabet
+    expect(normaliseInviteCode("U".repeat(20))).toBeNull();
     expect(normaliseInviteCode(42)).toBeNull();
     expect(normaliseInviteCode("A".repeat(65))).toBeNull();
   });
@@ -89,7 +84,6 @@ describe("invite gate paths", () => {
   });
 });
 
-/** A fake query function that records SQL and answers from a script. */
 function fakeQ(answer: (sql: string, params: unknown[]) => { rows: unknown[]; rowCount?: number }) {
   const calls: { sql: string; params: unknown[] }[] = [];
   return {

@@ -1,17 +1,8 @@
-/**
- * Reference data (NOT demo data): the 14 knowledge categories, the relationship-type
- * registry and the telemetry event-type registry. These are vocabulary, not craft facts, and
- * they are needed by real content as much as by demo content.
- */
 import type { KnowledgeCategoryCode } from "../../src/lib/validation/enums";
 import type { RelationshipTypeDefinition } from "../../src/features/knowledge/contracts";
 
 export { EVENT_TYPE_REGISTRY } from "../../src/features/telemetry/contracts";
 
-/**
- * Template groups = the seven-part common epistemic template (requirements digest §3), plus
- * `cross_cutting` for evidence and open questions, which apply to every group.
- */
 export const KNOWLEDGE_CATEGORIES: readonly {
   code: KnowledgeCategoryCode;
   label: string;
@@ -34,12 +25,6 @@ export const KNOWLEDGE_CATEGORIES: readonly {
   { code: "open_questions", label: "Open questions", description: "Unresolved or contested questions.", templateGroup: "cross_cutting" },
 ];
 
-/**
- * Relationship-type registry. The 14 FORMAT.md v1 types are `isCore`. ASSOCIATED_WITH is the
- * one associative type (spec §6.4 "belongs to or is associated with"). Cycle rules:
- * PRECEDES allows cycles because real process content contains repeat loops (a resist/dye
- * cycle returns to an earlier stage); BELONGS_TO and DEPENDS_ON must stay acyclic.
- */
 export const RELATIONSHIP_TYPES: readonly RelationshipTypeDefinition[] = [
   { code: "BELONGS_TO", label: "belongs to", inverseLabel: "includes", description: "A concept is part of a tradition or a larger whole.", semantics: "compositional", directed: true, allowsCycles: false, ordered: false, requiresEvidence: true, isCore: true },
   { code: "USES", label: "uses", inverseLabel: "is used in", description: "A process or tradition uses a material or tool.", semantics: "compositional", directed: true, allowsCycles: true, ordered: false, requiresEvidence: true, isCore: true },

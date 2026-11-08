@@ -1,11 +1,3 @@
-"""Baseline-adjusted comparison: ANCOVA by ordinary least squares (exploratory).
-
-Model: post = b0 + b1 * condition_b + b2 * (pre - mean(pre)) + e, complete cases only.
-b1 is the baseline-adjusted difference (condition b minus a); its CI uses the t distribution
-with n - 3 df. The homogeneity-of-slopes assumption is reported by fitting the interaction
-term condition_b * pre_centred and giving its estimate and p-value.
-"""
-
 from __future__ import annotations
 
 import numpy as np

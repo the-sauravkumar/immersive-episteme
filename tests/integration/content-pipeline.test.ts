@@ -1,8 +1,3 @@
-/**
- * Integration: content/ -> importer -> REVIEW snapshot -> read model / search -> spatial
- * manifest -> learning context (demo/preview), against a throwaway database (schema-harness).
- * content/ is only read.
- */
 import { join } from "node:path";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -141,7 +136,6 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
     });
 
     it("carries every claim's located evidence through the database", async () => {
-      // Hash equality above would also hold if evidence were lost on both sides: check it directly.
       const r = await t.pool.query<{ total: number; with_evidence: number; passages: number }>(
         `SELECT count(*)::int AS total,
                 count(*) FILTER (WHERE jsonb_array_length(evidence) > 0)::int AS with_evidence,
@@ -161,7 +155,6 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
       await expect(t.pool.query("UPDATE content_snapshots SET kind = 'release' WHERE id = $1", [snap.id])).rejects.toThrow(/kind cannot change/);
       await expect(createStudy(t.pool, { slug: "real-on-review", snapshotId: snap.id })).rejects.toThrow(/non-demo study cannot use a review snapshot/);
       const demo = await createStudy(t.pool, { slug: "demo-on-review", snapshotId: snap.id, isDemo: true, allowUnverified: true });
-      // Even a demo study cannot be activated on it: activation needs a published snapshot.
       await expect(t.pool.query("UPDATE studies SET status = 'active' WHERE id = $1", [demo.studyId])).rejects.toThrow(/published content snapshot/);
     });
   });
@@ -282,21 +275,19 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
       await withSettings(t.pool, { "app.actor_id": curator, "app.change_reason": "test: curator rejects" }, (c) =>
         c.query("UPDATE concepts SET verification_state = 'rejected' WHERE key = $1", [decided]),
       );
-      // The files now say needs_evidence for a row whose state the importer itself last set.
       const changed = { ...loaded.model, concepts: loaded.model.concepts.map((c) => (c.key === fileDriven ? { ...c, verificationState: "needs_evidence" as const } : c)) };
       const s = await run(changed);
       const state = async (key: string) => (await one<{ s: string }>(t.pool, "SELECT verification_state::text AS s FROM concepts WHERE key = $1", [key])).s;
       expect(await state(decided)).toBe("rejected");
       expect(await state(fileDriven)).toBe("needs_evidence");
       expect(s.concepts.keptCurated).toBeGreaterThanOrEqual(1);
-      await run(); // restore the file state for the tests below
+      await run();
       expect(await state(fileDriven)).toBe("under_review");
       expect(await state(decided)).toBe("rejected");
     });
 
     it("never prunes a CMS-authored edge; reports it as stale (knowledge-04)", async () => {
       const curator = await createUser(t.pool);
-      // An edge a curator added in the CMS between two imported concepts (package = the source concept's).
       const [a, b] = loaded.model.concepts.filter((c) => c.packageSlug === "ajrakh" && c.type === "process_stage");
       const cms = await one<{ id: string }>(
         t.pool,
@@ -349,10 +340,7 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
     });
 
     it("writes relationship evidence into its citation, keeps evidence the files do not carry, and never touches an accepted relationship", async () => {
-      // Placeholder passages only (throwaway database): no craft facts.
       type Rel = (typeof loaded.model.relationships)[number];
-      // Edges and endpoints still under review in the database (earlier tests decided some rows),
-      // with real provenance, so one of them can be accepted below.
       const conceptByKey = new Map(loaded.model.concepts.map((c) => [c.key, c]));
       const dbState = new Map(
         (await t.pool.query<{ key: string; s: string }>("SELECT key, verification_state::text AS s FROM concepts WHERE NOT is_demo")).rows.map((x) => [x.key, x.s]),
@@ -372,7 +360,6 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
           relState.get(`${r.source}|${r.type}|${r.target}`) === "under_review" &&
           [r.source, r.target].every((k) => conceptByKey.get(k)?.provenanceKind !== "unverified" && dbState.get(k) === "under_review"),
       );
-      // Three edges that share no endpoint, so accepting the third touches neither of the others.
       const picked: Rel[] = [];
       for (const r of usable) {
         if (picked.every((p) => ![p.source, p.target].some((k) => k === r.source || k === r.target))) picked.push(r);
@@ -397,15 +384,12 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
         relationships: loaded.model.relationships.map((r) => (targets.includes(r) ? { ...r, evidence: [{ ref: r.sourceRefs[0]!, locator, quote }] } : r)),
       });
 
-      // 1. The file passage lands in that citation, and only there.
       const s1 = await run(withEvidence([a!], "PDF p. 1", "a placeholder passage"));
       expect(s1.relationshipSources).toEqual({ inserted: 0, updated: 1, pruned: 0 });
       const aRows = await citations(a!);
       expect(aRows.find((x) => x.ref === a!.sourceRefs[0])).toMatchObject({ locator: "PDF p. 1", quote: "a placeholder passage" });
       expect(aRows.filter((x) => x.ref !== a!.sourceRefs[0]).every((x) => x.locator === null && x.quote === null)).toBe(true);
 
-      // 2. Unchanged files write nothing; a file without the passage never clears it, nor one a
-      //    curator entered in the CMS.
       await t.pool.query(
         `UPDATE relationship_sources rs SET locator = 'p. 2', quote = 'a curator placeholder'
            FROM relationships x, concepts s, concepts tc
@@ -418,11 +402,9 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
       expect((await citations(a!)).find((x) => x.ref === a!.sourceRefs[0])).toMatchObject({ locator: "PDF p. 1", quote: "a placeholder passage" });
       expect((await citations(b!)).every((x) => x.locator === "p. 2" && x.quote === "a curator placeholder")).toBe(true);
 
-      // 3. A changed passage replaces the stored one.
       expect((await run(withEvidence([a!], "PDF p. 3", "a corrected placeholder passage"))).relationshipSources).toEqual({ inserted: 0, updated: 1, pruned: 0 });
       expect((await citations(a!)).find((x) => x.ref === a!.sourceRefs[0])).toMatchObject({ locator: "PDF p. 3", quote: "a corrected placeholder passage" });
 
-      // 4. An accepted relationship keeps the citations its reviewer checked.
       const curator = await createUser(t.pool);
       await withSettings(t.pool, { "app.actor_id": curator, "app.change_reason": "test: accepted" }, async (c) => {
         await c.query("UPDATE concepts SET verification_state = 'verified' WHERE key = ANY($1::text[])", [[accepted!.source, accepted!.target]]);

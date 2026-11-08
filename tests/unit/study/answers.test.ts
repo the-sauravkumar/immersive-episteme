@@ -122,7 +122,6 @@ describe("objective scoring (shared key rule)", () => {
     const mc = item("multiple_choice", { kind: "multiple_choice", options: opts });
     const raw = toResponseRaw(mc, ["a", "c"], 3);
     expect(responseRawSchema.parse(raw)).toEqual({ value: ["a", "c"], itemKind: "multiple_choice", assessmentVersion: 3 });
-    // The assessment module's re-run (scoreKeyedItems) uses the same rule on the stored row.
     expect(keyMatch({ optionIds: ["c", "a"] }, raw)).toEqual({ value: 1 });
     expect(keyMatch({ optionId: "b" }, toResponseRaw(mc, "b", 1))).toEqual({ value: 1 });
     expect(keyMatch({ value: 4, tolerance: 0 }, toResponseRaw(mc, 4, 1))).toEqual({ value: 1 });

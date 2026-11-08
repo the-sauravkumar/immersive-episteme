@@ -28,8 +28,6 @@ describe("scriptRuns (DESIGN.md 5.1, section 15: Sindhi/Persian quote right-to-l
   });
 
   it("sets the fixture's Arabic-script runs right-to-left with their declared language and changes no text", () => {
-    // A fixture, not content/: content round 2 dropped the only Arabic-script quote (an
-    // unverified-kind source), so the RTL path stays covered whatever the curated content holds.
     const fixture = JSON.parse(readFileSync(path.resolve(__dirname, "../fixtures/arabic-script-quotes.json"), "utf8")) as {
       quotes: { quote: string; rtl: [string, string][] }[];
     };

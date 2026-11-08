@@ -1,7 +1,3 @@
-/**
- * Provider-neutral deploy preflight (scripts/deploy/lib/topology.ts): the deployer picks Neon or
- * RDS and R2 or S3; preflight detects the choice and names the one vercel.json region it needs.
- */
 import { describe, expect, it } from "vitest";
 
 import { detectDatabase, detectMedia, topologyChecks, type TopologyRow } from "../../scripts/deploy/lib/topology";

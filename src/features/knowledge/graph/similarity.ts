@@ -1,10 +1,3 @@
-/**
- * Title normalisation and trigram similarity, modelled on PostgreSQL pg_trgm (the database
- * indexes concept titles with gin_trgm_ops): each word is padded with two leading spaces and
- * one trailing space, and similarity is |A ∩ B| / |A ∪ B| over the trigram sets.
- */
-
-/** Lower-case, strip diacritics and punctuation, collapse whitespace. */
 export function normaliseTitle(title: string): string {
   return title
     .normalize("NFKD")

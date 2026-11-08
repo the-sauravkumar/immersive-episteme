@@ -1,5 +1,3 @@
-// Fix the 24 integrity warnings (KG108, KG316, KG700, KG800). Every new link or concept
-// restates claims already verified against sources (content/review/verification.md). Run from content/.
 const fs = require("fs");
 const T = "traditions/";
 const files = {};
@@ -15,19 +13,16 @@ const rel = (f, source, type, target, explanation, source_ids, provenance_kind =
 };
 const claimsOnly = (c) => { c.summary = c.claims[0]?.text ?? ""; c.body_md = c.claims.map((x) => `${x.text} [${x.source_ids.join(", ")}]`).join("\n\n"); c.prose_policy = "claims-only"; };
 
-// --- KG108: comparison concepts must name what they compare -----------------------------
 concept(T + "ajrakh/tradition.json", "ajrakh.comparison.kutch-vs-barmer-vs-sindh").compares =
   ["ajrakh.tradition.kutch-ajrakh", "ajrakh.historical_context.barmer-practice", "ajrakh.historical_context.sindh-indus-origins"];
 concept(T + "bagru/tradition.json", "bagru.comparison.bagru-vs-sanganer").compares =
   ["bagru.tradition.bagru-hand-block-print", "sanganeri.tradition.sanganeri-hand-block-printing"];
 {
-  // Its only claim (S19) compares Dabu with Bagru and Sanganeri prints; nothing supports "wax and direct print".
   const c = concept(T + "dabu/tradition.json", "dabu.comparison.mud-resist-vs-wax-and-direct-print");
   c.title = "Dabu and other Rajasthani block prints (Bagru, Sanganeri)";
   c.compares = ["dabu.tradition.dabu-mud-resist-printing", "bagru.tradition.bagru-hand-block-print", "sanganeri.tradition.sanganeri-hand-block-printing"];
 }
 {
-  // Add Srikalahasti as a concept built only from source-checked Srikalahasti statements.
   const f = T + "machilipatnam-kalamkari/tradition.json";
   const j = load(f);
   const key = "machilipatnam-kalamkari.historical_context.srikalahasti-style";
@@ -49,7 +44,6 @@ concept(T + "bagru/tradition.json", "bagru.comparison.bagru-vs-sanganer").compar
     "Machilipatnam kalamkari is hand-block printed in karkhanas, whereas Srikalahasti kalamkari is drawn freehand with a pen.", ["S7", "S13"]);
 }
 
-// --- KG316: Sanganeri block carving -------------------------------------------------------
 {
   const f = T + "sanganeri/tradition.json";
   const j = load(f);
@@ -62,14 +56,12 @@ concept(T + "bagru/tradition.json", "bagru.comparison.bagru-vs-sanganer").compar
   console.log("~ sanganeri printing REQUIRES block carving");
 }
 
-// --- KG700: comparative link worded causally ------------------------------------------------
 {
   const r = load("comparisons.json").relationships.find((r) => r.source === "bagh.process_stage.bichalna" && r.target === "machilipatnam-kalamkari.process_stage.degumming-wash");
   r.explanation = "Printed cloth is washed in flowing water to remove unfixed mordant and gum before the red bath. Both sources warn about faulty washing: permanent stains at Bagh, colour developing in unwanted areas at Machilipatnam.";
   console.log("~ bichalna/degumming explanation reworded");
 }
 
-// --- KG800: orphan concepts, each linked to what its own claims are about -------------------
 const A = T + "ajrakh/tradition.json", B = T + "bagh/tradition.json", R = T + "bagru/tradition.json", D = T + "dabu/tradition.json";
 const link = (f, src, type, tgt, expl) => rel(f, src, type, tgt, expl, srcOf(concept(f, src)));
 link(A, "ajrakh.open_question.etymology", "BELONGS_TO", "ajrakh.tradition.kutch-ajrakh", "The question concerns the meaning and origin of the name 'Ajrakh'.");
@@ -80,7 +72,7 @@ link(B, "bagh.design_principle.variation-on-old-designs", "BELONGS_TO", "bagh.tr
 link(B, "bagh.historical_context.bagh-town-geography", "BELONGS_TO", "bagh.tradition.bagh-print", "Bagh print takes its name from Bagh town, on the Baghini river in Dhar district.");
 link(B, "bagh.historical_context.master-artisans-recognition", "BELONGS_TO", "bagh.tradition.bagh-print", "Publicly honoured Bagh printers of the Khatri family.");
 link(B, "bagh.process_stage.khara-karna", "USES", "bagh.material.base-fabric", "Khara karna washes and desizes the base cloth.");
-concept(B, "bagh.process_stage.khara-karna"); // (source ids for the USES link come from the stage's own claims)
+concept(B, "bagh.process_stage.khara-karna");
 link(B, "bagh.material.secondary-dyes", "BELONGS_TO", "bagh.tradition.bagh-print", "Natural dyes recorded in use at Bagh beyond the red and black (khaki, mustard, indigo, harda, bahera, pomegranate).");
 link(B, "bagh.open_question.origin-dating", "BELONGS_TO", "bagh.historical_context.khatri-migration-from-sindh", "The question concerns when and from where the Bagh printers came.");
 link(R, "bagru.design_principle.dense-pattern-hides-drips", "BELONGS_TO", "bagru.tradition.bagru-hand-block-print", "A design observation about Bagru printing: open modern layouts expose dye drips.");

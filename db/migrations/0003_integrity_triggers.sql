@@ -1,18 +1,3 @@
--- 0003 integrity triggers (custom SQL, hand-written). See docs/architecture/knowledge-schema.md
--- §"Database-enforced invariants" for the rationale of each rule.
---
--- All violations raise SQLSTATE 23514 (check_violation) with a message starting "ie: ", so
--- services can map them to 4xx responses and tests can assert on them.
---
--- Transaction-local settings read by these triggers (set with `SELECT set_config(name, value, true)`):
---   app.actor_id                 Better Auth users.id of the acting staff member
---   app.change_reason            free-text reason recorded with a review-state change
---   app.telemetry_purge_reason   must be non-empty to DELETE raw telemetry (retention / withdrawal)
-
--- =========================================================================================
--- Generic helpers
--- =========================================================================================
-
 CREATE OR REPLACE FUNCTION ie_setting(name text)
 RETURNS text
 LANGUAGE sql
@@ -21,7 +6,6 @@ AS $$
   SELECT nullif(btrim(current_setting(name, true)), '')
 $$;--> statement-breakpoint
 
--- Rejects UPDATE / DELETE / TRUNCATE on append-only tables.
 CREATE OR REPLACE FUNCTION ie_append_only()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -51,10 +35,6 @@ CREATE TRIGGER audit_log_append_only BEFORE UPDATE OR DELETE ON audit_log
 CREATE TRIGGER audit_log_no_truncate BEFORE TRUNCATE ON audit_log
   FOR EACH STATEMENT EXECUTE FUNCTION ie_append_only();--> statement-breakpoint
 
--- =========================================================================================
--- Telemetry: raw events are never edited; deletion only as an explicit, reasoned purge
--- =========================================================================================
-
 CREATE OR REPLACE FUNCTION ie_telemetry_events_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -79,8 +59,6 @@ CREATE TRIGGER telemetry_events_guard BEFORE UPDATE OR DELETE ON telemetry_event
 CREATE TRIGGER telemetry_events_no_truncate BEFORE TRUNCATE ON telemetry_events
   FOR EACH STATEMENT EXECUTE FUNCTION ie_telemetry_events_guard();--> statement-breakpoint
 
--- Inherits snapshot/compiler from the session and keeps the event-type scope honest
--- (a 3D-only raw event type cannot be logged in a 2D condition and vice versa).
 CREATE OR REPLACE FUNCTION ie_telemetry_events_insert()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -120,13 +98,6 @@ $$;--> statement-breakpoint
 CREATE TRIGGER telemetry_events_insert BEFORE INSERT ON telemetry_events
   FOR EACH ROW EXECUTE FUNCTION ie_telemetry_events_insert();--> statement-breakpoint
 
--- =========================================================================================
--- Knowledge: review history, evidence requirements, relationship-type rules
--- =========================================================================================
-
--- AFTER INSERT/UPDATE: append a verification_records row whenever verification_state is set
--- or changes. TG_ARGV[0] is the verifiable_entity_kind. Accepting content (verified /
--- published) without app.actor_id fails on verification_records_actor_ck.
 CREATE OR REPLACE FUNCTION ie_record_verification()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -158,7 +129,6 @@ CREATE TRIGGER sources_verification AFTER INSERT OR UPDATE OF verification_state
 CREATE TRIGGER assets_verification AFTER INSERT OR UPDATE OF verification_state ON assets
   FOR EACH ROW EXECUTE FUNCTION ie_record_verification('asset');--> statement-breakpoint
 
--- Accepted (verified/published) concepts need a sourced claim and a real provenance kind.
 CREATE OR REPLACE FUNCTION ie_concepts_acceptance()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -183,10 +153,6 @@ $$;--> statement-breakpoint
 CREATE TRIGGER concepts_acceptance BEFORE INSERT OR UPDATE ON concepts
   FOR EACH ROW EXECUTE FUNCTION ie_concepts_acceptance();--> statement-breakpoint
 
--- Relationship rules from the relationship_types registry:
---  * ordinal only on `ordered` types; undirected types store one row per unordered pair;
---  * `allows_cycles = false` types stay acyclic;
---  * accepted edges need a source when the type `requires_evidence`, and no "unverified" provenance.
 CREATE OR REPLACE FUNCTION ie_relationships_rules()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -248,10 +214,6 @@ $$;--> statement-breakpoint
 CREATE TRIGGER relationships_rules BEFORE INSERT OR UPDATE ON relationships
   FOR EACH ROW EXECUTE FUNCTION ie_relationships_rules();--> statement-breakpoint
 
--- =========================================================================================
--- Publishing: published snapshots are immutable
--- =========================================================================================
-
 CREATE OR REPLACE FUNCTION ie_content_snapshots_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -286,9 +248,6 @@ $$;--> statement-breakpoint
 CREATE TRIGGER content_snapshots_guard BEFORE INSERT OR UPDATE OR DELETE ON content_snapshots
   FOR EACH ROW EXECUTE FUNCTION ie_content_snapshots_guard();--> statement-breakpoint
 
--- Items of a published snapshot are frozen. A new item must reference an existing entity with
--- the same is_demo flag as the snapshot, and (unless the snapshot explicitly
--- includes_unverified) only accepted content.
 CREATE OR REPLACE FUNCTION ie_snapshot_items_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -362,7 +321,6 @@ $$;--> statement-breakpoint
 CREATE TRIGGER snapshot_items_guard BEFORE INSERT OR UPDATE OR DELETE ON snapshot_items
   FOR EACH ROW EXECUTE FUNCTION ie_snapshot_items_guard();--> statement-breakpoint
 
--- Releases: once released, only the transition to `withdrawn` is allowed.
 CREATE OR REPLACE FUNCTION ie_release_manifests_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -393,10 +351,6 @@ $$;--> statement-breakpoint
 CREATE TRIGGER release_manifests_guard BEFORE UPDATE OR DELETE ON release_manifests
   FOR EACH ROW EXECUTE FUNCTION ie_release_manifests_guard();--> statement-breakpoint
 
--- =========================================================================================
--- Spatial: frozen rule sets and published manifests are immutable
--- =========================================================================================
-
 CREATE OR REPLACE FUNCTION ie_mapping_rule_sets_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -418,8 +372,6 @@ $$;--> statement-breakpoint
 CREATE TRIGGER mapping_rule_sets_guard BEFORE UPDATE OR DELETE ON mapping_rule_sets
   FOR EACH ROW EXECUTE FUNCTION ie_mapping_rule_sets_guard();--> statement-breakpoint
 
--- Overrides are audited: never deleted; once recorded only the revocation fields may be set;
--- nothing changes once the rule set is frozen.
 CREATE OR REPLACE FUNCTION ie_manual_overrides_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -491,7 +443,6 @@ $$;--> statement-breakpoint
 CREATE TRIGGER spatial_manifests_guard BEFORE INSERT OR UPDATE OR DELETE ON spatial_manifests
   FOR EACH ROW EXECUTE FUNCTION ie_spatial_manifests_guard();--> statement-breakpoint
 
--- Element index rows of a published manifest are frozen with it.
 CREATE OR REPLACE FUNCTION ie_spatial_index_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -512,10 +463,6 @@ CREATE TRIGGER spatial_elements_guard BEFORE INSERT OR UPDATE OR DELETE ON spati
   FOR EACH ROW EXECUTE FUNCTION ie_spatial_index_guard();--> statement-breakpoint
 CREATE TRIGGER spatial_element_encodings_guard BEFORE INSERT OR UPDATE OR DELETE ON spatial_element_encodings
   FOR EACH ROW EXECUTE FUNCTION ie_spatial_index_guard();--> statement-breakpoint
-
--- =========================================================================================
--- Studies: demo isolation, activation preconditions, frozen protocol
--- =========================================================================================
 
 CREATE OR REPLACE FUNCTION ie_studies_guard()
 RETURNS trigger
@@ -623,8 +570,6 @@ $$;--> statement-breakpoint
 CREATE TRIGGER studies_guard BEFORE INSERT OR UPDATE OR DELETE ON studies
   FOR EACH ROW EXECUTE FUNCTION ie_studies_guard();--> statement-breakpoint
 
--- Conditions and the assessment battery are part of the protocol: editable only in draft.
--- The battery of a non-demo study may not contain demo assessments.
 CREATE OR REPLACE FUNCTION ie_study_protocol_children_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -635,7 +580,6 @@ DECLARE
 BEGIN
   SELECT * INTO s FROM studies
    WHERE id = CASE WHEN TG_OP = 'DELETE' THEN OLD.study_id ELSE NEW.study_id END;
-  -- Cascading delete of a draft study: the parent row is already gone.
   IF NOT FOUND THEN
     RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
   END IF;
@@ -657,7 +601,6 @@ CREATE TRIGGER study_conditions_guard BEFORE INSERT OR UPDATE OR DELETE ON study
 CREATE TRIGGER study_assessments_guard BEFORE INSERT OR UPDATE OR DELETE ON study_assessments
   FOR EACH ROW EXECUTE FUNCTION ie_study_protocol_children_guard();--> statement-breakpoint
 
--- Allocation happens only in an active study, and the recorded protocol version must match.
 CREATE OR REPLACE FUNCTION ie_allocations_insert()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -679,8 +622,6 @@ $$;--> statement-breakpoint
 CREATE TRIGGER allocations_insert BEFORE INSERT ON allocations
   FOR EACH ROW EXECUTE FUNCTION ie_allocations_insert();--> statement-breakpoint
 
--- Sessions inherit the study's snapshot/manifest (both conditions read one bundle); their
--- identity and version stamps never change afterwards.
 CREATE OR REPLACE FUNCTION ie_study_sessions_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -722,10 +663,6 @@ $$;--> statement-breakpoint
 CREATE TRIGGER study_sessions_guard BEFORE INSERT OR UPDATE ON study_sessions
   FOR EACH ROW EXECUTE FUNCTION ie_study_sessions_guard();--> statement-breakpoint
 
--- =========================================================================================
--- Assessment: locked instruments, rubrics and reference maps are immutable
--- =========================================================================================
-
 CREATE OR REPLACE FUNCTION ie_lockable_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -751,7 +688,6 @@ CREATE TRIGGER scoring_rubrics_guard BEFORE UPDATE OR DELETE ON scoring_rubrics
 CREATE TRIGGER reference_maps_guard BEFORE UPDATE OR DELETE ON reference_maps
   FOR EACH ROW EXECUTE FUNCTION ie_lockable_guard();--> statement-breakpoint
 
--- Children of a locked parent (items of an assessment, edges/raters of a reference map).
 CREATE OR REPLACE FUNCTION ie_locked_parent_guard()
 RETURNS trigger
 LANGUAGE plpgsql

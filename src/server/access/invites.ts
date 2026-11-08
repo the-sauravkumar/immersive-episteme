@@ -1,24 +1,3 @@
-/**
- * Invite codes service (deployment source change S11): create, list, revoke (Admin -> Access),
- * redeem (the /invite form and `?invite=` links) and the revocation check behind the server-side
- * gate.
- *
- * Rules:
- *  - administering codes needs `admin.users` (who may enter the site is account administration);
- *    the service re-checks it, and every create and revoke writes one audit_log row (never the
- *    code: only its four-character hint);
- *  - the code is returned once, by `createInvite`, and only its hash is stored;
- *  - a redemption is ONE conditional UPDATE (not revoked, not expired, under the use limit), so
- *    concurrent redemptions cannot exceed `max_uses`; a refused code says nothing about why, so
- *    the answer does not reveal whether a code exists;
- *  - revocation is immediate for new redemptions AND for browsers that already redeemed the code:
- *    the proxy reads `revoked_at` on every gated request (src/proxy.ts, DR-114), so a holder is
- *    sent to /invite on their next request; expiry only ends redemption: an invite cookie
- *    issued before the expiry stays valid for its own 30 days, so a participant is never shut out
- *    in the middle of a session because the code's sign-up window closed.
- *
- * Not `server-only`: unit tests drive it with a fake query function.
- */
 import type { Pool } from "pg";
 import { z } from "zod";
 
@@ -32,7 +11,6 @@ const blank = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefi
 export const createInviteInput = z.object({
   label: z.string().trim().min(1, "Enter a label").max(120, "Use at most 120 characters"),
   maxUses: z.preprocess(blank, z.coerce.number().int("Enter a whole number").min(1, "At least 1").max(100_000, "At most 100000").optional()),
-  /** Last day the code can be redeemed (UTC); it stops working at the end of that day. */
   expiresOn: z.preprocess(blank, z.iso.date("Enter a date").optional()),
   studyId: z.preprocess(blank, z.string().regex(UUID_RE, "Choose a study").optional()),
 });
@@ -40,14 +18,12 @@ export type CreateInviteInput = z.input<typeof createInviteInput>;
 
 export const revokeInviteInput = z.object({ inviteId: z.string().regex(UUID_RE, "Unknown code") });
 
-/** End of the given UTC day (the expiry instant stored for `expiresOn`). */
 export function endOfUtcDay(isoDate: string): Date {
   return new Date(`${isoDate}T23:59:59.999Z`);
 }
 
 export interface CreatedInvite {
   id: string;
-  /** The code in clear: shown once, never stored. */
   code: string;
   hint: string;
   studySlug: string | null;
@@ -182,7 +158,6 @@ export async function revokeInvite(pool: Pool, actor: Actor, raw: z.input<typeof
 
 export type RedeemResult = { ok: true; inviteId: string } | { ok: false; reason: "malformed" | "refused" };
 
-/** Redeems a code: counts one use and returns its id, or refuses (unknown, revoked, expired or used up). */
 export async function redeemInvite(q: Q, rawCode: unknown): Promise<RedeemResult> {
   const normalised = normaliseInviteCode(rawCode);
   if (!normalised) return { ok: false, reason: "malformed" };
@@ -200,7 +175,6 @@ export async function redeemInvite(q: Q, rawCode: unknown): Promise<RedeemResult
   return id ? { ok: true, inviteId: id } : { ok: false, reason: "refused" };
 }
 
-/** True while the redeemed code has not been revoked (the server-side half of the gate). */
 export async function inviteNotRevoked(q: Q, inviteId: string): Promise<boolean> {
   if (!UUID_RE.test(inviteId)) return false;
   const r = await q.query("SELECT 1 FROM invite_codes WHERE id = $1 AND revoked_at IS NULL", [inviteId]);
@@ -214,7 +188,6 @@ export interface StudyChoice {
   isDemo: boolean;
 }
 
-/** Draft and active studies a code can be made for (the Access page's study select; slug and title only). */
 export async function listStudyChoices(q: Q, actor: Actor): Promise<StudyChoice[]> {
   ensure(actor, "admin.users");
   const r = await q.query<{ id: string; slug: string; title: string; is_demo: boolean }>(

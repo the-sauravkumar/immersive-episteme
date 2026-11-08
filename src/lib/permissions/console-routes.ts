@@ -1,8 +1,3 @@
-/**
- * Staff console route map: which permission each CMS / research / admin route requires.
- * Used by the console layouts and pages (server-side enforcement) and by ConsoleShell (nav
- * filtering, cosmetic). One table, so the nav can never show a link the page would refuse.
- */
 import { canAny, type Subject } from "./can";
 import type { Permission } from "./permissions";
 
@@ -10,12 +5,9 @@ export const CONSOLE_AREAS = ["cms", "research", "admin"] as const;
 export type ConsoleArea = (typeof CONSOLE_AREAS)[number];
 
 export type ConsoleRoute = {
-  /** Path pattern; dynamic segments use the Next.js `[param]` form. */
   readonly path: string;
   readonly label: string;
-  /** Any-of: holding one of these grants access. */
   readonly anyOf: readonly Permission[];
-  /** Shown in the sidebar (detail pages are not). */
   readonly nav: boolean;
 };
 
@@ -85,37 +77,26 @@ export function consoleRoute(path: ConsolePath): ConsoleRoute {
   return route;
 }
 
-/** Every permission that opens at least one route in the area. */
 export function areaPermissions(area: ConsoleArea): Permission[] {
   return [...new Set(CONSOLE_ROUTES[area].flatMap((r) => r.anyOf))];
 }
 
-/** May the subject enter the area at all (i.e. see at least one of its routes)? */
 export function canEnterArea(subject: Subject | null | undefined, area: ConsoleArea): boolean {
   return CONSOLE_ROUTES[area].some((r) => canAny(subject, r.anyOf));
 }
 
-/** Nav items of an area the subject may open. */
 export function visibleNav(subject: Subject | null | undefined, area: ConsoleArea): ConsoleRoute[] {
   return CONSOLE_ROUTES[area].filter((r) => r.nav && canAny(subject, r.anyOf));
 }
 
-/** Areas the subject may enter, in display order. */
 export function enterableAreas(subject: Subject | null | undefined): ConsoleArea[] {
   return CONSOLE_AREAS.filter((a) => canEnterArea(subject, a));
 }
 
-/** Landing page for an area: the first nav route the subject may open, or null. */
 export function areaLanding(subject: Subject | null | undefined, area: ConsoleArea): string | null {
   return visibleNav(subject, area)[0]?.path ?? null;
 }
 
-/**
- * Where a signed-in staff member lands when no specific page was requested (after sign-in, or
- * from the area switcher): the first route they may open in their first enterable area. An
- * area root such as /research may need a permission the role lacks (a curator holds
- * `parity.run` but not `study.view`), so roots are never assumed. Null when nothing is open.
- */
 export function staffLanding(subject: Subject | null | undefined): string | null {
   for (const area of enterableAreas(subject)) {
     const landing = areaLanding(subject, area);
@@ -124,7 +105,6 @@ export function staffLanding(subject: Subject | null | undefined): string | null
   return null;
 }
 
-/** Route Handler that redirects a signed-in staff member to `staffLanding` (src/app/console). */
 export const STAFF_HOME = "/console";
 
 export const AWAITING_ACCESS_PATH = "/awaiting-access";

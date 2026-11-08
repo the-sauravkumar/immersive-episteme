@@ -1,11 +1,4 @@
-/**
- * Final review security-01: deleting a `__Host-` cookie must send `Secure` (and `Path=/`, no
- * `Domain`), or browsers ignore the deletion and the dead participant / demo / enrolment cookie
- * stays until it expires. Next's own `cookies().delete()` sends neither, so every delete goes
- * through `expiredCookie()`; this serialises it with Next's ResponseCookies in production mode.
- */
 import { afterEach, describe, expect, it, vi } from "vitest";
-// The cookie store Next uses for `cookies()` and `NextResponse.cookies`.
 import { ResponseCookies } from "next/dist/compiled/@edge-runtime/cookies";
 
 async function productionNames() {

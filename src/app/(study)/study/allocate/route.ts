@@ -1,13 +1,3 @@
-/**
- * GET /study/allocate: allocation after the condition-blind steps (study decision D3).
- *
- * The session hub sends the participant here when the blind steps are done and the session has
- * no condition yet. A Route Handler, because allocation must re-issue the signed participant
- * cookie with the condition (an RSC render cannot set cookies). It is idempotent: an allocated
- * session only gets its cookie re-issued. The participant is identified from the signed cookie
- * and the database, never from the request. A protocol error (the stratum score cannot be
- * computed) is shown on the hub, never silently bypassed.
- */
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 

@@ -1,8 +1,3 @@
-/**
- * Time accountant (exposure / navigation / pauses) and its wiring into the tracker: intervals
- * never overlap, pauses are excluded and logged, totals reconcile exactly, and intervals closed
- * by a page-exit handler are part of the exit beacon (no loss).
- */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MemoryOutbox, createTelemetryTracker, createTimeAccountant, type RawTrackFn } from "@/features/telemetry/client";
@@ -79,7 +74,7 @@ describe("time accountant", () => {
 
   it("reconciles exactly: elapsed = exposure + navigation + paused + idle", () => {
     const { acc, advance } = harness();
-    advance(250); // idle
+    advance(250);
     acc.beginExposure(C1, "overview");
     advance(4000);
     acc.pause("hidden");
@@ -88,8 +83,8 @@ describe("time accountant", () => {
     acc.beginNavigation("catalogue");
     advance(800);
     acc.end();
-    advance(100); // idle
-    acc.pause("blur"); // still paused at the end
+    advance(100);
+    acc.pause("blur");
     advance(50);
     const t = acc.totals();
     expect(t).toEqual({ elapsedMs: 6700, exposureMs: 4000, navigationMs: 800, pausedMs: 1550, idleMs: 350 });
@@ -165,7 +160,7 @@ describe("tracker timing integration", () => {
     await tracker.ready();
     tracker.timing.beginExposure(C1, "overview");
     tick(3000);
-    win.dispatchEvent(new Event("pagehide")); // synchronous: close interval, then beacon
+    win.dispatchEvent(new Event("pagehide"));
     expect(beacon).toHaveBeenCalledTimes(1);
     await vi.advanceTimersByTimeAsync(0);
     const types = beacons.flatMap((b) => b.events.map((e) => e.type));

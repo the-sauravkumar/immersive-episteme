@@ -1,6 +1,3 @@
-/**
- * Contract rules of the time-accounting and citation events.
- */
 import { randomUUID } from "node:crypto";
 
 import { describe, expect, it } from "vitest";

@@ -1,8 +1,3 @@
-/**
- * POST /api/telemetry/batch body limit (final review security-08): a chunked body with no
- * Content-Length is cut off at MAX_BATCH_BYTES while it streams (413), instead of being buffered
- * whole by request.text() first. Identity and storage are stubbed; only the route is under test.
- */
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -26,7 +21,6 @@ vi.mock("@/server/telemetry/ingest", () => ({
 
 const { POST } = await import("@/app/api/telemetry/batch/route");
 
-/** A streamed body of `total` bytes in 64 KiB chunks; counts how many bytes were pulled. */
 function stream(total: number) {
   const chunk = new Uint8Array(64 * 1024).fill(0x20);
   let sent = 0;

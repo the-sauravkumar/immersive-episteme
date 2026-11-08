@@ -1,8 +1,3 @@
-/**
- * Runs the registered seeds in db/seeds/index.ts (demo data only — see the rules there).
- *   npm run db:seed            -> DATABASE_URL
- *   npm run db:seed -- --test  -> TEST_DATABASE_URL
- */
 import { drizzle } from "drizzle-orm/node-postgres";
 
 import { seeds } from "../../db/seeds";

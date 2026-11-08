@@ -1,11 +1,3 @@
-/**
- * Data dictionary of the research export (exportSchemaVersion 1). One entry per table and
- * column; the CSV column order is the order here. `identifiedOnly` tables/columns appear only in
- * identified exports (principal investigator, `exports.identified`).
- *
- * Join keys: participant_code (pseudonym, unique within the study), session_id, condition_id,
- * concept_id (snapshot concept ids, listed in content_manifest.concepts), event_id.
- */
 import { HYPOTHESES, metricRoleTable, PRIMARY_OUTCOME, type MetricRole } from "@/features/research/metric-definitions";
 
 export type ColumnType = "uuid" | "text" | "integer" | "number" | "boolean" | "timestamp" | "json";
@@ -312,13 +304,6 @@ export function exportMetricRoles(metricNames: readonly string[]): ExportMetricR
 
 export const TABLE_BY_NAME: ReadonlyMap<string, TableSpec> = new Map(EXPORT_TABLES.map((t) => [t.name, t]));
 
-// ---------------------------------------------------------------------------------------------
-// Research dashboard tables (/research/dashboard). Not part of the export bundle: each is a
-// derived, pseudonymised table the dashboard offers as CSV (src/server/research/dashboard.ts),
-// preceded by one `#` comment line naming the study, the server time and the metric versions.
-// Metric definitions: src/features/research/metric-definitions.ts.
-// ---------------------------------------------------------------------------------------------
-
 const SUMMARY_COLUMNS: ColumnSpec[] = [
   c("section", "text", "Dashboard section (primary | secondary | knowledge | questionnaire | telemetry)."),
   c("metric", "text", "Metric key (dashboard Definitions panel)."),
@@ -402,11 +387,6 @@ export const DASHBOARD_TABLES: readonly (TableSpec & { name: DashboardTableName 
 
 export const DASHBOARD_TABLE_BY_NAME: ReadonlyMap<string, TableSpec> = new Map(DASHBOARD_TABLES.map((t) => [t.name, t]));
 
-/**
- * Dashboard rows 3 and 4 of DESIGN.md 11.9 (Figure 3 "Gain by Tradition", Table 2 "Per-Item
- * Statistics"), read from stored derived values by
- * src/server/research/dashboard-extra-tables.ts. Same CSV rules as the tables above.
- */
 export const DASHBOARD_EXTRA_TABLE_NAMES = ["dashboard_tradition_gain", "dashboard_items"] as const;
 
 export type DashboardExtraTableName = (typeof DASHBOARD_EXTRA_TABLE_NAMES)[number];

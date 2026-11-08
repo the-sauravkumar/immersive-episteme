@@ -1,10 +1,7 @@
-"""Expand quotes shorter than 8 words to the full sentence that contains them, taken verbatim
-from the reading-order extraction of the same page (flow/). Quotes that cannot be located in the
-reading-order text, or whose sentence is not cleanly bounded, are left unchanged and reported."""
 import json, glob, os, re, sys
 sys.stdout.reconfigure(encoding="utf-8")
 sys.path.insert(0, os.path.dirname(__file__))
-from verify_quotes import norm  # same normalisation the verifier uses
+from verify_quotes import norm
 
 R = os.path.dirname(os.path.abspath(__file__))
 MAXW = 60
@@ -22,7 +19,6 @@ for f in sorted(glob.glob(os.path.join(R, "extract", "*.json"))):
                 i = t.find(norm(q["quote"]))
                 if i < 0:
                     kept += 1; print("KEEP (not in reading-order text)", key, q["pdf_page"], q["quote"]); continue
-                # sentence start: after the last ". " / "? " / "! " before i; end: next terminator after the quote
                 starts = [m.end() for m in re.finditer(r"[.?!]\s+(?=[A-Z\"'(])", t[:i])]
                 s = starts[-1] if starts else max(0, t.rfind(" ", 0, max(0, i - 300)))
                 m = re.search(r"[.?!](?=\s|$)", t[i + len(norm(q["quote"])):])

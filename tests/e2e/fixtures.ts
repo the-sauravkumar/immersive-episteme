@@ -1,20 +1,3 @@
-/**
- * The shared Playwright `test` for every spec (DR-056). Import `test` and `expect` from here, not
- * from "@playwright/test", so the GPU check and the low-spec CPU throttle apply everywhere.
- *
- *  - gpuRenderer (worker, automatic): once per worker, before its first test, reads the unmasked
- *    WebGL renderer (WEBGL_debug_renderer_info) from the worker's browser and fails the worker with
- *    a clear message when it is not the project's GPU (metadata.gpu: Intel for low-spec, NVIDIA for
- *    the rest), including SwiftShader. Without metadata.gpu (software mode: CI, PW_GPU=0) it only
- *    records the renderer.
- *  - page: the built-in page with the project's CPU throttle applied through CDP
- *    (metadata.cpuThrottle, 4 in low-spec). Pages a spec opens itself with browser.newContext()
- *    are not throttled by this.
- *  - newContext(browser, options): browser.newContext() with the invite cookie (S11). A context a
- *    spec opens itself does not inherit the config's `use`, so without this it would land on the
- *    invite gate. Every spec opens its own contexts through it; a gate test passes
- *    `storageState: { cookies: [], origins: [] }` to start uninvited.
- */
 import { test as base, type Browser, type BrowserContext, type Page, type TestInfo } from "@playwright/test";
 
 import { rendererMismatch, type ExpectedGpu } from "./gpu-mode";
@@ -42,16 +25,14 @@ async function readRenderer(browser: Browser): Promise<string | null> {
 
 type ContextOptions = NonNullable<Parameters<Browser["newContext"]>[0]>;
 
-/** The storage state the config gives the built-in fixtures (use.storageState), else the invite file. */
 function configuredStorageState(): ContextOptions["storageState"] {
   try {
     return base.info().project.use.storageState ?? INVITE_STORAGE_STATE;
   } catch {
-    return INVITE_STORAGE_STATE; // outside a test or hook
+    return INVITE_STORAGE_STATE;
   }
 }
 
-/** browser.newContext() admitted through the invite gate; an explicit `storageState` wins. */
 export function newContext(browser: Browser, options: ContextOptions = {}): Promise<BrowserContext> {
   return browser.newContext({ storageState: configuredStorageState(), ...options });
 }

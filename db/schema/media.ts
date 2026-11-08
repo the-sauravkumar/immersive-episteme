@@ -1,14 +1,3 @@
-/**
- * Media: stored binary assets (object-storage key + checksum), their versions/derivatives,
- * links to concepts, and imported media candidates (content/FORMAT.md `media_candidates`)
- * awaiting licence review.
- *
- * Figure governance (DESIGN.md 9.9, 11.10, 12.3, 16; DR-018, DR-020; migration 0016):
- *  - `publicPlate`: cleared for public-page plates as well as study figures.
- *  - `sourceUrl` (already present): the record page the file was obtained from.
- *  - `asset_links.position` of an `illustration` link is the anchor claim index: the zero-based
- *    position of the claim the figure renders after, in both conditions.
- */
 import { sql } from "drizzle-orm";
 import {
   bigint,
@@ -57,7 +46,6 @@ export const assets = pgTable(
     width: integer(),
     height: integer(),
     durationMs: integer(),
-    /** Required for images and textures; '' marks a purely decorative image. */
     altText: text(),
     caption: text(),
     credit: text(),
@@ -65,7 +53,6 @@ export const assets = pgTable(
     licenceUrl: text(),
     sourceUrl: text(),
     sourceId: uuid(),
-    /** Cleared for public-page plates (study figures need no flag). */
     publicPlate: boolean().notNull().default(false),
     provenanceKind: provenanceKindEnum().notNull(),
     verificationState: verificationStateEnum().notNull().default("draft"),
@@ -102,7 +89,6 @@ export const assets = pgTable(
   ],
 );
 
-/** Immutable derivatives / revisions of an asset (original, web, thumb, ktx2, draco...). */
 export const assetVersions = pgTable(
   "asset_versions",
   {
@@ -145,7 +131,6 @@ export const assetLinks = pgTable(
   },
   (t) => [
     unique("asset_links_uq").on(t.assetId, t.conceptId, t.role),
-    /** For `illustration` links, position = the anchor claim index (zero-based). */
     check("asset_links_position_ck", sql`${t.position} >= 0`),
     foreignKey({
       name: "asset_links_asset_fk",
@@ -161,16 +146,6 @@ export const assetLinks = pgTable(
   ],
 );
 
-/**
- * The study photographs frozen into a RELEASE snapshot (migration 0019; final review knowledge-01,
- * database-01, security-02). `publishRelease` copies every illustration that is servable at
- * publication, with exactly what a learner sees (the anchor claim index and the resolved caption,
- * alt text, credit and licence lines, the pixel size and the file's sha256), while the snapshot is
- * still a draft; publishing freezes the rows (triggers in 0019). The read model serves a released
- * study's photographs only from here, so a caption edit, a re-anchored or new link, or a replaced
- * file never changes what a running study shows. Only removals stay live: the licence (expiry,
- * display cap, first-publication stamp) and a reviewer's withdrawal of the asset.
- */
 export const snapshotFigures = pgTable(
   "snapshot_figures",
   {
@@ -181,7 +156,6 @@ export const snapshotFigures = pgTable(
     assetId: uuid()
       .notNull()
       .references(() => assets.id, { onDelete: "restrict" }),
-    /** The anchor claim index (zero-based) in the snapshot's own claim list. */
     position: smallint().notNull(),
     caption: text().notNull(),
     altText: text().notNull(),
@@ -190,7 +164,6 @@ export const snapshotFigures = pgTable(
     licenceUrl: text(),
     width: integer().notNull(),
     height: integer().notNull(),
-    /** sha256 of the file at publication; a different file is never shown under this record. */
     sha256: text().notNull(),
     createdAt: createdAt(),
   },
@@ -207,7 +180,6 @@ export const snapshotFigures = pgTable(
   ],
 );
 
-/** Media referenced by imported content but not yet licence-checked or stored. */
 export const mediaCandidates = pgTable(
   "media_candidates",
   {
@@ -217,14 +189,11 @@ export const mediaCandidates = pgTable(
     title: text().notNull(),
     licence: text(),
     author: text(),
-    /** Concept key as given in the file (`depicts`), kept even if the concept is missing. */
     depictsKey: text(),
     depictsConceptId: uuid(),
-    /** Source pixel size from the file (FORMAT.md), so renderers keep the true aspect ratio. */
     width: integer(),
     height: integer(),
     mimeType: text(),
-    /** Where width/height came from, e.g. "Wikimedia Commons API imageinfo (2026-10-14)". */
     dimensionsSource: text(),
     status: mediaCandidateStatusEnum().notNull().default("candidate"),
     assetId: uuid(),
@@ -240,7 +209,6 @@ export const mediaCandidates = pgTable(
       columns: [t.packageId, t.isDemo],
       foreignColumns: [contentPackages.id, contentPackages.isDemo],
     }).onDelete("cascade"),
-    // Single-column FKs: a composite FK with SET NULL would also null is_demo.
     foreignKey({
       name: "media_candidates_concept_fk",
       columns: [t.depictsConceptId],

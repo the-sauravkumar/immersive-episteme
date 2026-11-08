@@ -1,17 +1,3 @@
-/**
- * Knowledge-domain contracts (Zod). Three groups:
- *
- *  1. Interchange format v1 — the JSON files in content/ (content/FORMAT.md). The importer
- *     validates each file with `contentPackageFileSchema`, then resolves concept keys across
- *     files with `checkCrossFileReferences`. Imported content is stored as `under_review` /
- *     `needs_evidence`; a file's `verified` arrives as `under_review`, never as verified.
- *  2. Authoring inputs — what the CMS submits to create or edit graph entities, plus the
- *     review-state machine (`VERIFICATION_TRANSITIONS`).
- *  3. Knowledge bundle v1 — the canonical JSON frozen into `content_snapshots.payload` and
- *     produced by the knowledge-graph export. Both learning conditions read only this.
- *
- * Documented in docs/architecture/knowledge-schema.md. Mirrors db/schema/knowledge.ts.
- */
 import { z } from "zod";
 
 import {
@@ -43,15 +29,6 @@ export const conceptTypeSchema = z.enum(CONCEPT_TYPES);
 export const knowledgeCategoryCodeSchema = z.enum(KNOWLEDGE_CATEGORY_CODES);
 export const relationshipSemanticsSchema = z.enum(RELATIONSHIP_SEMANTICS);
 
-// =========================================================================================
-// Review state machine
-// =========================================================================================
-
-/**
- * Allowed review transitions. Enforced by the CMS service; the database additionally refuses
- * accepted states (verified/published) without an acting user, a sourced claim and a real
- * provenance kind (migration 0003).
- */
 export const VERIFICATION_TRANSITIONS: Record<VerificationState, readonly VerificationState[]> = {
   draft: ["under_review", "archived"],
   under_review: ["verified", "needs_evidence", "rejected", "draft"],
@@ -84,10 +61,6 @@ export const verificationTransitionSchema = z
   });
 export type VerificationTransition = z.infer<typeof verificationTransitionSchema>;
 
-// =========================================================================================
-// 1. Interchange format v1 (content/FORMAT.md)
-// =========================================================================================
-
 export const IMPORTABLE_STATES = ["under_review", "needs_evidence"] as const;
 export type ImportableState = (typeof IMPORTABLE_STATES)[number];
 
@@ -97,12 +70,6 @@ const importableStateSchema = z.enum(FILE_STATES);
 
 export const importedState = (state: FileState): ImportableState => (state === "verified" ? "under_review" : state);
 
-/**
- * File-local source id ("S1"). content/comparisons.json qualifies ids borrowed from a
- * tradition file with that file's slug ("ajrakh:S1"); the full source entry is repeated in
- * the comparisons file, so the id is still resolvable within the file. Stored verbatim in
- * sources.local_key (scoped by package); the importer may link it to the tradition's row.
- */
 const localSourceIdSchema = z
   .string()
   .regex(/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z][A-Za-z0-9_-]{0,31}$/, "Source ids look like S1 or <slug>:S1");
@@ -120,10 +87,6 @@ export const formatSourceSchema = z.object({
   notes: z.string().nullish(),
 });
 
-/**
- * A located, verbatim passage from one of the claim's sources that supports it
- * (docs/research/citation-policy.md). `note` tells the curator what to check by hand.
- */
 export const formatEvidenceSchema = z.object({
   source_id: localSourceIdSchema,
   locator: nonBlank(300),
@@ -158,7 +121,6 @@ export const formatConceptSchema = z
     provenance_kind: provenanceKindSchema,
     verification_state: importableStateSchema,
     claims: z.array(formatClaimSchema).min(1, "Every concept carries at least one sourced claim"),
-    /** comparison concepts only (content/comparisons.json). */
     compares: z.array(conceptKeySchema).optional(),
   })
   .superRefine((c, ctx) => {
@@ -170,14 +132,6 @@ export const formatConceptSchema = z
     }
   });
 
-/**
- * A located, verbatim passage that supports a relationship, from one of the sources it lists
- * (FORMAT.md "Relationship evidence"). The importer writes it into that citation's
- * `relationship_sources` row, which holds ONE locator and ONE quote per source; so at most one
- * entry per source, the quote is limited like every stored quote (≤ 25 words, db:
- * relationship_sources_quote_ck), the locator like the CMS field (≤ 200 characters), and unknown
- * keys (such as a claim evidence `note`, which has no column here) are refused, not dropped.
- */
 export const formatRelationshipEvidenceSchema = z.strictObject({
   source_id: localSourceIdSchema,
   locator: nonBlank(200),
@@ -195,7 +149,6 @@ export const formatRelationshipSchema = z
     provenance_kind: provenanceKindSchema,
     verification_state: importableStateSchema,
     source_ids: z.array(localSourceIdSchema).default([]),
-    /** Optional; files written before it parse with []. */
     evidence: z.array(formatRelationshipEvidenceSchema).default([]),
   })
   .superRefine((r, ctx) => {
@@ -217,11 +170,9 @@ export const formatMediaCandidateSchema = z.object({
   licence: z.string().nullish(),
   author: z.string().nullish(),
   depicts: conceptKeySchema.nullish(),
-  /** Source pixel size, so renderers keep the true aspect ratio (no stretching). */
   width: z.number().int().positive().nullish(),
   height: z.number().int().positive().nullish(),
   mime: z.string().nullish(),
-  /** Where width/height came from, e.g. "Wikimedia Commons API imageinfo (2026-10-14)". */
   dimensions_source: z.string().nullish(),
 });
 
@@ -241,7 +192,6 @@ export const formatGiSchema = z.object({
   source_ids: z.array(localSourceIdSchema).default([]),
 });
 
-/** One file: content/traditions/<slug>/tradition.json, content/shared/*.json, content/comparisons.json. */
 export const contentPackageFileSchema = z
   .object({
     format_version: z.literal(1),
@@ -285,7 +235,6 @@ export const contentPackageFileSchema = z
   });
 export type ContentPackageFile = z.infer<typeof contentPackageFileSchema>;
 
-/** Problems that need every file at once (concept keys referenced across files). */
 export function checkCrossFileReferences(files: readonly ContentPackageFile[]): string[] {
   const problems: string[] = [];
   const owner = new Map<string, string>();
@@ -310,10 +259,6 @@ export function checkCrossFileReferences(files: readonly ContentPackageFile[]): 
   }
   return problems;
 }
-
-// =========================================================================================
-// 2. Authoring inputs (CMS)
-// =========================================================================================
 
 const demoRefine =
   (slugField: "slug" | "key", titleField: "title" | "name") =>
@@ -459,18 +404,9 @@ export const relationshipInputSchema = z
   });
 export type RelationshipInput = z.infer<typeof relationshipInputSchema>;
 
-// =========================================================================================
-// 3. Knowledge bundle v1 (content_snapshots.payload, knowledge-graph export)
-// =========================================================================================
-
 export const KNOWLEDGE_BUNDLE_SCHEMA_VERSION = 1 as const;
 
-/** A located verbatim passage from a cited source (content/FORMAT.md "Claim evidence"). */
 export const bundleEvidenceSchema = z.object({ locator: z.string(), quote: z.string(), note: z.string().nullable() });
-/**
- * A claim's citation of one source. `evidence` holds the supporting passages in file order;
- * `locator` is the first passage's locator. Snapshots built before evidence existed parse with [].
- */
 const bundleSourceRefSchema = z.object({ sourceId: uuidSchema, locator: z.string().nullish(), evidence: z.array(bundleEvidenceSchema).default([]) });
 
 const bundleCategorySchema = z.object({
@@ -618,7 +554,6 @@ export const knowledgeBundleSchema = z
   });
 export type KnowledgeBundle = z.infer<typeof knowledgeBundleSchema>;
 
-/** Row describing one entity frozen into a snapshot (snapshot_items). */
 export const snapshotItemSchema = z.object({
   itemKind: z.enum(["tradition", "category", "concept", "relationship_type", "relationship", "source", "claim", "asset"]),
   entityRef: z.string().min(1),
@@ -627,7 +562,6 @@ export const snapshotItemSchema = z.object({
 });
 export type SnapshotItem = z.infer<typeof snapshotItemSchema>;
 
-/** URL slug derived from a concept key: `bagru.process_stage.washing` -> `bagru-process-stage-washing`. */
 export function slugFromConceptKey(key: string): string {
   return key.replace(/[._]/g, "-");
 }

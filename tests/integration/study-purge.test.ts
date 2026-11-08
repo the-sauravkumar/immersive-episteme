@@ -1,8 +1,3 @@
-/**
- * Integration: participant data removal (src/server/study/purge.ts; final review database-04 /
- * study-08, DR-030) against a throwaway database: on request and after the retention period,
- * what is removed and what is kept, the journal entry, and the refusals.
- */
 import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -52,7 +47,6 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
 
   const count = async (sql: string, params: unknown[]) => (await one<{ n: number }>(t.pool, `SELECT count(*)::int AS n FROM ${sql}`, params)).n;
 
-  /** A participant with data in every table the purge covers. */
   async function fullParticipant(): Promise<OpenedSession> {
     const p = await enrolParticipant(t.pool, study);
     await recordConsent(t.pool, { participantId: p.participantId, study, decision: "granted", shownVersion: CONSENT.version });
@@ -63,7 +57,6 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
     await completeOnboarding(t.pool, s.sessionId);
     await visitEveryStage(t.pool, s.sessionId);
     await finishLearning(t.pool, s.sessionId);
-    // A final post map with an edge (revisions by trigger), a derived score on it.
     const nodes = conceptIds.map((c, i) => ({ key: `n${i}`, conceptId: c, label: `c${i}`, x: 0, y: 0 }));
     const m = await one<{ id: string }>(
       t.pool,
@@ -79,7 +72,6 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
       "INSERT INTO derived_scores (session_id, participant_id, assessment_id, concept_map_id, metric_name, metric_version, value, pipeline_version) VALUES ($1, $2, $3, $4, 'cmap.edges_test', '1', 1, 'test')",
       [s.sessionId, s.participantId, ids["pu-recon"], m.id],
     );
-    // Telemetry: a batch, an event, a quarantined event, a gap.
     const condition = await one<{ condition_id: string }>(t.pool, "SELECT condition_id FROM study_sessions WHERE id = $1", [s.sessionId]);
     const b = await one<{ id: string }>(
       t.pool,
@@ -156,7 +148,6 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
     for (const table of tables) expect(await count(`${table} WHERE session_id = $1`, [s.sessionId]), table).toBe(0);
     expect(await count("study_sessions WHERE id = $1", [s.sessionId])).toBe(0);
     expect(await count("concept_map_revisions r JOIN concept_maps m ON m.id = r.concept_map_id WHERE m.participant_id = $1", [s.participantId])).toBe(0);
-    // Kept: the pseudonymous participant row, consent, allocation, journal.
     expect(await count("participants WHERE id = $1", [s.participantId])).toBe(1);
     expect(await count("consent_records WHERE participant_id = $1", [s.participantId])).toBe(1);
     expect(await count("allocations WHERE participant_id = $1", [s.participantId])).toBe(1);
@@ -167,10 +158,8 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
       [s.participantId],
     );
     expect(entry).toMatchObject({ actor_id: pi, reason: "participant asked for removal", after: { trigger: "request" } });
-    // Nobody else's data is touched.
     expect(await count("responses WHERE participant_id = $1", [other.participantId])).toBeGreaterThan(0);
     expect(await count("telemetry_events WHERE session_id = $1", [other.sessionId])).toBe(1);
-    // A second removal finds nothing left.
     await expect(purgeParticipantData(t.pool, { studyId: study.id, participant: s.participantId, reason: "again please", actorId: pi, trigger: "request" })).rejects.toBeInstanceOf(PurgeError);
   });
 
@@ -179,7 +168,6 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
     await expect(purgeParticipantData(t.pool, { studyId: study.id, participant: s.participantId, reason: "asked for removal", actorId: pi, trigger: "request" })).rejects.toThrow(/still taking part/);
     await expect(purgeParticipantData(t.pool, { studyId: study.id, participant: s.participantId, reason: " ", actorId: pi, trigger: "request" })).rejects.toThrow(/reason/);
     await expect(purgeParticipantData(t.pool, { studyId: study.id, participant: "P-NOSUCHCODE", reason: "asked for removal", actorId: pi, trigger: "request" })).rejects.toThrow(/No participant/);
-    // After withdrawal the removal goes through.
     await withdraw(t.pool, { participantId: s.participantId, sessionId: s.sessionId, reason: "no_longer_wish_to_take_part" });
     const r = await purgeParticipantData(t.pool, { studyId: study.id, participant: s.participantId, reason: "asked for removal", actorId: pi, trigger: "request" });
     expect(r.rows.study_sessions).toBe(1);
@@ -188,7 +176,7 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
   it("lists and removes the participants whose retention period has passed", async () => {
     const ended = await fullParticipant();
     await completeSession(t.pool, ended.sessionId);
-    const running = await fullParticipant(); // still in a session: never due
+    const running = await fullParticipant();
     const in31Days = new Date(Date.now() + 31 * 24 * 3600 * 1000);
     expect((await listRetentionDue(t.pool, study.id)).due.map((d) => d.participantId)).not.toContain(ended.participantId);
     const due = await listRetentionDue(t.pool, study.id, in31Days);

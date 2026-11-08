@@ -1,25 +1,3 @@
-"""Check every evidence quote of one tradition file against an archive of its own recorded sources.
-
-usage: python -I verify_tradition.py <tradition.json> <archive dir> <out.json>
-
-The archive dir holds archive.json: {"<source id>": {"html": "<file>", "pdf": "<file>", "openalex": "<file>", "pages": "<dir>"}},
-naming the archived copy of each recorded source (any key may be absent). "pages" is a directory of p1.txt..pN.txt,
-the per-page text extracted from a PDF whose copy is no longer served, checked like a PDF's pages. A quote passes only at its locator:
-  - 'PDF p. N': on page N of the archived PDF alone (pdftotext pages split at form feeds, read with
-    both UTF-8 and Latin1 output encodings: the Latin1 text drops the glyphs a scanned text layer maps
-    outside Latin-1 and keeps ',,' for low double quotes, as the 2026-10-14 extraction did);
-  - 'PDF pp. N-M': on pages N to M read as one run of text;
-  - 'Abstract ...': in the abstract of an archived OpenAlex record (key "openalex");
-  - '§ "<heading>"' (with an optional '(occurrence k of n)'): inside the section that follows that
-    h1-h4 heading in the archived HTML, or that bold subheading (a paragraph or line break holding only
-    bold or italic text, as article pages mark their sections), up to the next such heading (the k-th such
-    section when given);
-Normalisation is norm() from verify_quotes.py: ligatures, quote marks, dashes, soft hyphens,
-line-end hyphenation and whitespace only. A claim's own `quote` passes when it is found anywhere in
-one of the claim's sources (its locators are reported). Each quote that fails is searched for in the whole
-source, so the report says where it really is. Every claim also gets a width list: the content
-words of the claim that none of its quotes contain, which a reader then judges against the quotes.
-"""
 import hashlib, html, json, os, re, subprocess, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

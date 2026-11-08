@@ -1,12 +1,3 @@
-/**
- * WP6 (DESIGN.md 11.10, 12.3 rule 9):
- *  - the concept editor's Proof renders the real KnowledgeSheet, and its "Preview as: 2D column |
- *    3D panel" switch changes only the container: the sheet's DOM is identical in both placements;
- *    the proof never moves focus into itself (autoFocusTitle off);
- *  - the Figure Balance matrix shows the engine's counts with the value printed in every cell, in
- *    canonical tradition order, and an unbalanced row says so in words with an icon.
- * Fixtures are the placeholder knowledge-graph fixtures (no craft facts).
- */
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
@@ -21,7 +12,6 @@ import { fixtureView } from "../knowledge/harness";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/cms/concepts/x", useRouter: () => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }) }));
 vi.mock("next/link", () => ({ default: ({ href, children, ...rest }: { href: string; children: ReactNode }) => <a href={href} {...rest}>{children}</a> }));
-// The figure-balance module also exports a server loader; its server imports are not exercised here.
 vi.mock("@/server/content/review-snapshot", () => ({ buildReviewSnapshotFromDb: vi.fn() }));
 vi.mock("@/server/cms/media/service", () => ({ listIllustrationLinks: vi.fn() }));
 
@@ -40,7 +30,6 @@ function sheet() {
   );
 }
 
-/** Normalises React's generated ids (useId) so two renders can be compared. */
 function normalise(html: string): string {
   const ids = new Map<string, string>();
   return html.replace(/(«r[0-9a-z]+»|_r_[0-9a-z]+_|:r[0-9a-z]+:)/g, (m) => {
@@ -54,7 +43,6 @@ describe("ProofFrame: one sheet, two placements", () => {
     const user = userEvent.setup();
     const before = document.activeElement;
     const { container } = render(<ProofFrame sheet={sheet()} />);
-    // The proof never takes focus when the editor opens.
     expect(document.activeElement).toBe(before);
 
     const visible = () => container.querySelector<HTMLElement>("[data-slot=proof-viewport]")!;
@@ -101,7 +89,6 @@ describe("FigureBalanceMatrix", () => {
     expect(within(process).getByText(UNBALANCED_TEXT)).toBeInTheDocument();
     const context = within(table).getByRole("rowheader", { name: "context" }).closest("tr")!;
     expect(within(context).getByText("Balanced")).toBeInTheDocument();
-    // Totals: 3, 3, 2 differ.
     expect(within(table).getByText("Totals differ")).toBeInTheDocument();
   });
 

@@ -1,9 +1,3 @@
-/**
- * Integration: staff accounts through Better Auth's real HTTP handler against episteme_test.
- * Covers the bootstrap path used by scripts/create-admin.ts, many-roles-per-user, sign-in
- * cookies (httpOnly, Secure + __Secure- prefix when secure), disabled sign-up, locked accounts
- * and the database-backed rate limit on sign-in.
- */
 import { eq, inArray, like } from "drizzle-orm";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
@@ -31,7 +25,6 @@ function post(path: string, body: unknown, ip: string, cookie?: string) {
   });
 }
 
-/** Every email these tests sign in with (their throttle rows are removed afterwards). */
 const THROTTLED_EMAILS = ["admin", "curator", "secure", "locked", "nobody", "target", "resets", "owner", "unlocked", ...Array.from({ length: 8 }, (_, i) => `rot${i}`)];
 
 function sessionCookieFrom(res: Response): string {
@@ -94,7 +87,6 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
     expect(await revokeRole(db, first.userId, "research_analyst")).toBe(false);
     expect(await loadUserRoles(db, first.userId)).toEqual(["platform_admin"]);
 
-    // The original password still works (a re-run never overwrites it).
     const res = await auth.handler(post("/sign-in/email", { email: email("admin"), password: PASSWORD }, "198.51.100.1"));
     expect(res.status).toBe(200);
   });
@@ -187,7 +179,6 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
     expect(statuses.slice(5)).toEqual([429, 429]);
     const rows = await db.select().from(authRateLimits).where(like(authRateLimits.key, `%${ip}%`));
     expect(rows.length).toBeGreaterThan(0);
-    // Another IP is unaffected.
     const other = await auth.handler(
       post("/sign-in/email", { email: email("nobody"), password: "wrong password entirely" }, "198.51.100.98"),
     );
@@ -196,7 +187,6 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
   });
 
   it("keys the IP limit on the proxy-appended hop, so a rotating spoofed X-Forwarded-For still hits 429", async () => {
-    // Behind a reverse proxy at 203.0.113.250 that appends the address it saw (198.51.100.77).
     const proxied = createAuth({ db, secret: SECRET, baseURL: BASE, secureCookies: false, trustedProxies: ["203.0.113.250"] });
     const statuses: number[] = [];
     for (let i = 0; i < 8; i++) {
@@ -208,7 +198,6 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
     }
     expect(statuses.slice(0, 5)).toEqual([401, 401, 401, 401, 401]);
     expect(statuses.slice(5)).toEqual([429, 429, 429]);
-    // The bucket is the real client, never a spoofed value.
     const keys = (await db.select().from(authRateLimits).where(like(authRateLimits.key, "%sign-in%"))).map((r) => r.key);
     expect(keys.some((k) => k.startsWith("198.51.100.77|"))).toBe(true);
     expect(keys.some((k) => k.startsWith("192.0.2."))).toBe(false);
@@ -225,12 +214,10 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
     }
     expect(statuses.slice(0, 10).every((s) => s === 401)).toBe(true);
     expect(statuses[10]).toBe(429);
-    // Locked: even the right password from a fresh IP is refused, with a Retry-After.
     const locked = await auth.handler(post("/sign-in/email", { email: email("TARGET"), password: PASSWORD }, "198.51.100.140"));
     expect(locked.status).toBe(429);
     expect(Number(locked.headers.get("retry-after"))).toBeGreaterThan(0);
 
-    // A successful sign-in clears the counter.
     await createStaffAccount(auth, db, { email: email("resets"), name: "R", password: PASSWORD, role: "curator" });
     for (let i = 0; i < 3; i++) {
       await auth.handler(post("/sign-in/email", { email: email("resets"), password: "wrong password entirely" }, `198.51.100.${150 + i}`));
@@ -243,7 +230,6 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
 
   it("a stranger's lock does not shut out the owner's known browser (security-09)", async () => {
     await createStaffAccount(auth, db, { email: email("owner"), name: "O", password: PASSWORD, role: "principal_investigator" });
-    // The owner signed in from this browser before: it now carries the signed known-device cookie.
     const first = await auth.handler(post("/sign-in/email", { email: email("owner"), password: PASSWORD }, "198.51.100.170"));
     expect(first.status).toBe(200);
     const deviceRaw = first.headers.getSetCookie().find((c) => c.includes("known_device="));
@@ -252,16 +238,13 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
     expect(deviceRaw).not.toContain(email("owner"));
     const device = deviceRaw!.split(";")[0]!;
 
-    // A stranger who only knows the email locks it from rotating IPs.
     for (let i = 0; i < 11; i++) {
       await auth.handler(post("/sign-in/email", { email: email("owner"), password: "wrong password entirely" }, `198.51.100.${171 + i}`));
     }
     const stranger = await auth.handler(post("/sign-in/email", { email: email("owner"), password: PASSWORD }, "198.51.100.190"));
     expect(stranger.status).toBe(429);
-    // A forged or foreign device cookie does not help.
     const forged = await auth.handler(post("/sign-in/email", { email: email("owner"), password: PASSWORD }, "198.51.100.192", `${device.split("=")[0]}=${signInThrottleKey(email("owner"))}.bad`));
     expect(forged.status).toBe(429);
-    // The owner's browser is counted in its own bucket and still gets in with the right password.
     const owner = await auth.handler(post("/sign-in/email", { email: email("owner"), password: PASSWORD }, "198.51.100.191", device));
     expect(owner.status).toBe(200);
   });

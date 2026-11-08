@@ -1,8 +1,3 @@
-/**
- * Applies pending Drizzle migrations from db/migrations.
- *   npm run db:migrate            -> DATABASE_URL
- *   npm run db:migrate -- --test  -> TEST_DATABASE_URL
- */
 import { makePool, redact, resolveDatabaseUrl, runMigrations } from "./_shared";
 
 async function main(): Promise<void> {

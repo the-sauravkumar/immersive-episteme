@@ -1,9 +1,5 @@
 "use server";
 
-/**
- * Admin server actions. Each one: assertPermission (runAction) -> Zod -> service (which
- * re-checks the permission and writes the audit row in the same transaction) -> refresh().
- */
 import type { ActionState } from "@/components/cms/action-state";
 import { ROLE_LABELS } from "@/lib/permissions/roles";
 import { getAuth } from "@/server/auth";
@@ -26,12 +22,6 @@ import {
   userIdInput,
 } from "./users";
 
-/**
- * Typed confirmation (DESIGN.md 11.11): destructive admin actions carry a `confirm` field that must
- * equal the target account's email address (trimmed, case-insensitive). The form keeps its button
- * inactive until it matches; this is the server-side check, so a forged or stale submission is
- * refused with a field error and nothing is written.
- */
 const CONFIRM_MISMATCH = "confirm_mismatch";
 
 interface EmailQuery {
@@ -46,7 +36,6 @@ async function assertConfirmed(pool: EmailQuery, userId: string, confirm: unknow
   if (typed !== email.trim().toLowerCase()) throw new CmsError(CONFIRM_MISMATCH, "Type the account's email address exactly to confirm.", 422);
 }
 
-/** A confirmation refusal is reported on the `confirm` field as well as in the form's alert. */
 function withConfirmField(state: ActionState): ActionState {
   return state && !state.ok && state.code === CONFIRM_MISMATCH ? { ...state, fieldErrors: { confirm: [state.error ?? ""] } } : state;
 }

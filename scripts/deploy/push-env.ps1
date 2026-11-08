@@ -1,52 +1,3 @@
-<#
-.SYNOPSIS
-  Adds every variable of a production env file to the linked Vercel project with `vercel env add`.
-
-.DESCRIPTION
-  Reads the file with the kit's dotenv parser (scripts/deploy/lib/env-json.ts), checks each name
-  against the catalogue in scripts/deploy/lib/env-catalog.ts, and for each accepted variable runs
-
-      vercel env add <NAME> <environment> --sensitive|--no-sensitive [--force] --yes
-
-  writing the value to the CLI's standard input (no trailing newline). Values never appear on a
-  command line, in the console or in a temporary file. Secrets (DATABASE_URL, DATABASE_URL_UNPOOLED,
-  BETTER_AUTH_SECRET, MEDIA_S3_ACCESS_KEY_ID, MEDIA_S3_SECRET_ACCESS_KEY) go in as Secret
-  (--sensitive), the rest as
-  Config (--no-sensitive). Flags as documented at https://vercel.com/docs/cli/env:
-    "The `--sensitive` and `--no-sensitive` flags map to Secret and Config."
-    "The `--force` option overwrites an existing environment variable of the same target without
-     prompting for confirmation."
-
-  Refuses names that must never be on Vercel (NODE_ENV, TEST_DATABASE_URL, AUTH_TRUSTED_PROXIES,
-  AWS_ACCESS_KEY_ID, ...), VERCEL_* system names and anything not in the catalogue.
-  MEDIA_S3_ENDPOINT and MEDIA_S3_FORCE_PATH_STYLE are accepted (Cloudflare R2).
-
-  Neon: add the database by signing up at neon.com, NOT through the Vercel Marketplace
-  integration, which writes its own DATABASE_URL (owner role) into every environment; this script
-  sets DATABASE_URL and DATABASE_URL_UNPOOLED for the episteme_app role instead.
-
-  The Vercel CLI is pinned (vercel@60.1.3, published 2026-09-26; its `env add --help` lists
-  --sensitive, --no-sensitive, --force, --value and --yes). Secrets are piped into this exact
-  version, never into whatever `@latest` resolves to on the day.
-
-  -Environment preview needs a SEPARATE env file whose name contains "preview" (scratch database,
-  preview origin), so a production DATABASE_URL can never reach every branch's preview build.
-
-  -DryRun prints the plan (names, types, byte sizes) and runs nothing against Vercel. A real run
-  needs -Yes, a logged-in CLI and a linked project (.vercel/project.json), because it changes
-  production configuration: confirm with the project lead first (vercel-deploy skill).
-
-  Env changes reach only NEW deployments (https://vercel.com/docs/environment-variables: "Any
-  change you make to environment variables are not applied to previous deployments, they only
-  apply to new deployments."), so redeploy afterwards.
-
-.EXAMPLE
-  powershell -File scripts\deploy\push-env.ps1 -EnvFile $HOME\.episteme\production.env -DryRun
-.EXAMPLE
-  powershell -File scripts\deploy\push-env.ps1 -EnvFile $HOME\.episteme\production.env -BuildVersionFromGit -Yes
-.EXAMPLE
-  powershell -File scripts\deploy\push-env.ps1 -EnvFile $HOME\.episteme\production.env -Only APP_BUILD_VERSION -BuildVersionFromGit -Force -Yes
-#>
 [CmdletBinding()]
 param(
   [Parameter(Mandatory = $true)][string]$EnvFile,
@@ -84,12 +35,10 @@ function Invoke-EnvJson([bool]$withValues) {
   Push-Location $repo
   try { $out = & npx --no-install @a } finally { Pop-Location }
   if ($LASTEXITCODE -ne 0) { throw "env-json.ts failed (exit $LASTEXITCODE)" }
-  # ConvertFrom-Json quotes the offending text in its error; with values in it, that would print
-  # secrets. Replace the message.
+
   try { return (($out -join "`n") | ConvertFrom-Json) } catch { throw 'env-json.ts output was not valid JSON (content withheld).' }
 }
 
-# ---- Plan (no values) -------------------------------------------------------------------------
 $plan = Invoke-EnvJson $false
 $items = @($plan.items)
 if ($Only) {
@@ -126,14 +75,12 @@ if ($DryRun) {
   if ($blocked.Count -gt 0) { exit 1 } else { exit 0 }
 }
 
-# ---- Real run -----------------------------------------------------------------------------------
 if (-not $Yes) { throw 'Refusing to change Vercel configuration without -Yes (confirm with the project lead first). Use -DryRun to preview.' }
 if ($blocked.Count -gt 0) { throw "Fix the env file first: $($blocked -join '; ')" }
 $projectFile = Join-Path $repo '.vercel\project.json'
 if (-not (Test-Path $projectFile)) { throw 'Project not linked: run `npx vercel@60.1.3 link` in the repo first (RUNBOOK step 6).' }
 $proj = Get-Content -Raw $projectFile | ConvertFrom-Json
 Write-Host "Linked project: $($proj.projectName) (projectId $($proj.projectId), orgId $($proj.orgId)) -> $Environment"
-
 
 function Invoke-Vercel([string]$arguments, [string]$stdin) {
   $psi = New-Object System.Diagnostics.ProcessStartInfo
@@ -169,7 +116,7 @@ foreach ($i in $items | Where-Object { $_.action -eq 'push' }) {
   $value = $values[$i.name]
   $r = Invoke-Vercel "env add $($i.name) $Environment $flag$f --yes" $value
   $msg = $r.Out
-  if ($value -and $value.Length -ge 4) { $msg = $msg.Replace($value, '***') }   # defence in depth
+  if ($value -and $value.Length -ge 4) { $msg = $msg.Replace($value, '***') }
   $last = ($msg -split "`n" | Where-Object { $_.Trim() } | Select-Object -Last 1)
   if ($r.Code -eq 0) {
     Write-Host ("OK    {0,-28} {1}" -f $i.name, $(if ($i.kind -eq 'secret') { 'Secret' } else { 'Config' }))

@@ -1,14 +1,7 @@
-/**
- * Shared database helpers for the research console services. Services take a `Q` (pool or
- * client) so they run unchanged in Server Actions (getPool()) and in integration tests
- * (tests/integration/schema-harness.ts). Not `server-only` for that reason; nothing here is
- * importable from client code because it needs a database handle.
- */
 import type { Pool, PoolClient } from "pg";
 
 export type Q = Pick<Pool | PoolClient, "query">;
 
-/** Runs `fn` in a transaction on a dedicated client (or reuses a client already in one). */
 export async function inTransaction<T>(pool: Pool | PoolClient, fn: (c: PoolClient) => Promise<T>): Promise<T> {
   if (!("connect" in pool) || typeof (pool as Pool).totalCount !== "number") return fn(pool as PoolClient);
   const client = await (pool as Pool).connect();
@@ -25,16 +18,10 @@ export async function inTransaction<T>(pool: Pool | PoolClient, fn: (c: PoolClie
   }
 }
 
-/** True for a pg Pool, false for a single client (the same test `inTransaction` uses). */
 function isPool(q: Q): boolean {
   return "connect" in q && typeof (q as Pool).totalCount === "number";
 }
 
-/**
- * Runs independent queries: concurrently on a pool (each takes its own connection), one after
- * another on a single client. pg queues concurrent queries on one client but deprecates it
- * ("removed in pg@9.0"), and a client inside a transaction must not be shared anyway.
- */
 export async function queryAll<const T extends readonly (() => unknown)[]>(
   q: Q,
   fns: T,
@@ -50,7 +37,6 @@ export interface Actor {
   userId: string;
 }
 
-/** Appends an audit_log row (append-only by trigger). */
 export async function audit(
   q: Q,
   actor: Actor | null,
@@ -75,7 +61,6 @@ export async function audit(
   );
 }
 
-/** A refusal the console shows to the user verbatim (validation or a guarded transition). */
 export class ResearchActionError extends Error {
   constructor(
     message: string,
@@ -86,7 +71,6 @@ export class ResearchActionError extends Error {
   }
 }
 
-/** Postgres raises from ie_raise() arrive as errors with a readable message; surface it. */
 export function dbMessage(err: unknown): string {
   if (err instanceof ResearchActionError) return err.message;
   const e = err as { message?: string; code?: string };

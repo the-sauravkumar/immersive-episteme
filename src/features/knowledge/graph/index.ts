@@ -1,8 +1,3 @@
-/**
- * Knowledge-graph validation and snapshot building (runtime-neutral entry point).
- * Node-only helpers live in `hash-node.ts` and `load-content-dir.ts`.
- * See docs/architecture/knowledge-graph-validation.md.
- */
 export * from "./types";
 export * from "./rules";
 export * from "./registry";

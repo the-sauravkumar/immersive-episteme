@@ -1,19 +1,3 @@
-/**
- * The ONE format of a stored answer (`responses.raw`) and of an item answer key
- * (`assessment_items.answer_key`), shared by the study engine that writes answers
- * (src/server/study) and the assessment services that author keys and score them
- * (src/server/assessment). Pure and client-safe.
- *
- *   responses.raw         { value, itemKind, assessmentVersion }
- *     single_choice       value = "<optionId>"
- *     multiple_choice     value = ["<optionId>", ...]   (sorted, de-duplicated)
- *     short/long text     value = "<text exactly as typed>"
- *     likert, numeric     value = <number>
- *   answer key            { optionId } | { optionIds } | { value, tolerance }
- *
- * Free text and ratings have no answer key: text goes to rubric scoring, ratings to instrument
- * scoring. `keyMatch` is the single scoring rule for keyed items (metric `item.key_match`).
- */
 import { z } from "zod";
 
 export const responseRawSchema = z.object({
@@ -34,11 +18,6 @@ export type AnswerKey = z.infer<typeof answerKeySchema>;
 
 export const KEY_MATCH_METRIC = { name: "item.key_match", version: "1.0.0", pipeline: "item-key@1.0.0" } as const;
 
-/**
- * Reads the participant's answer from `responses.raw`: the shared shape above, plus the older
- * shapes (a bare string, number or string array; `optionId`, `optionIds`, `values`). Anything
- * else is reported, not guessed.
- */
 export function extractAnswer(raw: unknown): { optionIds: string[] | null; value: number | null } {
   if (typeof raw === "string") return { optionIds: [raw], value: Number.isFinite(Number(raw)) ? Number(raw) : null };
   if (typeof raw === "number") return { optionIds: null, value: raw };

@@ -1,9 +1,4 @@
 "use server";
-/**
- * Research-console server actions for assessments, reference maps and scoring. Each one checks
- * the permission server-side (`assertPermission`, the matrix in src/lib/permissions) before
- * touching data, and returns a result object instead of throwing service errors.
- */
 import { refresh } from "next/cache";
 
 import type { SaveResult } from "@/components/assessment/concept-map-editor";
@@ -137,7 +132,6 @@ export async function createReferenceMapAction(assessmentId: string, _prev: Acti
   });
 }
 
-/** Rater editor save (autosave and submit both store the rater's current map). */
 export async function submitRaterMapAction(referenceMapId: string, payload: unknown): Promise<SaveResult> {
   const r = await guarded("assessments.author", async (who) => {
     await submitRaterMap(getPool(), who.userId, referenceMapId, payload);

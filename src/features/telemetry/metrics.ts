@@ -1,24 +1,3 @@
-/**
- * Versioned derived-metric definitions for learning-time accounting (condition equivalence).
- *
- * Inputs: a session's raw telemetry events (telemetry_events), ordered by seq. Outputs: rows for
- * `derived_metrics` (derivedMetricSchema: metricName, metricVersion, value, details,
- * inputEventCount, inputSha256, pipelineVersion). These timings are behavioural telemetry, NOT
- * learning outcomes: they never go to derived_scores (database check derived_scores_no_timing_ck)
- * or any assessment table.
- *
- * Definitions (v1). All durations are milliseconds of ACTIVE time measured by the client's
- * monotonic clock and reported in the interval end events, so paused time (tab hidden, window
- * blurred, non-content modal) is already excluded:
- *  - time.exposure_total_ms        sum of exposure_ended.activeMs
- *  - time.exposure_by_layer_ms     same, split by metadata.layer (value = total; per layer in details)
- *  - time.navigation_ms            sum of navigation_ended.activeMs
- *  - time.navigation_share         navigation / (navigation + exposure); null when both are 0
- *  - time.pause_ms                 sum of timing_resumed.pausedMs (completed pauses)
- *  - citation.openings             count of citation_opened (details: distinct sources, per concept)
- * Intervals whose end event is missing (e.g. the browser was killed) are NOT guessed: they are
- * counted in details.unterminated and excluded from the sums.
- */
 import type { TelemetryEvent } from "./contracts";
 
 export const TIMING_METRICS_VERSION = "1";
@@ -43,7 +22,6 @@ export interface TimingMetricValue {
 
 type Ev = Pick<TelemetryEvent, "type" | "seq" | "conceptId" | "metadata">;
 
-/** Computes the v1 timing metrics of one session from its events (any order; sorted by seq). */
 export function computeTimingMetrics(events: readonly Ev[]): TimingMetricValue[] {
   const sorted = [...events].sort((a, b) => a.seq - b.seq);
   const started = new Map<string, "exposure" | "navigation">();

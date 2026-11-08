@@ -6,18 +6,6 @@ import { INVITE_STORAGE_STATE } from "./tests/e2e/invite-state";
 const PORT = Number(process.env.PORT ?? 3000);
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${PORT}`;
 
-/**
- * GPU split (DR-056). Windows' per-app GPU preference, not a Chromium flag, picks the GPU on this
- * laptop: the full Chromium build is mapped to the NVIDIA GTX 1650, the headless shell to the Intel
- * Iris Xe (tests/e2e/gpu-mode.ts). So, in hardware mode (the local default):
- *  - "chromium": every spec, full Chromium (channel "chromium") with ANGLE on D3D11, NVIDIA expected;
- *  - "low-spec": the headless shell with the same flags, Intel expected, CPU x4 through CDP,
- *    1366 x 768 at DPR 1. Runs the renderer check; the low-spec 3D timing runs through
- *    tools/walkthrough-lab/route.cjs with LOW_SPEC=1.
- * The automatic fixture in tests/e2e/fixtures.ts fails a worker whose WebGL renderer is not the
- * expected GPU (SwiftShader included). Software mode (CI, or PW_GPU=0): one plain headless
- * "chromium" project as before, no GPU expectation. Pick one project with --project.
- */
 const HARDWARE = hardwareGpu();
 
 const projects = HARDWARE
@@ -48,10 +36,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  // One GPU per project and a 16 GB machine: never more than two workers.
   workers: process.env.CI ? 1 : 2,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
-  // The site is always invite-only (S11): every spec starts with a valid invite cookie.
   globalSetup: "./tests/e2e/global-setup.ts",
   use: {
     baseURL,

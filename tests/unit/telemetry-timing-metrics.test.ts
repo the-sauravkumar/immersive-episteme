@@ -1,6 +1,3 @@
-/**
- * Derived timing metrics (v1) computed from interval events produced by the time accountant.
- */
 import { describe, expect, it } from "vitest";
 
 import { createTimeAccountant, type RawTrackFn } from "@/features/telemetry/client";
@@ -45,7 +42,7 @@ describe("timing metrics v1", () => {
     acc.beginExposure(C1, "science");
     advance(1000);
     push({ type: "citation_opened", seq: 0, conceptId: C1, metadata: { sourceId: S1, claimIndex: 0 } });
-    acc.beginNavigation("walk"); // left open: unterminated
+    acc.beginNavigation("walk");
     advance(500);
     const m = Object.fromEntries(computeTimingMetrics(events as Parameters<typeof computeTimingMetrics>[0]).map((x) => [x.metricName, x]));
     expect(m["time.exposure_total_ms"]!.value).toBe(7000);

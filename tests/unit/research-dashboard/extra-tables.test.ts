@@ -1,9 +1,3 @@
-/**
- * Server CSV of the dashboard's rows 3 and 4 (DESIGN.md 11.9; src/server/research/dashboard-extra-tables.ts):
- * gain by tradition, dwell time per layer and per-item statistics. A fake query function returns
- * stored rows; the CSV must carry the dashboard's `#` header with the metric versions, the
- * dictionary's columns in order, and the values the dashboard draws.
- */
 import { describe, expect, it } from "vitest";
 
 import { parseCsv } from "@/server/research/exports/csv";
@@ -23,7 +17,6 @@ const data = {
   ],
 } as unknown as DashboardData;
 
-/** Answers the three loaders by the metric they ask for. */
 const q = {
   async query(sql: string) {
     if (sql.includes("JOIN traditions t")) {

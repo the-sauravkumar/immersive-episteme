@@ -1,28 +1,3 @@
-/**
- * Verifies a listed set of concepts through the SAME service the CMS review panel uses
- * (`transition()` in src/server/cms/workflow.ts), as a named staff user:
- *
- *   npx tsx scripts/content/verify-concepts.ts --as <staff email> --keys <keys.json> \
- *     --evidence <https URL or repo path> --reason "<why>" (--dry-run | --apply) [--test]
- *
- * <keys.json> is a JSON array of concept keys, { "keys": [...] }, or a content/ interchange file
- * (its concepts marked "verified", FORMAT.md). Only those concepts are read
- * or changed; nothing else is touched. For each listed key it moves under_review → verified with
- * all four evidence checks confirmed and the reason (plus the evidence link) recorded, so the
- * verification_records trigger and the audit log carry the actor, the reason and the checklist
- * exactly as a verification in the CMS does. Everything the CMS refuses is refused here too
- * (permission, separation of duties, incomplete citations, wrong state), because the service
- * decides, not this script.
- *
- * It additionally refuses, before calling the service:
- *  - demo content (the concept or its tradition has is_demo; demo data never enters a study);
- *  - keys that are not in the database, or listed twice.
- *
- * --dry-run reads only: it reports, per key, "would verify" or every reason it would be refused
- * (state, demo, permission, self-verification, citation problems). --apply performs the
- * transitions one concept at a time (each in its own transaction, as in the CMS) and reports
- * every refusal; the exit code is 1 if any listed concept was not verified.
- */
 import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, join, normalize } from "node:path";
 
@@ -67,10 +42,6 @@ export interface Deps {
 
 const DEFAULT_DEPS: Deps = { transition, authorsOf, citationProblems };
 
-/**
- * Parses the keys file: a JSON array of strings, { keys: [...] }, or a content/ interchange file,
- * whose concepts marked "verified" by a recorded source check are listed. Throws on anything else.
- */
 export function parseKeysFile(text: string): string[] {
   let raw: unknown;
   try {
@@ -94,7 +65,6 @@ function listedKeys(raw: { keys?: unknown; concepts?: unknown }): unknown[] | nu
     .map((c) => c.key);
 }
 
-/** The evidence link must be an https URL or an existing file inside the repository. */
 export function evidenceProblem(evidence: string | undefined, repoRoot: string = REPO_ROOT): string | null {
   if (!evidence || !evidence.trim()) return "give --evidence (an https URL or a repository path to the verification record)";
   const e = evidence.trim();
@@ -106,7 +76,6 @@ export function evidenceProblem(evidence: string | undefined, repoRoot: string =
   return null;
 }
 
-/** The reason recorded with each verification: the given reason plus the evidence link. */
 export function recordedReason(reason: string, evidence: string): string {
   const r = `${reason.trim()} [evidence: ${evidence.trim()}]`;
   if (reason.trim().length < 3) throw new Error("give --reason (at least 3 characters); it is kept in the review history");
@@ -114,7 +83,6 @@ export function recordedReason(reason: string, evidence: string): string {
   return r;
 }
 
-/** Loads exactly the listed concepts (by key), with their tradition's demo flag. */
 export async function loadConcepts(q: Q, keys: readonly string[]): Promise<Map<string, ConceptRow>> {
   const r = await q.query<ConceptRow>(
     `SELECT c.id, c.key, c.verification_state::text AS verification_state, c.is_demo,
@@ -126,7 +94,6 @@ export async function loadConcepts(q: Q, keys: readonly string[]): Promise<Map<s
   return new Map(r.rows.map((row) => [row.key, row]));
 }
 
-/** Refusals that do not need the service: unknown, duplicate, demo. */
 function preRefusals(key: string, row: ConceptRow | undefined, seen: Set<string>): string[] {
   const out: string[] = [];
   if (seen.has(key)) out.push("listed more than once");
@@ -139,10 +106,6 @@ function preRefusals(key: string, row: ConceptRow | undefined, seen: Set<string>
   return out;
 }
 
-/**
- * Plans (dry run) or applies the verifications. Only concepts whose key is in `req.keys` are
- * read or changed; each goes through `deps.transition` in its own transaction.
- */
 export async function runVerification(pool: Pool, actor: Actor, req: VerifyRequest, opts: { apply: boolean; deps?: Deps }): Promise<Outcome[]> {
   const deps = opts.deps ?? DEFAULT_DEPS;
   const reason = recordedReason(req.reason, req.evidence);
@@ -227,7 +190,6 @@ async function main() {
   if (refused > 0) process.exit(1);
 }
 
-// Run only as a script (the unit tests import the helpers).
 if (process.argv[1] && /verify-concepts\.ts$/.test(process.argv[1])) {
   main().catch((err) => {
     console.error("[verify] failed:", err instanceof Error ? err.message : err);

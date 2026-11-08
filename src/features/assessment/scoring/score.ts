@@ -1,8 +1,3 @@
-/**
- * scoreConceptMap(participant, reference, config): the single entry point that produces every
- * concept-map score, fully itemised. Pure and deterministic: the same inputs (in any order)
- * and the same configuration always give byte-identical output.
- */
 import { configParameters, resolveConfig, SCORING_PIPELINE_VERSION, type ScoringConfig, type ScoringConfigInput } from "./config";
 import { classify, keptEdges, prepareParticipant, prepareReference } from "./match";
 import { causalChainDepth } from "./metrics/causal-depth";
@@ -60,12 +55,6 @@ export function scoreConceptMap(
   const validEdges: CanonicalEdge[] = kept.filter((e) => validKeys.has(e.keys.directed_labelled));
   const pDepth = causalChainDepth(validEdges, config);
   const rDepth = causalChainDepth(ref.edges.filter((e) => e.expected), config);
-  // The normalised depth compares like with like (final review scoring-05, v1.1.0): the longest
-  // chain of the EXPECTED reference edges the participant covered (not missing at the validity
-  // level, as recall counts them), against the longest chain of all expected reference edges.
-  // A subgraph's longest path is never longer, so the ratio stays in [0, 1] whatever
-  // optionalMatch or validityLevel is set to; v1.0.0 divided the participant's depth over every
-  // valid edge (optional-only matches included) and could exceed 1. The raw depth is unchanged.
   const covered = new Set(referenceEdges.filter((r) => !r.missing).map((r) => r.canonicalKey));
   const pExpectedDepth = causalChainDepth(
     ref.edges.filter((e) => e.expected && covered.has(e.keys.directed_labelled)),
@@ -96,7 +85,6 @@ export function scoreConceptMap(
   return { pipelineVersion: SCORING_PIPELINE_VERSION, parameters, participantEdges, referenceEdges, scores };
 }
 
-/** Looks up a score by metric name (throws if absent, to keep callers honest). */
 export function getScore(result: { scores: ReadonlyArray<{ metricName: string; value: number | null }> }, metricName: string): number | null {
   const s = result.scores.find((x) => x.metricName === metricName);
   if (!s) throw new Error(`No score named ${metricName}`);

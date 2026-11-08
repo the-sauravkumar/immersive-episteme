@@ -1,7 +1,3 @@
-/**
- * Client telemetry tracker: seq numbering, persistence, batching, retry/backoff, dead letters
- * (never silent loss) and the page-exit flush.
- */
 import { randomUUID } from "node:crypto";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -40,8 +36,6 @@ afterEach(() => {
 
 describe("telemetry tracker", () => {
   it("hands the seq counter to the next tracker of the session while the previous one is still writing", async () => {
-    // An outbox whose writes land only when released: the situation on client-side navigation,
-    // when one page's provider unmounts and the next mounts before IndexedDB has committed.
     class SlowOutbox extends MemoryOutbox {
       release: () => void = () => undefined;
       private gate = new Promise<void>((r) => (this.release = r));
@@ -62,13 +56,10 @@ describe("telemetry tracker", () => {
       return [(await a)?.seq, (await b)?.seq];
     };
     expect(await run(true)).toEqual([0, 1]);
-    // Without the handoff the second tracker reuses seq 0 (the server would quarantine it).
     expect(await run(false)).toEqual([0, 0]);
   });
 
   it("continues after a page unload whose last outbox write never committed", async () => {
-    // The old page tracked an event while being hidden (it was beaconed), then unloaded before
-    // the asynchronous outbox write landed. Only the synchronous seq mark survives.
     class LostWrites extends MemoryOutbox {
       override async append() {
         return new Promise<void>(() => undefined);
@@ -83,7 +74,6 @@ describe("telemetry tracker", () => {
       void old.pageEntered({ roomOrPageId: "learn" });
       void old.track("page_exited", { metadata: { dwellMs: 10 } });
       old.stop();
-      // Fresh page: a new outbox handle on the same (empty) store, a new JS realm (no handoff).
       const { tracker: next } = make([], { storage: new MemoryOutbox(), seqMark: mark });
       return (await next.pageEntered({ roomOrPageId: "study" }))?.seq;
     };
@@ -101,13 +91,11 @@ describe("telemetry tracker", () => {
     expect(a?.clientTs).toMatch(/Z$/);
     tracker.dispose();
 
-    // "Reload": a new tracker on the same store continues at 3, with the 3 events still pending.
     const { tracker: again } = make([], { storage: outbox });
     await again.ready();
     expect(again.getStats().pending).toBe(3);
     expect((await again.sessionStarted())?.seq).toBe(3);
 
-    // Even when every stored event was acknowledged, the persisted next seq is kept.
     await again.flush();
     expect(again.getStats().pending).toBe(0);
     const { tracker: third } = make([], { storage: outbox });
@@ -146,17 +134,17 @@ describe("telemetry tracker", () => {
     await tracker.pageExited();
     await tracker.flush();
     expect(fetch.calls).toHaveLength(1);
-    expect(await outbox.list(SESSION)).toHaveLength(2); // failure never clears the outbox
+    expect(await outbox.list(SESSION)).toHaveLength(2);
     expect(tracker.getStats()).toMatchObject({ retries: 1, pending: 2, dropped: 0, lastError: { code: "server_error", status: 500 } });
 
     await vi.advanceTimersByTimeAsync(999);
     expect(fetch.calls).toHaveLength(1);
-    await vi.advanceTimersByTimeAsync(1); // 1st retry after 1000 ms -> network error
+    await vi.advanceTimersByTimeAsync(1);
     expect(fetch.calls).toHaveLength(2);
     expect(tracker.getStats().lastError?.code).toBe("network_error");
     await vi.advanceTimersByTimeAsync(1999);
     expect(fetch.calls).toHaveLength(2);
-    await vi.advanceTimersByTimeAsync(1); // 2nd retry after 2000 ms -> success
+    await vi.advanceTimersByTimeAsync(1);
     expect(fetch.calls).toHaveLength(3);
     expect(new Set(fetch.calls.map((c) => c.batch.idempotencyKey)).size).toBe(1);
     expect(new Set(fetch.calls.map((c) => c.batch.events[0]!.eventId)).size).toBe(1);
@@ -165,11 +153,8 @@ describe("telemetry tracker", () => {
   });
 
   it("never lets two tabs that numbered the same seqs share an idempotency key (no replayed loss)", async () => {
-    // Both tabs of one session share the seq mark. Tab 1 has already uploaded seq 0; tab 2 starts
-    // from the shared mark, then both emit seq 1 with different events.
     const marks = new Map<string, number>();
     const seqMark: SeqMark = { get: (s) => marks.get(s) ?? null, set: (s, n) => void marks.set(s, n) };
-    // A server that answers a known key as a replay without looking at the events (ingest.ts).
     const stored = new Map<string, string[]>();
     const server = (calls: { batch: { idempotencyKey: string; events: { eventId: string }[] } }[]) => () => {
       const b = calls[calls.length - 1]!.batch;
@@ -189,9 +174,7 @@ describe("telemetry tracker", () => {
     const k1 = tab1.fetch.calls.at(-1)!.batch.idempotencyKey;
     const k2 = tab2.fetch.calls.at(-1)!.batch.idempotencyKey;
     expect(k1).not.toBe(k2);
-    // Every acknowledged event reached the server under its own key.
     expect(stored.get(k2)).toEqual([e2!.eventId]);
-    // The same events always give the same key (retries and beacons are deduplicated).
     const { batchIdempotencyKey } = await import("@/features/telemetry/client/tracker");
     expect(batchIdempotencyKey(SESSION, [e2!])).toBe(k2);
   });
@@ -199,9 +182,9 @@ describe("telemetry tracker", () => {
   it("flushNow delivers despite a running backoff and reports what it could not deliver", async () => {
     const ok = make([503, 200], { baseRetryDelayMs: 30_000 });
     await ok.tracker.pageEntered();
-    await ok.tracker.flush(); // 503: next attempt in 15-30 s
     await ok.tracker.flush();
-    expect(ok.fetch.calls).toHaveLength(1); // flush() waits out the backoff
+    await ok.tracker.flush();
+    expect(ok.fetch.calls).toHaveLength(1);
     expect(await ok.tracker.flushNow()).toEqual({ pending: 0 });
     expect(ok.fetch.calls).toHaveLength(2);
 
@@ -210,11 +193,10 @@ describe("telemetry tracker", () => {
     const result = down.tracker.flushNow({ deadlineMs: 5000 });
     await vi.advanceTimersByTimeAsync(5000);
     expect(await result).toEqual({ pending: 1 });
-    expect(down.fetch.calls.length).toBeGreaterThan(1); // it retried within the deadline
+    expect(down.fetch.calls.length).toBeGreaterThan(1);
   });
 
   it("gives intervals of two page loads created in the same millisecond different ids", () => {
-    // performance.now() restarts at every load; 812.3 and 812.9 both floor to 812.
     const a = make([], { monotonicNow: () => 812.3 }).tracker.timing.beginNavigation();
     const b = make([], { monotonicNow: () => 812.9 }).tracker.timing.beginNavigation();
     expect(a).not.toBe(b);
@@ -227,7 +209,7 @@ describe("telemetry tracker", () => {
     await tracker.flush();
     await vi.advanceTimersByTimeAsync(6999);
     expect(fetch.calls).toHaveLength(1);
-    await tracker.flush(); // an explicit flush during the backoff does not jump the queue
+    await tracker.flush();
     expect(fetch.calls).toHaveLength(1);
     await vi.advanceTimersByTimeAsync(1);
     expect(fetch.calls).toHaveLength(2);
@@ -261,7 +243,6 @@ describe("telemetry tracker", () => {
   it("counts an invalid event without consuming a seq", async () => {
     const onDrop = vi.fn();
     const { tracker } = make([], { onDrop });
-    // Bypass the compile-time check to simulate a bad runtime value.
     const bad = await (tracker.track as (t: string, f: unknown) => Promise<unknown>)("relationship_followed", { metadata: { relationshipId: "nope" } });
     expect(bad).toBeNull();
     expect(tracker.getStats()).toMatchObject({ invalid: 1, enqueued: 0, pending: 0 });
@@ -306,7 +287,6 @@ describe("telemetry tracker", () => {
       const sent = JSON.parse(await blob.text());
       expect(sent.events).toHaveLength(2);
       expect(tracker.getStats()).toMatchObject({ beaconed: 2, pending: 2 });
-      // The next normal upload re-sends with the same idempotency key; the server dedups.
       await tracker.flush();
       expect(fetch.calls[0]!.batch.idempotencyKey).toBe(sent.idempotencyKey);
       expect(tracker.getStats().pending).toBe(0);
@@ -325,7 +305,6 @@ describe("telemetry tracker", () => {
       expect(fetch.calls).toHaveLength(1);
       expect(fetch.calls[0]!.init.keepalive).toBe(true);
       await vi.advanceTimersByTimeAsync(0);
-      // page_entered plus the timing_paused that hiding the tab logs (staged before the flush).
       expect(tracker.getStats()).toMatchObject({ acked: 2, pending: 0 });
       tracker.stop();
     });
@@ -339,7 +318,7 @@ describe("telemetry tracker", () => {
       tracker.start();
       tracker.timing.beginNavigation();
       expect(tracker.timing.paused()).toBe(true);
-      mono += 60_000; // a minute in the background
+      mono += 60_000;
       doc.visibilityState = "visible";
       doc.dispatchEvent(new Event("visibilitychange"));
       expect(tracker.timing.paused()).toBe(false);

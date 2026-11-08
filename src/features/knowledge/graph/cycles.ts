@@ -1,10 +1,3 @@
-/**
- * Directed-cycle detection. `stronglyConnectedComponents` is Tarjan's algorithm (iterative,
- * so deep process chains cannot overflow the stack). A component is cyclic when it has more
- * than one node or a self-edge. Output is deterministic: nodes are visited in sorted order
- * and each component is returned sorted.
- */
-
 export interface DirectedEdge {
   from: string;
   to: string;
@@ -32,7 +25,6 @@ export function stronglyConnectedComponents(edges: readonly DirectedEdge[]): str
 
   for (const root of [...adj.keys()].sort()) {
     if (index.has(root)) continue;
-    // Each frame: node and position in its neighbour list.
     const work: { node: string; next: number }[] = [{ node: root, next: 0 }];
     index.set(root, counter);
     low.set(root, counter);
@@ -75,7 +67,6 @@ export function stronglyConnectedComponents(edges: readonly DirectedEdge[]): str
   return components;
 }
 
-/** Cyclic components only (size > 1, or a node with an edge to itself). */
 export function findCycles(edges: readonly DirectedEdge[]): string[][] {
   const selfLoops = new Set(edges.filter((e) => e.from === e.to).map((e) => e.from));
   return stronglyConnectedComponents(edges)

@@ -1,11 +1,3 @@
-/**
- * Server CSV of the dashboard's rows 3 and 4 (DESIGN.md 11.9): Figure 3 "Gain by Tradition"
- * (DR-035) and Table 2 "Per-Item Statistics". The same stored
- * derived values and the same pure aggregations the dashboard draws
- * (src/app/(research)/research/dashboard/_components/dashboard-extras.ts), written with the same
- * `#` header line as the other dashboard tables: study, demo status, server time, dashboard
- * version and the metric versions. Pseudonymised (no participant identifier at all: aggregates).
- */
 import { ITEM_METRIC, itemStatistics, loadItemScoreRows, loadTraditionItemRows, traditionGains } from "@/app/(research)/research/dashboard/_components/dashboard-extras";
 import { KEY_MATCH_METRIC } from "@/features/assessment/responses";
 import { describe } from "@/features/research/descriptive";
@@ -18,7 +10,6 @@ import { DASHBOARD_EXTRA_TABLE_BY_NAME, type DashboardExtraTableName } from "./e
 
 const round = (v: number | null, digits = 6) => (v === null ? null : Number(v.toFixed(digits)));
 
-/** Rows of one extra table, in dictionary column order, and the metric versions it reads. */
 export async function dashboardExtraTableRows(q: Q, data: DashboardData, table: DashboardExtraTableName): Promise<{ rows: Record<string, unknown>[]; metrics: string }> {
   const ids = data.conditions.map((c) => c.id);
   const cond = (i: number) => data.conditions[i]!;
@@ -43,7 +34,6 @@ export async function dashboardExtraTableRows(q: Q, data: DashboardData, table: 
   }
 }
 
-/** One extra dashboard table as CSV, with the dashboard's `#` header line. */
 export async function dashboardExtraTableCsv(q: Q, data: DashboardData, table: DashboardExtraTableName): Promise<string> {
   const spec = DASHBOARD_EXTRA_TABLE_BY_NAME.get(table)!;
   const { rows, metrics } = await dashboardExtraTableRows(q, data, table);

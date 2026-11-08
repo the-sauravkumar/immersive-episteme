@@ -1,12 +1,5 @@
 "use server";
 
-/**
- * Server actions of the invite gate (S11).
- *  - `redeemInviteAction`: the /invite form. A valid code sets the signed invite cookie and
- *    redirects to where the visitor was going; anything else is refused with one message.
- *  - `createInviteAction`, `revokeInviteAction`: Admin -> Access. runAction checks `admin.users`
- *    from the session; the service re-checks it and writes the audit row.
- */
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -46,7 +39,6 @@ export async function createInviteAction(_prev: ActionState, fd: FormData): Prom
   });
 }
 
-/** Typed confirmation: the code's four-character hint (DESIGN.md 11.11, as for staff accounts). */
 export async function revokeInviteAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const raw = formObject(fd);
   const state = await runAction("admin.users", revokeInviteInput, raw, async ({ actor, pool }, input) => {

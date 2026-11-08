@@ -1,8 +1,3 @@
-/**
- * Knowledge-graph validators (master directive §6.4–6.5, §10.6). Each validator is a pure
- * function of a `ValidationContext` and returns issues with stable codes (rules.ts). The
- * rule catalogue is documented in docs/architecture/knowledge-graph-validation.md.
- */
 import { ACCEPTED_STATES, type ConceptType, type VerificationState } from "@/lib/validation/enums";
 import { DEMO_TITLE_PREFIX } from "@/lib/validation/primitives";
 
@@ -29,19 +24,14 @@ import type {
 
 export interface ValidationOptions {
   registry?: RelationshipTypeRegistry;
-  /** When given, every cited source URL must appear in it (KG409). */
   sourceManifest?: readonly SourceManifestEntry[] | null;
-  /** Trigram similarity at or above which two titles are near-duplicates (KG501). */
   nearDuplicateThreshold?: number;
-  /** Depth targets per tradition (FORMAT.md conventions); `false` disables KG802. */
   coverageTargets?: Partial<Record<ConceptType, number>> | false;
-  /** The graph is demo content (disables KG105). */
   isDemo?: boolean;
 }
 
 export const DEFAULT_NEAR_DUPLICATE_THRESHOLD = 0.8;
 
-/** FORMAT.md "comparable depth" targets per tradition. */
 export const FORMAT_COVERAGE_TARGETS: Partial<Record<ConceptType, number>> = {
   process_stage: 8,
   material: 6,
@@ -85,10 +75,6 @@ export function createContext(model: KnowledgeGraphModel, options: ValidationOpt
     sourceByRef: new Map(model.sources.map((s) => [s.ref, s])),
   };
 }
-
-// =========================================================================================
-// 1xx entities
-// =========================================================================================
 
 export const validateEntities: Validator = ({ model, conceptByKey, options }) => {
   const out: IntegrityIssue[] = [];
@@ -141,10 +127,6 @@ export const validateEntities: Validator = ({ model, conceptByKey, options }) =>
   return out;
 };
 
-// =========================================================================================
-// 2xx relationships
-// =========================================================================================
-
 export const validateRelationships: Validator = ({ model, registry, conceptByKey }) => {
   const out: IntegrityIssue[] = [];
   const seen = new Map<string, GraphRelationship>();
@@ -184,10 +166,6 @@ export const validateRelationships: Validator = ({ model, registry, conceptByKey
   return out;
 };
 
-// =========================================================================================
-// 3xx cycles and process structure
-// =========================================================================================
-
 const edgesOf = (rels: readonly GraphRelationship[]): DirectedEdge[] => rels.map((r) => ({ from: r.source, to: r.target }));
 const sameSet = (a: readonly string[], b: readonly string[]) => a.length === b.length && a.every((x, i) => x === b[i]);
 
@@ -209,7 +187,6 @@ export const validateCycles: Validator = ({ model, registry }) => {
     }
   }
 
-  // PRECEDES: cycles are allowed only through an explicitly marked loop edge.
   const precedes = byType.get(SEQUENCE_TYPE) ?? [];
   const unmarked = precedes.filter((r) => !isMarkedLoop(r));
   const hard = findCycles(edgesOf(unmarked));
@@ -228,7 +205,6 @@ export const validateCycles: Validator = ({ model, registry }) => {
     );
   }
 
-  // Dependency graph: DEPENDS_ON ∪ REQUIRES must be acyclic.
   const deps = rels.filter((r) => DEPENDENCY_TYPES.includes(r.type));
   for (const cycle of findCycles(edgesOf(deps))) {
     if (reportedAcyclic.some((c) => sameSet(c, cycle))) continue;
@@ -253,8 +229,6 @@ export const validateProcessSequences: Validator = ({ model, conceptByKey }) => 
     byPackage.get(r.packageSlug)!.push(r);
   }
 
-  // A file may hold several independent ordered chains (e.g. the production sequence and a
-  // two-step historical chronology). Each connected chain must number 1..n on its own.
   const byChain = new Map<string, GraphRelationship[]>();
   for (const [pkg, rels] of byPackage) {
     const parent = new Map<string, string>();
@@ -309,7 +283,6 @@ export const validateProcessSequences: Validator = ({ model, conceptByKey }) => 
     }
   }
 
-  // Forks: a stage with several next stages must say when each branch applies.
   const outgoing = new Map<string, GraphRelationship[]>();
   for (const r of precedes) {
     if (isMarkedLoop(r)) continue;
@@ -353,10 +326,6 @@ export const validateProcessSequences: Validator = ({ model, conceptByKey }) => 
   return out;
 };
 
-// =========================================================================================
-// 4xx provenance
-// =========================================================================================
-
 const WEAK_KINDS = new Set(["hypothesis", "unverified"]);
 
 export const validateProvenance: Validator = ({ model, registry, sourceByRef, options }) => {
@@ -387,8 +356,6 @@ export const validateProvenance: Validator = ({ model, registry, sourceByRef, op
       cited.add(ref);
       if (!sourceByRef.has(ref)) out.push(issue(RULES.REL_UNKNOWN_SOURCE, `${r.packageSlug}: ${id} cites unknown source ${r.rawSourceIds[j] ?? ref}`, { ...at, detail: { ref } }));
     });
-    // Each located passage must come from a source the relationship itself cites (FORMAT.md
-    // "Relationship evidence"); the file schema refuses this too, this also covers models built in code.
     (r.evidence ?? []).forEach((e, k) => {
       if (!r.sourceRefs.includes(e.ref)) {
         out.push(issue(RULES.REL_EVIDENCE_UNLISTED_SOURCE, `${r.packageSlug}: ${id} evidence #${k} quotes ${e.ref}, which the relationship does not cite`, { ...at, detail: { ref: e.ref } }));
@@ -433,10 +400,6 @@ export const validateProvenance: Validator = ({ model, registry, sourceByRef, op
   return out;
 };
 
-// =========================================================================================
-// 5xx duplicates
-// =========================================================================================
-
 export const validateDuplicates: Validator = ({ model, options }) => {
   const out: IntegrityIssue[] = [];
   const threshold = options.nearDuplicateThreshold ?? DEFAULT_NEAR_DUPLICATE_THRESHOLD;
@@ -480,11 +443,6 @@ export const validateDuplicates: Validator = ({ model, options }) => {
   return out;
 };
 
-// =========================================================================================
-// 6xx claims-only prose
-// =========================================================================================
-
-/** The text FORMAT.md's claims-only policy generates (content/review/tools/claims-only-prose.js). */
 export function deriveProseFromClaims(c: Pick<GraphConcept, "claims">): { summary: string; bodyMd: string } {
   const texts = c.claims.map((cl) => cl.text.trim());
   return {
@@ -509,10 +467,6 @@ export const validateProse: Validator = ({ model }) => {
   }
   return out;
 };
-
-// =========================================================================================
-// 7xx never collapse semantics
-// =========================================================================================
 
 export const validateSemantics: Validator = ({ model, registry }) => {
   const out: IntegrityIssue[] = [];
@@ -555,10 +509,6 @@ export const validateSemantics: Validator = ({ model, registry }) => {
   return out;
 };
 
-// =========================================================================================
-// 8xx orphans and coverage
-// =========================================================================================
-
 export const validateOrphans: Validator = ({ model, options }) => {
   const out: IntegrityIssue[] = [];
   const types = new Map<string, Set<string>>();
@@ -568,7 +518,6 @@ export const validateOrphans: Validator = ({ model, options }) => {
       types.get(k)!.add(r.type);
     }
   }
-  // A comparison's `compares` list links it to the compared concepts (not an orphan).
   for (const c of model.concepts) {
     for (const k of c.compares.length > 0 ? [c.key, ...c.compares] : []) {
       if (!types.has(k)) types.set(k, new Set());
@@ -590,7 +539,6 @@ export const validateOrphans: Validator = ({ model, options }) => {
       for (const [type, min] of Object.entries(targets) as [ConceptType, number][]) {
         let n = own.filter((c) => c.type === type).length;
         if (type === "scientific_mechanism") {
-          // FORMAT.md: mechanisms may link to shared ones.
           const linked = new Set(
             model.relationships
               .filter((r) => r.packageSlug === p.slug && sharedMechanisms.has(r.target) && !r.target.startsWith(`${p.slug}.`))
@@ -604,8 +552,6 @@ export const validateOrphans: Validator = ({ model, options }) => {
   }
   return out;
 };
-
-// =========================================================================================
 
 export const VALIDATORS: readonly Validator[] = [
   validateEntities,
@@ -621,7 +567,6 @@ export const VALIDATORS: readonly Validator[] = [
 
 const SEVERITY_ORDER = { error: 0, warning: 1, info: 2 } as const;
 
-/** Deterministic order: severity, code, package, entity, message. */
 export function sortIssues(issues: readonly IntegrityIssue[]): IntegrityIssue[] {
   const s = (x?: string) => x ?? "";
   return [...issues].sort(

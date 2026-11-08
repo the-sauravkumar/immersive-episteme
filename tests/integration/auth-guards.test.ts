@@ -1,11 +1,3 @@
-/**
- * Integration: the learning-condition guard and the participant-session guard, end to end
- * through real signed tokens (WebCrypto HMAC) and a StudySessionLookup.
- *
- * Part 1 uses an in-memory lookup so every branch is exercised without a database.
- * Part 2 runs the real Drizzle lookup against `study_sessions` in episteme_test (inside a
- * transaction that is rolled back; all rows are demo rows: slug `demo-*`, title `Demo:`).
- */
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -62,7 +54,6 @@ async function participantCookie(condition: "2d" | "immersive" = "2d", secret = 
   return signParticipantSession({ participantId: PID, sessionId: SID, condition }, secret, opts);
 }
 
-/** Replace the payload of a signed token while keeping its original signature. */
 function swapPayload(token: string, payload: unknown): string {
   const [v, , sig] = token.split(".");
   return `${v}.${Buffer.from(JSON.stringify(payload)).toString("base64url")}.${sig}`;
@@ -208,7 +199,6 @@ describe("learning condition guard (in-memory study sessions)", () => {
         redirectTo: "/explore?demo=unavailable",
       });
     }
-    // Staff preview is unaffected by the demo policy.
     const staffOnly = await resolveLearningAccess(
       input({ condition: "2d", demoCookie: demo, staff: async () => ({ userId: "u1", roles: ["researcher"] }) }),
       off,
@@ -283,10 +273,6 @@ describe("participant session guard for /study steps (in-memory)", () => {
   });
 });
 
-// ---------------------------------------------------------------------------------------------
-// Part 2: the Drizzle lookup against study_sessions
-// ---------------------------------------------------------------------------------------------
-
 const testUrl = process.env.TEST_DATABASE_URL;
 
 describe.skipIf(!testUrl)("learning guard with the Drizzle study-session lookup (episteme_test)", () => {
@@ -303,9 +289,6 @@ describe.skipIf(!testUrl)("learning guard with the Drizzle study-session lookup 
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
-      // This test is about the lookup query, not the study engine's lifecycle rules (an active
-      // study needs a published snapshot, ...). Skip user triggers for this transaction only;
-      // CHECK constraints, enums and NOT NULL still apply. Rolled back below.
       await client.query("SET LOCAL session_replication_role = replica");
       const db = drizzle(client, { schema, casing: "snake_case" });
 
@@ -384,7 +367,6 @@ describe.skipIf(!testUrl)("learning guard with the Drizzle study-session lookup 
         await resolveLearningAccess(input({ condition: "immersive", participantCookie: cookie }), deps),
       ).toMatchObject({ allowed: false, reason: "condition_mismatch", redirectTo: "/study/session" });
 
-      // Withdrawal in the database takes effect on the next request, cookie unchanged.
       await client.query("UPDATE study_sessions SET withdrawn = true, withdrawn_at = now() WHERE id = $1", [
         session!.id,
       ]);

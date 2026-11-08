@@ -1,16 +1,3 @@
--- 0011 allocation after the pre-test (custom SQL, hand-written). Same conventions: "ie: " messages.
---
--- Study decision D3 (docs/research/study-decisions.md): participants are allocated AFTER the
--- condition-blind pre-test. The session therefore exists from consent with no condition and no
--- allocation (0010 makes both nullable, together), and the allocation is attached exactly once.
--- This replaces ie_study_sessions_guard (0005) with the same rules plus that single transition:
---  - INSERT: as before; a session may start unallocated;
---  - UPDATE: identity and version stamps stay immutable, EXCEPT condition_id/allocation_id going
---    from NULL to the participant's allocation of the same period (once). The content set and
---    task are then copied from the allocation, as on INSERT.
--- Telemetry events keep requiring a condition (telemetry_events.condition_id NOT NULL), so an
--- unallocated session cannot store telemetry; the study pages emit none before allocation.
-
 CREATE OR REPLACE FUNCTION ie_study_sessions_guard()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -23,7 +10,6 @@ DECLARE
 BEGIN
   IF TG_OP = 'UPDATE' THEN
     IF OLD.allocation_id IS NULL AND NEW.allocation_id IS NOT NULL THEN
-      -- The one-time attachment of the allocation.
       SELECT * INTO a FROM allocations WHERE id = NEW.allocation_id;
       IF a.participant_id <> NEW.participant_id OR a.study_id <> NEW.study_id THEN
         PERFORM ie_raise('the allocation belongs to another participant or study');

@@ -1,4 +1,3 @@
-// First-hand verification fixes, batch 1 (weak-match claims). Run from content/.
 const fs = require("fs");
 function edit(file, key, match, fn) {
   const j = JSON.parse(fs.readFileSync(file, "utf8"));

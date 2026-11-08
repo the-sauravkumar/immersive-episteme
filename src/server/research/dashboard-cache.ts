@@ -1,18 +1,3 @@
-/**
- * Request coalescing for the research dashboard: an in-process single-flight plus a small LRU
- * memo, both keyed by (study, fingerprint, notification version).
- *
- * Why this is not "caching stale data": the key changes with every committed change of the study.
- *  - fingerprint (dashboardFingerprint): index-backed maxima and hashes of everything the page
- *    shows, read fresh on every request;
- *  - version (DashboardNotifier.version): the shared LISTEN connection's epoch and the number of
- *    notifications received for the study; it moves at every commit that touched the study.
- * A memo entry is only ever served under the same key, i.e. when nothing changed since it was
- * computed. While the LISTEN connection is down (version null) nothing is memoised; concurrent
- * identical requests still share one computation.
- * A served memo entry carries the server time of THIS request's fingerprint check as
- * `generatedAt`: the data were confirmed current at that moment.
- */
 import type { DashboardData } from "./dashboard";
 
 export interface CoalescerDeps {
@@ -29,7 +14,6 @@ export interface Served {
 export class DashboardCoalescer {
   private readonly inflight = new Map<string, Promise<DashboardData | null>>();
   private readonly memo = new Map<string, DashboardData | null>();
-  /** Computations started (for tests and the bench). */
   computations = 0;
 
   constructor(
@@ -44,7 +28,7 @@ export class DashboardCoalescer {
     if (version !== null && this.memo.has(key)) {
       const data = this.memo.get(key)!;
       this.memo.delete(key);
-      this.memo.set(key, data); // LRU: most recent last
+      this.memo.set(key, data);
       return { data: data && { ...data, generatedAt: fp.serverTime }, source: "memo" };
     }
     const running = this.inflight.get(key);

@@ -1,10 +1,8 @@
-// First-hand verification fixes, batch 3 (process-order relationships). Run from content/.
 const fs = require("fs");
 const load = (f) => JSON.parse(fs.readFileSync(f, "utf8"));
 const save = (f, j) => fs.writeFileSync(f, JSON.stringify(j, null, 2) + "\n");
 const T = "traditions/";
 
-// Kalamkari: record the source's actual internal contradiction on iron/alum print order.
 {
   const f = T + "machilipatnam-kalamkari/tradition.json", j = load(f);
   const r = j.relationships.find((r) => r.type === "PRECEDES" && r.ordinal === 4);
@@ -12,7 +10,6 @@ const T = "traditions/";
   save(f, j); console.log("kalamkari PRECEDES#4 conditions updated");
 }
 
-// Bagru: step 5 is "Khulai" in the GI step list; "Dhulai" is the final wash.
 {
   const f = T + "bagru/tradition.json", j = load(f);
   const c = j.concepts.find((c) => c.key === "bagru.process_stage.dhulai-mordant-wash");
@@ -21,8 +18,6 @@ const T = "traditions/";
   save(f, j); console.log("bagru step 5 renamed to khulai");
 }
 
-// Dabu: preparing the paste is a parallel preparation, not a step before washing the cloth.
-// S18: cloth "is first washed... The designs are then hand block printed using fast dyes. Next is the use of the Mud resist paste".
 {
   const f = T + "dabu/tradition.json", j = load(f);
   const P = (s, t) => j.relationships.find((r) => r.type === "PRECEDES" && r.source === s && r.target === t);
@@ -35,7 +30,6 @@ const T = "traditions/";
   bad.explanation = "Block-printing the resist uses the prepared mud-resist paste.";
   bad.conditions = "Paste preparation runs in parallel with cloth preparation; the sources give no order between paste-making and washing the cloth.";
   bad.source_ids = ["S3", "S18"];
-  // Renumber the cloth sequence so ordinals follow the documented order starting at washing.
   const chain = ["fabric-washing", "pre-printing-colour", "resist-printing"];
   const soak = P("dabu.process_stage.mud-soaking", "dabu.process_stage.paste-preparation");
   soak.ordinal = null;

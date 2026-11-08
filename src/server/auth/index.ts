@@ -1,6 +1,3 @@
-/**
- * App-wide Better Auth instance (lazy, so `next build` never needs auth env at import time).
- */
 import "server-only";
 
 import { googleOAuthCredentials, serverEnv } from "@/lib/env";

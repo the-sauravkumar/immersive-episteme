@@ -1,6 +1,3 @@
-/**
- * Export scope by role (permission matrix) and the CSV dialect used by exports.
- */
 import { describe, expect, it } from "vitest";
 
 import { ExportForbiddenError, resolveExportScope } from "@/server/research/exports/access";
@@ -69,7 +66,6 @@ describe("CSV", () => {
       "2026-10-16T10:00:00.000Z",
       "room:loom",
     ]);
-    // The round-trip helper agrees with what the file holds.
     expect(rows.map((r) => csvText(r.v))).toEqual(back);
   });
 });

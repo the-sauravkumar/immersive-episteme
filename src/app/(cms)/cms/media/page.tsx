@@ -7,7 +7,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = { title: "Media" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/cms/media">) {

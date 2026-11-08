@@ -1,10 +1,3 @@
-/**
- * Drops and recreates the public and drizzle schemas, then re-applies all migrations.
- * DESTRUCTIVE. Refuses to run against a non-local host or with NODE_ENV=production unless
- * `--force` is passed.
- *   npm run db:reset            -> DATABASE_URL
- *   npm run db:reset -- --test  -> TEST_DATABASE_URL
- */
 import { isLocalHost, makePool, redact, resolveDatabaseUrl, runMigrations } from "./_shared";
 
 async function main(): Promise<void> {
@@ -21,7 +14,6 @@ async function main(): Promise<void> {
     await pool.query("DROP SCHEMA IF EXISTS drizzle CASCADE");
     await pool.query("DROP SCHEMA IF EXISTS public CASCADE");
     await pool.query("CREATE SCHEMA public");
-    // Extensions live in public and were dropped with it; the migrations recreate them.
     const summary = await runMigrations(pool);
     console.log(`[db:reset] done — ${summary}`);
   } finally {

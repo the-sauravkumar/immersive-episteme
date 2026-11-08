@@ -1,7 +1,3 @@
-/**
- * Graph integrity report: machine-readable JSON plus a human-readable markdown rendering.
- * The JSON is deterministic for a given input (no timestamps unless the caller adds one).
- */
 import { VERIFICATION_STATES, type VerificationState } from "@/lib/validation/enums";
 
 import { loadContentFiles, type ContentFileInput } from "./loader";
@@ -64,7 +60,6 @@ export function buildIntegrityReport(model: KnowledgeGraphModel, issues: readonl
   };
 }
 
-/** Load + validate + report in one call (what the CLI and the real-content test use). */
 export function validateContentFiles(
   files: readonly ContentFileInput[],
   options: ValidationOptions = {},

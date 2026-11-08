@@ -1,19 +1,3 @@
--- 0007 review-snapshot guards (custom SQL, hand-written). Same conventions as 0003/0005:
--- violations raise SQLSTATE 23514 with an "ie: " message prefix.
---
--- A REVIEW snapshot (content_snapshots.kind = 'review', built by `npm run content:import` from
--- curated content that no curator has verified) is for researcher review, the public demo and
--- staff preview only. Migration 0006 already forbids a review snapshot from ever being
--- published (content_snapshots_review_ck: kind = 'review' implies status = 'draft' and
--- includes_unverified). Because study activation needs a published snapshot (0005
--- ie_studies_guard), that alone keeps a review snapshot out of every ACTIVE study. These
--- triggers close the remaining gaps:
---   1. `kind` can never change (a review row cannot be relabelled 'release' and published);
---   2. no non-demo study may reference a review snapshot at all, even while in draft;
---   3. no non-demo study may pin a spatial manifest compiled from a review snapshot.
--- A demo study (is_demo = true, never experimental) may reference a review snapshot so the
--- development bootstrap can render real content in the demo.
-
 CREATE OR REPLACE FUNCTION ie_content_snapshots_kind_guard()
 RETURNS trigger
 LANGUAGE plpgsql

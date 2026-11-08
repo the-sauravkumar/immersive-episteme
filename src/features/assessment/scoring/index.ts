@@ -1,7 +1,3 @@
-/**
- * Concept-map scoring (pure TypeScript, no DB/React). Definitions and open questions:
- * docs/research/concept-map-scoring.md.
- */
 export * from "./config";
 export * from "./types";
 export { canonicaliseEdge, levelKeys, ScoringInputError } from "./canonical";

@@ -1,26 +1,3 @@
-/**
- * Navigation-to-concept-map correspondence v1 (CN-20: "compare a participant's navigation
- * structure with the concept map produced after learning"; spec §10.3). Pure.
- *
- * OBSERVATIONAL: a description of overlap between what was navigated and what was later drawn.
- * It is not a learning-outcome score (those are derived_scores from the assessment scoring
- * pipeline against the adjudicated reference map) and supports no causal claim.
- *
- * Inputs: the session's raw events, its final post-learning concept map (nodes with concept ids,
- * edges), and the relationships of the session's snapshot (ground truth for "correct" here).
- *
- *  conceptsExposed       concepts with concept_encountered or exposure_started
- *  conceptsInspected     concepts with a completed exposure interval (exposure_ended, activeMs > 0)
- *  relationshipsFollowed distinct relationship_followed relationship ids
- *  mapEdges              edges of the map whose two endpoints are snapshot concepts
- *  correct / incorrect   a map edge is correct when the snapshot has a relationship between the
- *                        two concepts (direction must match when both the map edge and the
- *                        relationship type are directed; the type must match when the map edge
- *                        is typed); otherwise incorrect
- *  value                 Jaccard index between the undirected concept pairs NAVIGATED (consecutive
- *                        visits and followed relationships) and the undirected concept pairs of the
- *                        map's edges; null when both sets are empty
- */
 import { visitSequence, type MetricValue, type NavEvent } from "./navigation";
 
 export const CORRESPONDENCE_METRIC = "nav.map_correspondence";

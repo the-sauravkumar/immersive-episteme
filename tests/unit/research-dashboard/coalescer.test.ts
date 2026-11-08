@@ -1,4 +1,3 @@
-/** Request coalescing of the research dashboard: single-flight, memo only under an unchanged key. */
 import { describe, expect, it } from "vitest";
 
 import type { DashboardData } from "../../../src/server/research/dashboard";

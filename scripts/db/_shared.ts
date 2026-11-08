@@ -1,7 +1,3 @@
-/**
- * Shared helpers for the tsx-run database scripts. These run in plain Node (not in a React
- * Server environment), so they must not import modules marked `server-only`.
- */
 import "dotenv/config";
 
 import { fileURLToPath } from "node:url";
@@ -9,11 +5,6 @@ import { Pool } from "pg";
 
 export const MIGRATIONS_FOLDER = fileURLToPath(new URL("../../db/migrations", import.meta.url));
 
-/**
- * `--test` targets TEST_DATABASE_URL; otherwise DATABASE_URL_UNPOOLED when set (the direct
- * connection on Neon: "Schema migrations | Direct | Tools may not support transaction pooling",
- * https://neon.com/docs/connect/connection-pooling), else DATABASE_URL.
- */
 export function resolveDatabaseUrl(argv: readonly string[] = process.argv): {
   url: string;
   label: "test" | "main";
@@ -28,7 +19,6 @@ export function resolveDatabaseUrl(argv: readonly string[] = process.argv): {
   return { url, label: useTest ? "test" : "main" };
 }
 
-/** Redacts the password in a connection string for logging. */
 export function redact(url: string): string {
   try {
     const u = new URL(url);
@@ -39,12 +29,6 @@ export function redact(url: string): string {
   }
 }
 
-/**
- * The host node-postgres will actually connect to. pg (pg-connection-string `parse`) lets a `host`
- * query parameter (when not empty) override the URL's host name, so `postgres://u:p@localhost/db?host=remote.example`
- * connects to remote.example: every local/remote decision must use this, not `URL.hostname`.
- * IPv6 brackets are removed, as pg does.
- */
 export function connectionHost(url: string): string {
   const u = new URL(url);
   const fromQuery = u.searchParams.get("host");
@@ -61,22 +45,11 @@ export function makePool(url: string): Pool {
   return new Pool({ connectionString: url, max: 2, application_name: "immersive-episteme-scripts" });
 }
 
-/**
- * Database versions the migrations are written and tested against (docker-compose.yml and CI
- * pin the image by digest). Generated columns hash `jsonb::text` (ie_jsonb_sha256) and the
- * schema relies on PostgreSQL 18 `uuidv7()`, so a different server major or extension version
- * must be a deliberate upgrade: update these together with the image digest.
- *
- * vector accepts 0.8.6 as well: Neon's PostgreSQL 18 ships pgvector 0.8.6
- * (https://neon.com/docs/extensions/pg-extensions), and the schema only installs the extension
- * (0000_enable_extensions.sql) with no vector column or index (DR "Neon", docs/research/design-process/decisions.md).
- */
 export const EXPECTED_DB = {
   serverMajor: 18,
   extensions: { vector: ["0.8.7", "0.8.6"], pg_trgm: ["1.6"], pgcrypto: ["1.4"] } as Record<string, readonly string[]>,
 } as const;
 
-/** Throws when the connected server or extensions differ from EXPECTED_DB. */
 export function assertDbVersions(serverVersionNum: number, extensions: Record<string, string>): void {
   const problems: string[] = [];
   const major = Math.floor(serverVersionNum / 10000);
@@ -93,7 +66,6 @@ export function assertDbVersions(serverVersionNum: number, extensions: Record<st
   }
 }
 
-/** Applies all pending migrations, checks the database versions and returns a one-line summary. */
 export async function runMigrations(pool: Pool): Promise<string> {
   const { drizzle } = await import("drizzle-orm/node-postgres");
   const { migrate } = await import("drizzle-orm/node-postgres/migrator");

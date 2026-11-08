@@ -1,19 +1,9 @@
-/**
- * The ONE rule for "can this browser show the walkthrough?", shared by the study device check
- * (src/components/study/device-check.tsx, evaluated by the engine) and the walkthrough's own
- * failure report. Client-safe.
- */
-
-/** Renderer strings of software rasterisers (SwiftShader, llvmpipe, Microsoft Basic Render, ...). */
 export const SOFTWARE_RENDERER = /swiftshader|llvmpipe|softpipe|microsoft basic render|software/i;
 
 export function isSoftwareRenderer(renderer: string | null | undefined): boolean {
   return !!renderer && SOFTWARE_RENDERER.test(renderer);
 }
 
-/**
- * Study mode: the walkthrough needs WebGL 2 on a hardware renderer.
- */
 export function walkthroughCanRender(gpu: { webglVersion: 1 | 2 | null; softwareRenderer?: boolean | null }): boolean {
   return gpu.webglVersion === 2 && gpu.softwareRenderer !== true;
 }

@@ -1,13 +1,3 @@
-/**
- * CMS authoring inputs (Zod). Stricter than the generic authoring contracts in
- * src/features/knowledge/contracts.ts because they implement the citation policy
- * (docs/research/citation-policy.md, "What every citation must contain"): every claim cites at
- * least one source, every citation carries a page or locator, and every claim carries the verbatim
- * evidence quotation. Learner-facing summary/body are never accepted from a form: they are
- * generated from the claims (content/FORMAT.md, "Learner-facing text is built from claims only").
- *
- * Pure (zod only); also usable from client components for hints.
- */
 import { z } from "zod";
 
 import {
@@ -21,7 +11,6 @@ import { MAX_QUOTE_WORDS, SLUG_REGEX, RELATIONSHIP_TYPE_CODE_REGEX, wordCount } 
 
 const trimmed = (max: number) => z.string().trim().max(max);
 const required = (max: number, msg = "Required") => z.string().trim().min(1, msg).max(max);
-/** "" / null / undefined -> null. */
 const optionalText = (max: number) =>
   z
     .union([z.string(), z.null()]).optional()
@@ -47,25 +36,18 @@ const list = z
 const uuid = z.uuid("Choose an item from the list");
 const checkbox = z.union([z.literal("on"), z.literal("true"), z.boolean(), z.null()]).optional().transform((v) => v === true || v === "on" || v === "true");
 
-/** Verbatim quotation: required, ≤ 25 words (db: concept_claims_quote_ck). */
 export const evidenceQuoteSchema = z
   .string()
   .trim()
   .min(1, "Paste the verbatim quotation from the source that supports this claim")
   .refine((q) => wordCount(q) <= MAX_QUOTE_WORDS, `Quotations are limited to ${MAX_QUOTE_WORDS} words; quote only what supports the claim`);
 
-/** Page or locator: "p. 4362 (PDF p. 4)", "§ \"Process\", para 3". */
 export const locatorSchema = z
   .string()
   .trim()
   .min(1, 'Give the page (e.g. "p. 12 (PDF p. 4)") or, for unpaginated sources, a locator (e.g. "§ Process, para 3")')
   .max(200);
 
-/**
- * One citation of a claim. `quote` is the verbatim passage from THIS source (optional here; the
- * review gate requires one per citation when a claim cites more than one source, because the
- * claim's own quote can only be shown for a single-source claim; final review knowledge-06).
- */
 export const claimCitationSchema = z.object({
   sourceId: uuid,
   locator: locatorSchema,
@@ -88,7 +70,6 @@ export const cmsClaimSchema = z.object({
 });
 export type CmsClaim = z.infer<typeof cmsClaimSchema>;
 
-/** Claims are submitted as one JSON field (`claims`), replacing the concept's claim list. */
 export const saveClaimsSchema = z.object({
   conceptId: uuid,
   claims: z
@@ -127,7 +108,6 @@ export const conceptUpdateSchema = z.object({
 
 export const notesSchema = z.object({
   conceptId: uuid,
-  /** Tiptap JSON document as text; sanitised by src/server/cms/rich-text.ts before storing. */
   doc: z
     .string()
     .max(200_000)
@@ -218,7 +198,6 @@ export const deleteRelationshipSchema = z.object({ relationshipId: uuid });
 export const ENTITY_KINDS = ["tradition", "concept", "relationship", "source"] as const;
 export type CmsEntityKind = (typeof ENTITY_KINDS)[number];
 
-/** What a verifier confirms before verifying (recorded with the decision). */
 export const EVIDENCE_CHECKS = {
   sources_consulted: "I consulted every cited source (archived copy or the original)",
   quotes_verbatim: "Each quotation appears verbatim at the stated page or locator",

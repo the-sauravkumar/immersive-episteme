@@ -1,22 +1,3 @@
-/**
- * Participant reconstruction task: which concept map a session owes now, and saving it.
- *
- * Identity always comes from the verified participant cookie (`ParticipantIdentity`), never from
- * the client: the session row must belong to that participant, and the map is keyed by that
- * session. The client only names the item it was shown, which must equal the server's choice.
- *
- * Phase (CN-15 "Before and after learning"): decided by the server from the session's learning
- * clock. Before learning has started the task is the `pre` administration, afterwards the `post`
- * one; each is the study battery's reconstruction assessment for that phase
- * (`study_assessments.phase`). The two administrations use the same editor and, when the
- * protocol lists the same assessment in both phases, the same concept set. The post map starts
- * from the same blank layout, not from the pre map.
- *
- * Storage: `concept_maps` (nodes with positions + raw editor state with typed/directed edges and
- * the edit log), `concept_map_edges` (normalised edges), and by trigger the append-only
- * `concept_map_revisions` (every save). A final map is frozen by trigger. No score and no timing
- * is written here.
- */
 import type { Pool, PoolClient } from "pg";
 
 import { MAP_FORMAT, extendsLog, type MapPayload } from "@/components/assessment/map-state";
@@ -76,7 +57,6 @@ export function rawToPayload(nodes: unknown, raw: unknown): MapPayload {
   return { nodes: (nodes ?? []) as MapPayload["nodes"], edges: r.edges ?? [], editLog: r.editLog ?? [] };
 }
 
-/** The reconstruction task this session owes now (or `none` if the protocol has none now). */
 export async function loadReconstructionTask(q: Q, who: ParticipantIdentity): Promise<ReconstructionTask> {
   const session = await ownSession(q, who);
   const phase: MapPhase = session.learning_started_at ? "post" : "pre";
@@ -122,18 +102,9 @@ export interface SaveMapResult {
 }
 
 export interface SaveMapOptions {
-  /**
-   * The phase whose reconstruction step is the participant's CURRENT study step, or null when no
-   * reconstruction step is current; read on the save's own transaction, after the session row is
-   * locked. The participant action passes the study engine's answer, so a map can be saved or
-   * submitted only during its own step: not the post map during learning (open book), and not
-   * from a stale pre-test tab once learning has started (final review security-03). Omitted only
-   * by tests that drive the assessment services without the study engine.
-   */
   currentPhase?: (client: PoolClient) => Promise<MapPhase | null>;
 }
 
-/** Autosave or final submission of the participant's own map for the current phase. */
 export async function saveParticipantMap(pool: Pool, who: ParticipantIdentity, input: SaveMapInput, opts: SaveMapOptions = {}): Promise<SaveMapResult> {
   const task = await loadReconstructionTask(pool, who);
   if (task.kind !== "task" || task.itemId !== input.itemId) {

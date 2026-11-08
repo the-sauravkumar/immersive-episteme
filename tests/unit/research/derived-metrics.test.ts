@@ -1,7 +1,3 @@
-/**
- * Derived navigation, timing and correspondence metrics on a hand-computed fixture event stream
- * (src/server/research/metrics/*). Expected values are worked out in the comments.
- */
 import { describe, expect, it } from "vitest";
 
 import { computeMapCorrespondence } from "@/server/research/metrics/correspondence";
@@ -32,7 +28,6 @@ const ev = (type: string, conceptId: string | null = null, metadata: Record<stri
 const start = (id: string, c: string, layer: string) => ev("exposure_started", c, { intervalId: id, layer, startMonoMs: 0 });
 const end = (id: string, c: string, layer: string, activeMs: number) => ev("exposure_ended", c, { intervalId: id, layer, startMonoMs: 0, endMonoMs: activeMs, activeMs, pausedMs: 0, reason: "switched" });
 
-// Visits A, (A again: collapsed), B, C, A, B  ->  A B C A B
 const events = [
   ev("session_started"),
   ev("navigation_started", null, { intervalId: "n1", surface: "catalogue", startMonoMs: 0 }),
@@ -49,7 +44,7 @@ const events = [
   end("e4", C, "science", 1000),
   start("e5", A, "overview"),
   end("e5", A, "overview", 500),
-  start("e6", B, "overview"), // never ended: unterminated, excluded from sums
+  start("e6", B, "overview"),
 ];
 
 const byName = (vals: { metricName: string; value: number | null; details: Record<string, unknown> }[]) => Object.fromEntries(vals.map((v) => [v.metricName, v]));
@@ -57,7 +52,6 @@ const byName = (vals: { metricName: string; value: number | null; details: Recor
 describe("navigation metrics v1", () => {
   it("builds the visit sequence from exposure starts, collapsing consecutive repeats", () => {
     expect(visitSequence(events).map((v) => v.conceptId)).toEqual([A, B, C, A, B]);
-    // order-independent: shuffled input gives the same sequence
     expect(visitSequence([...events].reverse()).map((v) => v.conceptId)).toEqual([A, B, C, A, B]);
   });
 
@@ -66,16 +60,11 @@ describe("navigation metrics v1", () => {
     expect(m["nav.path_length"]!.value).toBe(5);
     expect(m["nav.breadth"]!.value).toBe(3);
     expect(m["nav.breadth"]!.details).toEqual({ traditions: 2, categories: 3 });
-    // A: {overview, science}, B: {overview}, C: {science} -> 4 / 3
     expect(m["nav.depth"]!.value).toBeCloseTo(4 / 3, 6);
-    // (5 visits - 3 distinct) / 5
     expect(m["nav.revisit_rate"]!.value).toBeCloseTo(0.4, 9);
-    // A>B (T1>T1), B>C (T1>shared), C>A (shared>T1), A>B  -> 2 cross-domain, 4 cross-category
     expect(m["nav.cross_domain_transitions"]!.value).toBe(2);
     expect(m["nav.cross_domain_transitions"]!.details).toMatchObject({ crossCategory: 4, transitions: 4 });
-    // science 1000 + 1000 of 7500 completed exposure ms
     expect(m["nav.science_layer_engagement"]!.value).toBeCloseTo(2000 / 7500, 6);
-    // every concept has a single successor: H(next|current) = 0; visit distribution (2,2,1)/5
     expect(m["nav.path_entropy"]!.value).toBe(0);
     expect(m["nav.path_entropy"]!.details.visitEntropy).toBeCloseTo(-(2 * 0.4 * Math.log2(0.4) + 0.2 * Math.log2(0.2)), 6);
     expect(m["nav.relationships_followed"]!.value).toBe(1);
@@ -92,11 +81,9 @@ describe("navigation metrics v1", () => {
   });
 
   it("measures branching with conditional entropy", () => {
-    // A>B, A>C, A>B... : from A two successors with equal counts -> 1 bit; B>A, C>A -> 0
     seq = 1000;
     const branchy = [start("x1", A, "overview"), start("x2", B, "overview"), start("x3", A, "overview"), start("x4", C, "overview"), start("x5", A, "overview")];
     const m = byName(computeNavigationMetrics(branchy, concepts));
-    // transitions: A>B, B>A, A>C, C>A. From A: {B:1, C:1} weight 2/4 * 1 bit = 0.5
     expect(m["nav.path_entropy"]!.value).toBeCloseTo(0.5, 9);
   });
 });
@@ -116,11 +103,10 @@ describe("session metrics (timing + navigation + correspondence)", () => {
 
   it("compares navigation with the post-learning concept map", () => {
     const map = [
-      { sourceConceptId: A, targetConceptId: B, relationshipTypeCode: "PRECEDES", directed: true }, // in the snapshot: correct
-      { sourceConceptId: B, targetConceptId: C, relationshipTypeCode: "CAUSES", directed: true }, // not in the snapshot: incorrect
+      { sourceConceptId: A, targetConceptId: B, relationshipTypeCode: "PRECEDES", directed: true },
+      { sourceConceptId: B, targetConceptId: C, relationshipTypeCode: "CAUSES", directed: true },
     ];
     const r = computeMapCorrespondence(events, map, relationships);
-    // navigated pairs {AB, BC, CA}; map pairs {AB, BC}: 2 / 3
     expect(r.value).toBeCloseTo(2 / 3, 6);
     expect(r.details).toMatchObject({
       conceptsExposed: 3,
@@ -133,10 +119,8 @@ describe("session metrics (timing + navigation + correspondence)", () => {
       incorrectWithBothEndpointsInspected: 1,
       mapConcepts: 3,
     });
-    // a reversed directed edge is not correct
     const reversed = computeMapCorrespondence(events, [{ sourceConceptId: B, targetConceptId: A, relationshipTypeCode: null, directed: true }], relationships);
     expect(reversed.details.reconstructedIncorrect).toBe(1);
-    // an undirected map edge matches either direction
     const undirected = computeMapCorrespondence(events, [{ sourceConceptId: B, targetConceptId: A, relationshipTypeCode: null, directed: false }], relationships);
     expect(undirected.details.reconstructedCorrect).toBe(1);
   });

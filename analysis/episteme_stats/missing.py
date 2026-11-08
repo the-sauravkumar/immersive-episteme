@@ -1,7 +1,3 @@
-"""Missing-data report: what is absent, per condition, and why (never imputed here).
-
-Counts are per analysable participant (the unit of analysis, see data.py), not per session."""
-
 from __future__ import annotations
 
 from typing import Any

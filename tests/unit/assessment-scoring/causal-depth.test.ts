@@ -20,7 +20,6 @@ describe("longestSimplePath", () => {
   });
 
   it("cycle A>B>C>A plus C>D terminates; longest simple path has 3 edges", () => {
-    // candidates: A,B,C,D (3); B,C,A (2); C,A,B (2) ... nodes never repeat
     const r = longestSimplePath(arcs("A>B B>C C>A C>D"), 1e6);
     expect(r.depth).toBe(3);
     expect(r.path).toEqual(["A", "B", "C", "D"]);
@@ -41,7 +40,6 @@ describe("longestSimplePath", () => {
     const r = longestSimplePath(all, 100);
     expect(r.depth).toBeNull();
     expect(r.budgetExceeded).toBe(true);
-    // with an ample budget a complete digraph on 8 nodes has a Hamiltonian path: 7
     expect(longestSimplePath(all, 1e7).depth).toBe(7);
   });
 
@@ -57,7 +55,6 @@ describe("causal-chain depth in scoring", () => {
   };
 
   it("counts only causal types and only valid edges", () => {
-    // A>B CAUSES valid, B>C ENABLES valid, C>D drawn as CAUSES (wrong type -> invalid), A>D USES (not causal)
     const p = pmap([
       ["1", "A", "B", "CAUSES"],
       ["2", "B", "C", "ENABLES"],
@@ -65,8 +62,8 @@ describe("causal-chain depth in scoring", () => {
       ["4", "A", "D", "USES"],
     ]);
     const r = scoreConceptMap(p, ref);
-    expect(getScore(r, "cmap.causal_chain_depth")).toBe(2); // A>B>C
-    expect(getScore(r, "cmap.causal_chain_depth_normalised")).toBeCloseTo(2 / 3, 12); // ref A>B>C>D = 3
+    expect(getScore(r, "cmap.causal_chain_depth")).toBe(2);
+    expect(getScore(r, "cmap.causal_chain_depth_normalised")).toBeCloseTo(2 / 3, 12);
   });
 
   it("AFFECTED_BY is oriented against the arrow (B AFFECTED_BY A means A -> B)", () => {
@@ -75,7 +72,7 @@ describe("causal-chain depth in scoring", () => {
       ["1", "B", "A", "AFFECTED_BY"],
       ["2", "B", "C", "CAUSES"],
     ]);
-    expect(getScore(scoreConceptMap(p, ref2), "cmap.causal_chain_depth")).toBe(2); // A -> B -> C
+    expect(getScore(scoreConceptMap(p, ref2), "cmap.causal_chain_depth")).toBe(2);
   });
 
   it("a cyclic valid participant map terminates", () => {

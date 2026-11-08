@@ -1,11 +1,3 @@
-/**
- * Releases and parity evidence.
- *
- * - release_manifests: what was deployed for a study: content snapshot + spatial manifest +
- *   app build.
- * - parity_reports: append-only content-parity validation reports (spec "experimental
- *   equivalence must be implemented, not assumed"). Rows can never be edited or deleted.
- */
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -31,11 +23,6 @@ export const releaseManifests = pgTable(
     snapshotId: uuid().notNull(),
     spatialManifestId: uuid(),
     appBuild: text().notNull(),
-    /**
-     * Database server + extension versions at release time ({ serverVersion, extensions }),
-     * stamped by trigger on INSERT (migration 0005) so a release records the exact
-     * PostgreSQL/pgvector the migrations ran on. Frozen with the release.
-     */
     dbEnvironment: jsonb().notNull().default(sql`'{}'::jsonb`),
     notes: text(),
     status: releaseStatusEnum().notNull().default("candidate"),
@@ -73,7 +60,6 @@ export const parityReports = pgTable(
     releaseManifestId: uuid().references(() => releaseManifests.id, { onDelete: "restrict" }),
     generatorVersion: text().notNull(),
     passed: boolean().notNull(),
-    /** Per-check results: [{ id, label, passed, details }]. */
     checks: jsonb().notNull(),
     report: jsonb().notNull(),
     reportSha256: text()

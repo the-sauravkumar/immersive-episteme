@@ -1,7 +1,3 @@
-/**
- * Outbox backends: IndexedDB (fake-indexeddb), localStorage fallback when IndexedDB is absent,
- * and seq resumption across "reloads" on a persistent store.
- */
 import { IDBFactory, IDBKeyRange } from "fake-indexeddb";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -55,7 +51,7 @@ describe("telemetry outbox", () => {
     const t1 = tracker(store);
     await t1.pageEntered();
     await t1.pageExited();
-    await t1.flush(); // 500: stays stored
+    await t1.flush();
     t1.dispose();
 
     const reopened = await IndexedDbOutbox.open();

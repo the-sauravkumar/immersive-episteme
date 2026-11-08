@@ -1,21 +1,3 @@
-/**
- * Resubmits listed needs_evidence concepts for review (needs_evidence → under_review) through the
- * SAME service the CMS review panel uses (`transition()` in src/server/cms/workflow.ts), as a named
- * staff user, but only when the concept's evidence is now complete:
- *
- *   npx tsx scripts/content/submit-concepts.ts --as <staff email> --keys <keys.json> \
- *     --reason "<why>" (--dry-run | --apply)
- *
- * "Complete" is the verification test itself: `citationProblems()` returns nothing (every claim has
- * a source, a locator, a verbatim quote and its passage), so a resubmitted concept can be verified
- * without an edit. A concept with any citation problem stays needs_evidence and is reported. Only
- * the listed keys are read or changed; demo content is refused (as in verify-concepts.ts). A submit
- * is a workflow move, not an authoring action (`authorsOf` counts only `cms.concept.*` actions), so
- * it does not stop the same curator from verifying later; the reason is kept in the audit log.
- *
- * --dry-run reads only. --apply transitions one concept at a time (each in its own transaction).
- * Exit code 1 if any listed concept was refused.
- */
 import { readFileSync } from "node:fs";
 
 import type { Pool } from "pg";

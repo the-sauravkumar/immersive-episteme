@@ -1,11 +1,3 @@
-/**
- * Validate the curated content/ graph and write an integrity report.
- *
- *   npx tsx scripts/content/validate.ts [--content content] [--out analysis/out/knowledge-graph]
- *
- * Writes integrity-report.json (machine-readable) and integrity-report.md. Exit code 1 when
- * there are error-level issues. Never writes to content/.
- */
 import { resolve } from "node:path";
 
 import { renderIntegrityMarkdown } from "../../src/features/knowledge/graph/report";

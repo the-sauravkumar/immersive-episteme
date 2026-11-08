@@ -1,9 +1,3 @@
-/**
- * The production data path (RUNBOOK section 5): with-env lets through `db:seed:reference` and
- * `content:bootstrap:remote` but still refuses the demo seed, reset, dev:bootstrap and --test;
- * the remote bootstrap runs on a non-local host only with --i-understand-this-is-remote, names the
- * target first, and never touches users, participants or the demo seed.
- */
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -44,7 +38,6 @@ describe("with-env command guard", () => {
     "npx tsx scripts/db/seed.ts",
     "npx tsx scripts/db/seed",
     "npx tsx scripts\\db\\reset.ts",
-    // Path spellings the file system resolves to the same script (Windows is case-insensitive).
     "npx tsx scripts/db/../db/seed.ts",
     "npx tsx ./scripts/./db/seed.ts",
     "npx tsx Scripts\\DB\\Seed.ts",
@@ -88,12 +81,10 @@ describe("content:bootstrap:remote target guard", () => {
   });
 
   it("judges the host pg connects to: a `host` query parameter overrides the URL's host name", () => {
-    // pg-connection-string: `?host=` replaces the host name, so this URL connects to Neon.
     const disguised = "postgres://u:p@localhost:5433/episteme?host=ep-cool-name-a1b2c3d4.ap-southeast-1.aws.neon.tech";
     const d = decideBootstrapTarget(disguised, []);
     expect(d).toMatchObject({ ok: false, remote: true, host: "ep-cool-name-a1b2c3d4.ap-southeast-1.aws.neon.tech" });
     expect(isLocalHost(disguised)).toBe(false);
-    // The reverse and the pg edge cases.
     expect(isLocalHost("postgres://u:p@ep-x.neon.tech/db?host=localhost")).toBe(true);
     expect(isLocalHost("postgres://u:p@localhost/db?host=")).toBe(true);
     expect(isLocalHost("postgres://u:p@[::1]:5433/db")).toBe(true);

@@ -1,31 +1,3 @@
-/**
- * Pure access decisions for the learning conditions and in-session study pages. No request
- * APIs (cookies/headers) and no database handle: inputs are the raw cookie values, a lazy
- * staff resolver and a StudySessionLookup. The request-bound guards in ./learning-access.ts
- * feed these from the real request; tests feed them directly.
- *
- * Learning access is granted in exactly three ways:
- *  (a) participant: a valid signed study-session cookie whose condition matches the route AND
- *      whose `study_sessions` row is running, not withdrawn, belongs to that participant and is
- *      still assigned to that condition                         -> experimental: true
- *  (b) demo:  a valid signed public-demo cookie set via /explore, while the server-side demo
- *      policy allows the demo (./demo-policy.ts: off while a real study runs) -> experimental: false
- *  (c) staff: a signed-in staff member holding learn.<condition> -> experimental: false (preview)
- *
- * A participant cookie, when present, ALWAYS decides: a mismatched condition redirects to
- * /study/session and a tampered/expired/ended one is refused, even if the browser also holds a
- * demo cookie or a staff session. This keeps a participant from reaching the other condition
- * through /explore or a shared machine. (Other browsers are covered by the demo policy, which
- * is enforced here too, not only when the demo cookie is issued.)
- *
- * A dead participant cookie (tampered, expired, ended, withdrawn) is sent to /study/exit,
- * a Route Handler that deletes it (an RSC render cannot), so the browser is not stuck refusing
- * /explore and staff preview until the cookie expires.
- *
- * Staff preview requires a real staff principal. `public` and `participant` also hold learn.*
- * in the matrix, but those grants only take effect through (a) and (b): a principal without
- * a staff role never reaches (c).
- */
 import { can, type Subject } from "@/lib/permissions/can";
 import { LEARNING_PERMISSION, type LearningCondition } from "@/lib/permissions/learning";
 import { isStaffRole } from "@/lib/permissions/roles";
@@ -74,19 +46,13 @@ export type LearningAccessInput = {
   condition: LearningCondition;
   participantCookie: string | undefined;
   demoCookie: string | undefined;
-  /** Resolved lazily: only consulted when there is no participant cookie. */
   staff: () => Promise<(Subject & { userId: string }) | null>;
 };
 
 export type LearningAccessDeps = {
   secret: string;
   lookup: StudySessionLookup;
-  /** Seconds since epoch (tests). */
   now?: number;
-  /**
-   * Server-side public-demo policy (./demo-policy.ts). Consulted only for a valid demo cookie.
-   * Omitted = allowed (pure tests); the request-bound guard always passes the real policy.
-   */
   demoEnabled?: () => Promise<boolean>;
 };
 
@@ -102,7 +68,6 @@ export async function resolveLearningAccess(
 ): Promise<LearningDecision> {
   const { condition } = input;
 
-  // (a) Participant cookie present: it alone decides.
   if (input.participantCookie !== undefined) {
     const verified = await verifyParticipantSession(input.participantCookie, deps.secret, { now: deps.now });
     if (!verified.ok) return deny("invalid_participant_session");
@@ -115,10 +80,7 @@ export async function resolveLearningAccess(
     }
     if (record.status === "scheduled") return deny("session_not_started");
     if (!LEARNING_SESSION_STATUSES.includes(record.status)) return deny("session_not_active");
-    // Not allocated yet (allocation after the pre-test), or allocated after this cookie was
-    // issued: back to the session, which re-issues the cookie with the condition.
     if (record.condition === null || claims.condition === null) return deny("condition_mismatch");
-    // The database assignment is authoritative; the cookie claim must agree with it.
     if (record.condition !== claims.condition) return deny("invalid_participant_session");
     if (claims.condition !== condition) return deny("condition_mismatch");
 
@@ -134,13 +96,11 @@ export async function resolveLearningAccess(
     };
   }
 
-  // (c) Staff preview: only a principal holding at least one staff role.
   const staff = await input.staff();
   if (staff && staff.roles.some(isStaffRole) && can(staff, LEARNING_PERMISSION[condition])) {
     return { allowed: true, access: { kind: "staff_preview", experimental: false, condition, userId: staff.userId } };
   }
 
-  // (b) Public demo.
   if (input.demoCookie !== undefined) {
     const verified = await verifyDemoSession(input.demoCookie, deps.secret, { now: deps.now });
     if (verified.ok) {
@@ -155,23 +115,18 @@ export async function resolveLearningAccess(
   return deny("no_access");
 }
 
-// ---- participant-only study pages -----------------------------------------------------------
-
 export type ParticipantContext = {
   participantId: string;
   sessionId: string;
-  /** null before allocation (allocation after the pre-test). */
   condition: LearningCondition | null;
 };
 
-/** Where a cookie issued before allocation goes once the session has been allocated. */
 export const REISSUE_AFTER_ALLOCATION_PATH = "/study/allocate";
 
 export type ParticipantDecision =
   | { allowed: true; participant: ParticipantContext }
   | { allowed: false; redirectTo: string };
 
-/** Does this cookie represent a live (scheduled or running) study session, any condition? */
 export async function resolveParticipantSession(
   participantCookie: string | undefined,
   deps: LearningAccessDeps,

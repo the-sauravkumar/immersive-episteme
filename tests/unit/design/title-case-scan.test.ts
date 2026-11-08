@@ -1,17 +1,3 @@
-/**
- * DESIGN.md 15 (and 5.2): every h1-h3 in src/ passes through `titleCase()`
- * (src/lib/text/title-case.ts). A static scan of every JSX heading element:
- *
- *  - literal heading text must already be Title Case (`titleCase(text) === text`);
- *  - an expression inside a heading must call `titleCase(`, or be a value the same file derives
- *    with `titleCase(` (for example `const shown = titleCase(location)` then `{shown}`), or be one
- *    of the explained exceptions below (text that is not a heading phrase, such as a person's
- *    email address or a number).
- *
- * Headings rendered through a shared component that title-cases its own `title` prop (PageHeader,
- * StateMessage, SectionHeading ...) are covered because that component's own heading element is
- * scanned here too.
- */
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
@@ -32,20 +18,16 @@ function walk(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-/** The inner JSX of each <h1>, <h2> and <h3> element of a file (non-nested headings). */
 export function headings(code: string): { tag: string; inner: string; index: number }[] {
   const out: { tag: string; inner: string; index: number }[] = [];
   for (const m of code.matchAll(/<(h[123]|Heading)\b(?:=>|[^<>])*?>([\s\S]*?)<\/\1>/g)) out.push({ tag: m[1]!, inner: m[2]!, index: m.index ?? 0 });
   return out;
 }
 
-/** A heading's children with the markup of nested elements (tags and their attributes) removed. */
 function children(inner: string): string {
-  // `=>` is tried before a single character, so an arrow function in an attribute never ends the tag.
   return inner.replace(/<\/?[A-Za-z][\w.]*(?:=>|[^<>])*?\/?>|<\/?>/g, "  ");
 }
 
-/** `{...}` expressions directly inside a heading (outer level only). */
 function expressions(raw: string): string[] {
   const inner = children(raw);
   const out: string[] = [];
@@ -64,7 +46,6 @@ function expressions(raw: string): string[] {
   return out;
 }
 
-/** Literal JSX text of a heading (tags and expressions removed). */
 function literalText(raw: string): string[] {
   const noExpr = children(raw).replace(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, "  ");
   return noExpr
@@ -73,10 +54,6 @@ function literalText(raw: string): string[] {
     .filter((s) => /[A-Za-z]/.test(s));
 }
 
-/**
- * Expressions that are not heading phrases, so Title Case does not apply. Each is matched against
- * the expression text in its file.
- */
 const NOT_PHRASES: readonly { file: RegExp; expr: RegExp; why: string }[] = [
   { file: /./, expr: /^(?:children|props\.children)$/, why: "a wrapper that receives already title-cased children from its callers (each caller's heading is checked where it is written)" },
   { file: /./, expr: /^(?:icon|Icon|marker|heading|title)$/, why: "a node prop whose callers pass titleCase(...) or an element (checked at the call site)" },
@@ -89,7 +66,6 @@ const NOT_PHRASES: readonly { file: RegExp; expr: RegExp; why: string }[] = [
   { file: /page-heading\.tsx$/, expr: /verbatim/, why: "the learner's own search words, shown verbatim after the title-cased heading" },
 ];
 
-/** Names in a file that are assigned from titleCase(...) (const x = titleCase(...), or x: titleCase(...)). */
 function titleCasedNames(code: string): Set<string> {
   const out = new Set<string>();
   for (const m of code.matchAll(/(?:const|let)\s+(\w+)\s*=\s*titleCase\(/g)) out.add(m[1]!);

@@ -1,12 +1,3 @@
-/**
- * POST /api/telemetry/batch: telemetry uploads from both learning conditions and the study
- * pages (client: src/features/telemetry/client). Body: `telemetryBatchSchema`
- * (src/features/telemetry/contracts.ts). Same-origin only; the session comes from the cookies.
- *
- * 200 TelemetryIngestResponse | 400 invalid_json/invalid_batch | 401 unauthenticated |
- * 403 session_mismatch | 410 session_closed | 413 payload_too_large | 429 rate_limited (Retry-After) |
- * 500 server_error. Logic: src/server/telemetry/ingest.ts.
- */
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -37,7 +28,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const declared = Number(request.headers.get("content-length") ?? "0");
   if (declared > MAX_BATCH_BYTES) return error(413, "payload_too_large", `Batches are limited to ${MAX_BATCH_BYTES} bytes`);
 
-  // Same-origin only (the cookies are SameSite=Lax; this also refuses cross-site fetches).
   const origin = request.headers.get("origin");
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
   if (origin && host && safeHost(origin) !== host) return error(403, "session_mismatch", "Cross-origin telemetry is not accepted");
@@ -61,8 +51,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return error(429, "rate_limited", "Too many telemetry uploads", { "Retry-After": String(rate.retryAfterSeconds) });
   }
 
-  // Size-limited while it streams: Content-Length (checked above) is absent on a chunked request,
-  // and request.text() would buffer a body of any size before it could be measured.
   const raw = request.body ? await readLimited(request.body, MAX_BATCH_BYTES) : new Uint8Array(0);
   if (!raw) return error(413, "payload_too_large", `Batches are limited to ${MAX_BATCH_BYTES} bytes`);
   let body: unknown;

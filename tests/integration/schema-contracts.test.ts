@@ -1,6 +1,3 @@
-/**
- * Zod contracts mirror the database rules (no database needed).
- */
 import { randomUUID } from "node:crypto";
 
 import { describe, expect, it } from "vitest";
@@ -20,7 +17,6 @@ describe("schema contracts", () => {
   it("map every requirement EVT-01..EVT-14 to at least one event type", () => {
     const refs = new Set(EVENT_TYPE_REGISTRY.flatMap((e) => e.requirementRefs as readonly string[]));
     for (let i = 1; i <= 14; i++) expect(refs.has(`EVT-${String(i).padStart(2, "0")}`)).toBe(true);
-    // 2D and 3D entry events share one analytic concept.
     const concept = (code: string) => EVENT_TYPE_REGISTRY.find((e) => e.code === code)?.analyticConcept;
     expect(concept("room_entered")).toBe(concept("page_entered"));
   });
@@ -29,7 +25,7 @@ describe("schema contracts", () => {
     expect(canTransition("under_review", "verified")).toBe(true);
     expect(canTransition("draft", "published")).toBe(false);
     const base = { entityKind: "concept", entityId: randomUUID(), from: "under_review" } as const;
-    expect(verificationTransitionSchema.safeParse({ ...base, to: "needs_evidence" }).success).toBe(false); // needs reason
+    expect(verificationTransitionSchema.safeParse({ ...base, to: "needs_evidence" }).success).toBe(false);
     expect(verificationTransitionSchema.safeParse({ ...base, to: "needs_evidence", reason: "one weak source" }).success).toBe(true);
   });
 

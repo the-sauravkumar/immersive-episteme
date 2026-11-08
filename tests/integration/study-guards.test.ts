@@ -1,7 +1,3 @@
-/**
- * Integration: the study guards of migration 0018 and the related services (final review
- * database-06, -07, -08, security-04), against a throwaway database.
- */
 import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -69,7 +65,7 @@ describe.skipIf(!TEST_URL)("study guards (migration 0018)", { timeout: 60_000 },
     const excluded = await session();
     await t.pool.query("UPDATE participants SET status = 'excluded', exclusion_reason = 'test' WHERE id = $1", [excluded.participantId]);
     await expect(t.pool.query("UPDATE participants SET status = 'active' WHERE id = $1", [excluded.participantId])).rejects.toThrow(/can only withdraw/);
-    await t.pool.query("UPDATE participants SET status = 'withdrawn', withdrawn_at = now() WHERE id = $1", [excluded.participantId]); // withdrawal stays possible
+    await t.pool.query("UPDATE participants SET status = 'withdrawn', withdrawn_at = now() WHERE id = $1", [excluded.participantId]);
   });
 
   it("database-06: consent rows take the server clock; no decision after a withdrawal; one initial decision", async () => {
@@ -95,7 +91,6 @@ describe.skipIf(!TEST_URL)("study guards (migration 0018)", { timeout: 60_000 },
          VALUES ($1, 1, $2, $3, $4, $5, now(), 1, 'information_layer_opened', 'test-build', 'v-guards')`,
         [randomUUID(), studyId, s.participantId, s.sessionId, conds.c2d],
       );
-    // A "withdrawn" consent recorded without the flags (a partial manual correction).
     await recordConsent(t.pool, s.participantId, "withdrawn");
     await expect(event()).rejects.toThrow(/latest consent decision is withdrawn/);
   });
@@ -135,7 +130,6 @@ describe.skipIf(!TEST_URL)("study guards (migration 0018)", { timeout: 60_000 },
       "INSERT INTO assessment_items (assessment_id, item_key, position, kind, prompt, config) VALUES ($1, 'q1', 0, 'short_text', 'Anything', '{\"kind\":\"short_text\"}') RETURNING id",
       [a.id],
     );
-    // A publish in flight holds the assessment row.
     const publisher = await t.pool.connect();
     try {
       await publisher.query("BEGIN");
@@ -144,7 +138,7 @@ describe.skipIf(!TEST_URL)("study guards (migration 0018)", { timeout: 60_000 },
       const del = t.pool.query("DELETE FROM assessment_items WHERE id = $1", [item.id]).finally(() => (settled = true));
       del.catch(() => undefined);
       await new Promise((r) => setTimeout(r, 300));
-      expect(settled).toBe(false); // waits for the publish (before 0018 it deleted at once)
+      expect(settled).toBe(false);
       await publisher.query("UPDATE assessments SET status = 'locked' WHERE id = $1", [a.id]);
       await publisher.query("COMMIT");
       await expect(del).rejects.toThrow(/locked parent/);
@@ -152,7 +146,6 @@ describe.skipIf(!TEST_URL)("study guards (migration 0018)", { timeout: 60_000 },
       publisher.release();
     }
     expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM assessment_items WHERE assessment_id = $1", [a.id])).n).toBe(1);
-    // The service path: publish in one transaction, and a later delete is refused.
     const b = await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ('race-post', 1, 'posttest', 'Race 2') RETURNING id");
     const bi = await one<{ id: string }>(
       t.pool,
@@ -173,9 +166,7 @@ describe.skipIf(!TEST_URL)("study guards (migration 0018)", { timeout: 60_000 },
     expect(await at("198.51.100.1")).toEqual({ allowed: true });
     expect(await at("198.51.100.1")).toMatchObject({ allowed: false, scope: "address" });
     expect(await at("198.51.100.2")).toMatchObject({ allowed: false, scope: "study", retryAfterSeconds: 3600 });
-    // The windows restart: an hour later both counters begin again.
     expect(await at("198.51.100.1", new Date(now.getTime() + 61 * 60_000))).toEqual({ allowed: true });
-    // No address stored: only sha256 keys.
     const keys = await t.pool.query<{ key_sha256: string }>("SELECT key_sha256 FROM study_enrolment_throttle");
     expect(keys.rows.every((r) => /^[0-9a-f]{64}$/.test(r.key_sha256))).toBe(true);
     expect(JSON.stringify(keys.rows)).not.toContain("198.51.100");

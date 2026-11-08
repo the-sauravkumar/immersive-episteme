@@ -1,13 +1,3 @@
-/**
- * Curator notes / editorial prose (Tiptap JSON). Never learner-facing: the snapshot builder
- * always writes `body: null` (src/features/knowledge/graph/snapshot.ts buildBundle), so these
- * notes cannot reach a learning condition; learner text is generated from claims only.
- *
- *  - `sanitizeDoc`: keeps an allow-list of node and mark types and http(s)/mailto links, drops
- *    everything else (attributes included), and caps depth/size. Stored as structured JSON.
- *  - `renderDocHtml`: serialises the allow-listed JSON to HTML with escaping, then runs
- *    DOMPurify (isomorphic-dompurify) over the result before it is ever rendered.
- */
 import DOMPurify from "isomorphic-dompurify";
 
 import type { TiptapDoc, TiptapNode } from "@/lib/validation/primitives";
@@ -60,7 +50,6 @@ export function sanitizeDoc(input: unknown): TiptapDoc {
   return { type: "doc", content };
 }
 
-/** True when the document has no text at all. */
 export function isEmptyDoc(doc: TiptapDoc | null | undefined): boolean {
   if (!doc) return true;
   const hasText = (n: TiptapNode): boolean => (n.type === "text" && !!n.text?.trim()) || (n.content ?? []).some(hasText);
@@ -110,7 +99,6 @@ const PURIFY = {
   ALLOW_DATA_ATTR: false,
 };
 
-/** Sanitised HTML for a stored notes document (empty string for none). */
 export function renderDocHtml(doc: unknown): string {
   const clean = sanitizeDoc(doc);
   return DOMPurify.sanitize(clean.content.map(renderNode).join(""), PURIFY);

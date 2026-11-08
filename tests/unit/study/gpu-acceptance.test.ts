@@ -1,4 +1,3 @@
-/** The shared "can the museum render here" rule (study-01): WebGL 2 on a hardware renderer. */
 import { describe, expect, it } from "vitest";
 
 import { isSoftwareRenderer, walkthroughCanRender } from "@/features/study/gpu-acceptance";

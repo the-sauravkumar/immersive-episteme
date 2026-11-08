@@ -1,14 +1,3 @@
-/**
- * Integration: release and review governance fixed in the final review (DR-037, DR-038), against a
- * throwaway database (schema-harness). One sequence on one database:
- *  1. publishRelease freezes the servable study photographs (knowledge-01), and a photograph's
- *     anchor follows its claim's text through a reorder, or sends the asset back to review when the
- *     claim is reworded (knowledge-07);
- *  2. every citation of a multi-source claim needs its own quote (knowledge-06);
- *  3. a citation of a source outside the review pipeline blocks verification and the release, and
- *     a source leaving the pipeline reopens what cites it (knowledge-03);
- *  4. a tradition taken out of the pipeline blocks a release of its concepts (knowledge-12).
- */
 import { createHash } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -103,7 +92,6 @@ describe.skipIf(!TEST_URL)("CMS release governance (final review)", () => {
       await verify(curatorB, kind, id);
     }
 
-    // A study photograph anchored after claim 2 ("The vat is kept warm."), reviewed by another curator.
     const storage = createLocalStorage(dir);
     const bytes = png(768, 512, 1);
     const asset = await createAssetFromBytes(t.pool, editor, storage, {
@@ -134,16 +122,13 @@ describe.skipIf(!TEST_URL)("CMS release governance (final review)", () => {
 
   it("moves a photograph's anchor with its claim, and returns the asset to review when the claim is reworded (knowledge-07)", async () => {
     const position = async () => (await one<{ position: number }>(t.pool, "SELECT position FROM asset_links WHERE asset_id = $1", [assetId])).position;
-    // A new first claim: "The vat is kept warm." is now claim 3, and the figure follows it.
     await saveClaims(t.pool, curatorA, materialId, [claim("Indigo comes from the leaves of Indigofera."), claim("Indigo is fermented in a vat."), claim("The vat is kept warm.")]);
     expect(await position()).toBe(2);
     expect(await stateOf("assets", assetId)).toBe("verified");
-    // Reworded: the reviewed caption-claim relation no longer holds.
     await saveClaims(t.pool, curatorA, materialId, [claim("Indigo comes from the leaves of Indigofera."), claim("Indigo is fermented in a vat."), claim("The vat is kept at body heat.")]);
     expect(await stateOf("assets", assetId)).toBe("under_review");
     const lost = await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM audit_log WHERE action = 'media.anchor_lost' AND entity_id = $1", [assetId]);
     expect(lost.n).toBe(1);
-    // The published release keeps the anchor it froze.
     const frozen = await one<{ position: number }>(t.pool, "SELECT f.position FROM snapshot_figures f JOIN content_snapshots s ON s.id = f.snapshot_id WHERE s.version_label = 'gov-1'");
     expect(frozen.position).toBe(1);
   });
@@ -161,7 +146,6 @@ describe.skipIf(!TEST_URL)("CMS release governance (final review)", () => {
       ]),
     ]);
     expect(await citationProblems(t.pool, "concept", tool)).toEqual([]);
-    // Kept evidence survives an unchanged save, but not a changed locator.
     await saveClaims(t.pool, curatorA, tool, [claim("Blocks are carved from teak.", [{ sourceId: s1 }, { sourceId: s2 }])]);
     expect(await citationProblems(t.pool, "concept", tool)).toEqual([]);
     await saveClaims(t.pool, curatorA, tool, [claim("Blocks are carved from teak.", [{ sourceId: s1, locator: "p. 13" }, { sourceId: s2 }])]);
@@ -199,7 +183,6 @@ describe.skipIf(!TEST_URL)("CMS release governance (final review)", () => {
   });
 
   it("refuses to verify or release a claim citing a source outside the pipeline, and reopens what a leaving source supports (knowledge-03)", async () => {
-    // A CMS source starts as a draft: a claim may cite it, but cannot be verified with it.
     const draft = await newSource("Unreviewed notes");
     const dye = (await createConcept(t.pool, curatorA, { packageSlug: "gov", type: "material", name: "madder", categoryCode: "materials", title: "Madder", provenanceKind: "historical_documentation", localTerms: [] })).id;
     await saveClaims(t.pool, curatorA, dye, [claim("Madder gives red.", [{ sourceId: s1, quote: "madder gives a red dye" }, { sourceId: draft, quote: "red from madder root" }])]);
@@ -207,13 +190,11 @@ describe.skipIf(!TEST_URL)("CMS release governance (final review)", () => {
     const err = await verify(curatorB, "concept", dye).catch((e: CmsError) => e);
     expect(err).toBeInstanceOf(CmsError);
     expect(JSON.stringify((err as CmsError).details)).toContain("claim_source_unusable");
-    // Even unverified, the release names the citation it would drop.
     const readiness = await releaseReadiness(t.pool);
     expect(readiness.refusals.filter((r) => r.code === "REL004").map((r) => r.message)).toEqual([expect.stringMatching(/^1 claim\(s\) cite a source that is draft/)]);
     expect(readiness.pending).toEqual(expect.arrayContaining([expect.objectContaining({ kind: "cited source outside the pipeline", id: draft })]));
     await transition(t.pool, curatorB, { entityKind: "concept", entityId: dye, to: "rejected", reason: "test fixture", evidenceChecked: [] });
 
-    // An accepted concept goes back to review when its only source is archived.
     const s3 = await newSource("Third treatise");
     await move(curatorA, "source", s3, "under_review");
     await verify(curatorB, "source", s3);

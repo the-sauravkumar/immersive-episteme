@@ -118,19 +118,14 @@ export interface ParityInput {
 
 const CONDITION_OVERRIDE_KEYS = /^(exposure|guidance|assessments?|battery|prompts?|tasks?|instructions?|cue(Enabled)?|traditions?|traditionSlugs)$/i;
 
-// ---- figure balance (DESIGN.md 9.9, 11.10, 12.3 rules 8-10; DR-018, DR-020) ------------------
-
-/** A tradition-page section (EPISTEMIC_SECTIONS) with the knowledge layer its figures count under. */
 export interface FigureSectionRow {
   sectionId: string;
   title: string;
   layer: KnowledgeLayerId;
-  /** Figures a learner sees in this section, per balance tradition slug. */
   counts: Record<string, number>;
   balanced: boolean;
 }
 
-/** Figures a learner sees per knowledge layer, per balance tradition slug. */
 export interface FigureLayerRow {
   layer: KnowledgeLayerId;
   counts: Record<string, number>;
@@ -138,13 +133,10 @@ export interface FigureLayerRow {
 }
 
 export interface FigureBalance {
-  /** The traditions whose counts must be equal: the study traditions in scope, else every one in scope. */
   traditionSlugs: string[];
   traditionNames: Record<string, string>;
   rows: FigureSectionRow[];
-  /** The same counts per knowledge layer (exposureLayerOf the figure's concept type). */
   layers: FigureLayerRow[];
-  /** Every figure a learner sees, per tradition: kind, concept, section. */
   shown: { traditionSlug: string; conceptId: string; conceptKey: string; sectionId: string; kind: "diagram" | "photo"; ref: string }[];
   issues: ParityIssue[];
   metrics: { diagrams: number; photos: number; photosHeldBack: number };
@@ -156,22 +148,6 @@ function sectionLayer(sectionId: string): KnowledgeLayerId {
   return t ? (exposureLayerOf(t) as KnowledgeLayerId) : "overview";
 }
 
-/**
- * The figures each study tradition would show, per section, resolved exactly as the read model
- * resolves them for BOTH conditions (`resolveConceptFigures`: at most one figure per concept; the
- * structure diagram, while the protocol shows them, takes the slot; otherwise an approved
- * illustration photograph anchored to an existing claim). Pure and deterministic.
- *
- * The rule (12.3 rule 9) is per section: within each tradition-page section (the museum room), the
- * balance traditions show exactly the same number of figures. Sections are the EPISTEMIC_SECTIONS
- * of the 2D template (the science section holds both scientific mechanisms and explanations), and
- * a section's `layer` (the CMS table's grouping) is `exposureLayerOf` its first concept type.
- * Since the one section map (DR-024) a section can span two layers: "Science and environment"
- * holds the science types and environmental conditions (overview layer). Section balance therefore
- * no longer implies layer balance, so layers are checked as well, by `exposureLayerOf` of each
- * figure's own concept type (`figures_unbalanced_layer`). Either balance implies an equal
- * per-tradition total.
- */
 export function figureBalance(
   bundle: KnowledgeBundle,
   traditionSlugs: readonly string[],
@@ -187,33 +163,27 @@ export function figureBalance(
   const issues: ParityIssue[] = [];
   const shown: FigureBalance["shown"] = [];
 
-  // Diagrams: the same balancing the read model applies (balanceDiagramSets over the balance set).
   const diagramByConcept = new Map<string, { id: string; section: string }>();
   if (opts.structureDiagrams) {
     const all = new Map(balance.map((slug) => [slug, buildStructureDiagrams(bundle, slug)]));
     for (const list of balanceDiagramSets(all, balance).values()) {
       for (const d of list) {
-        // A concept shows ONE figure: a second diagram anchored on the same concept is not shown.
         if (!diagramByConcept.has(d.anchor.conceptId)) diagramByConcept.set(d.anchor.conceptId, { id: d.id, section: d.section });
       }
     }
   }
 
-  // Photographs: approved illustration links of the bundle's concepts.
   const photoCandidates = new Map<string, ParityFigureAsset[]>();
-  // The protocol switch `figures.photos` (DR-020): off shows no photograph in either condition.
   for (const a of opts.photos === false ? [] : (opts.figureAssets ?? [])) {
     if (a.role !== "illustration") continue;
     const c = conceptById.get(a.conceptId);
     if (!c) continue;
-    // The anchor-claim gate (DR-020): a photograph shows only once its concept's claims are verified.
     if (!photoGateOpen(c.verificationState)) continue;
-    if (c.assetIds.length > 0 && !c.assetIds.includes(a.assetId)) continue; // a frozen bundle lists its own figures
-    if (a.isDemo && !bundle.isDemo) continue; // demo media never reaches a real bundle
+    if (c.assetIds.length > 0 && !c.assetIds.includes(a.assetId)) continue;
+    if (a.isDemo && !bundle.isDemo) continue;
     if (a.verificationState !== "verified" && a.verificationState !== "published") continue;
     const absent = [!a.credit?.trim() && "credit", !a.caption?.trim() && "caption", !a.altText?.trim() && "alt text"].filter((x): x is string => Boolean(x));
     if (absent.length) {
-      // The learner route refuses such an image, so it is not counted as shown; it still blocks activation.
       issues.push({ code: "figure_metadata", message: `Image ${a.assetId} on ${c.key} has no ${absent.join(", ")}: every study figure prints a caption and a credit and licence line, and has alt text.`, ref: a.assetId });
       continue;
     }
@@ -230,8 +200,8 @@ export function figureBalance(
     }
   }
 
-  const counts = new Map<string, Map<string, number>>(); // section -> slug -> n
-  const layerCounts = new Map<string, Map<string, number>>(); // layer -> slug -> n
+  const counts = new Map<string, Map<string, number>>();
+  const layerCounts = new Map<string, Map<string, number>>();
   const bump = (section: string, slug: string, type: ConceptType) => {
     for (const [map, key] of [[counts, section], [layerCounts, exposureLayerOf(type)]] as const) {
       const row = map.get(key) ?? new Map<string, number>();
@@ -280,7 +250,6 @@ export function figureBalance(
     const values = Object.values(byTradition);
     return { layer: id, counts: byTradition, balanced: values.every((v) => v === values[0]) };
   });
-  // A layer imbalance that an unbalanced section already explains is not reported twice.
   const explained = new Set(rows.filter((r) => !r.balanced).flatMap((r) => (EPISTEMIC_SECTIONS.find((x) => x.id === r.sectionId)?.types ?? []).map((t) => exposureLayerOf(t))));
   for (const l of layers) {
     if (l.balanced || explained.has(l.layer)) continue;

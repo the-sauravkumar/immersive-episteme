@@ -1,11 +1,3 @@
-/**
- * Assessment and research-data contracts: instruments and items, raw responses, participant
- * concept maps, expert reference maps and versioned derived scores.
- *
- * Raw data and derived data stay separate (spec §10.3). An instrument may only be flagged as
- * validated with a name and citation (MP:593: "Do not invent a supposedly validated
- * instrument"); open instrument choices are Q-R4 and Q-R7.
- */
 import { z } from "zod";
 
 import {
@@ -48,7 +40,6 @@ export const itemConfigSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("likert"),
     points: z.number().int().min(2).max(11),
-    /** First scale value: 1 (default) or 0 (e.g. Leppink et al. 2013: 0 to 10; SSQ: 0 to 3). Values run min..min+points-1. */
     min: z.number().int().min(0).max(1).default(1),
     anchors: z.record(z.string(), z.string()).default({}),
   }),
@@ -64,10 +55,8 @@ export const itemConfigSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("sketch"), maxStrokes: z.number().int().positive().max(2000).default(600), maxBytes: z.number().int().positive().max(400_000).default(200_000) }),
   z.object({
     kind: z.literal("concept_map"),
-    /** Concept set offered to the participant (concept keys); fixed vs. per-tradition is Q-R4. */
     conceptKeys: z.array(z.string().min(1)).min(2),
     allowFreeNodes: z.boolean().default(false),
-    /** Relationship types offered for typed links (empty = untyped links). */
     relationshipTypes: z.array(relationshipTypeCodeSchema).default([]),
     directed: z.boolean().default(true),
   }),
@@ -118,7 +107,6 @@ export const assessmentInputSchema = z
   });
 export type AssessmentInput = z.infer<typeof assessmentInputSchema>;
 
-/** Raw answer as submitted (responses). */
 export const responseInputSchema = z
   .object({
     sessionId: uuidSchema,
@@ -155,7 +143,6 @@ export const conceptMapEdgeSchema = z
   })
   .refine((e) => e.source !== e.target, { message: "A link needs two different nodes" });
 
-/** Participant concept map as produced by the editor (concept_maps + concept_map_edges). */
 export const conceptMapSubmissionSchema = z
   .object({
     sessionId: uuidSchema,

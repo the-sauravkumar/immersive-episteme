@@ -1,30 +1,3 @@
-/**
- * Client telemetry tracker (framework-agnostic). One tracker per study/demo session.
- *
- * Guarantees (the virtual-walkthrough tracker cleared its outbox on a failed upload and lost
- * events silently; this one never does):
- *  - every event gets the next per-session `seq`; the next seq is persisted with the event, so
- *    numbering continues after a reload (resume = max(stored next seq, max stored seq + 1));
- *  - every event is validated with `telemetryEventSchema` and written to the persistent outbox
- *    BEFORE any upload; an invalid event is counted (`stats.invalid`) and reported (`onDrop`);
- *  - events leave the outbox only after a 2xx response that parses as
- *    `telemetryIngestResponseSchema`, or after a final (non-retryable) refusal, in which case
- *    they are moved to the persisted dead-letter list and counted in `stats.dropped`;
- *  - network errors, 408, 429 (Retry-After honoured) and 5xx are retried with exponential
- *    backoff and jitter, re-using the batch's idempotency key; 413 halves the batch first;
- *  - on `pagehide` / `visibilitychange` to hidden the pending events are sent with
- *    `navigator.sendBeacon` (or `fetch(..., { keepalive: true })`). Those sends are
- *    fire-and-forget: the events stay in the outbox until a normal upload is acknowledged
- *    (the server deduplicates by idempotency key and eventId);
- *  - a batch's idempotency key names its seq range AND a hash of its event ids, so two tabs of
- *    one session that numbered the same seqs never share a key (a shared key would make the
- *    server answer the second batch as a replay of the first: final review telemetry-02);
- *  - a page that starts hidden (opened in a background tab) starts with timing paused;
- *  - `flushNow()` delivers before the session ends (FinishForm) and reports what is left.
- *
- * Seq starts at 0 for a new session. Demo and preview sessions use the same path (the server
- * answers `persisted: false, nonExperimental: true`).
- */
 import {
   MAX_EVENTS_PER_BATCH,
   TELEMETRY_BATCH_ENDPOINT,
@@ -42,20 +15,17 @@ import { openDefaultOutbox, type DeadLetter, type Outbox, type OutboxKind } from
 
 export type TelemetryMode = "study" | "demo" | "preview";
 
-/** Largest beacon / keepalive body we attempt (browsers cap both at about 64 KiB). */
 export const BEACON_MAX_BYTES = 60 * 1024;
 export const DEFAULT_BATCH_SIZE = 50;
 export const DEFAULT_FLUSH_INTERVAL_MS = 5_000;
 export const DEFAULT_BASE_RETRY_DELAY_MS = 1_000;
 export const DEFAULT_MAX_RETRY_DELAY_MS = 60_000;
-/** Upper bound for a server-requested Retry-After. */
 export const MAX_RETRY_AFTER_MS = 10 * 60_000;
 
 export interface TelemetryDrop {
   reason: string;
   status: number | null;
   count: number;
-  /** Present for invalid events (client-side validation messages). */
   issues?: string[];
 }
 
@@ -67,30 +37,19 @@ export interface TelemetryErrorInfo {
 
 export interface TelemetryStats {
   storage: OutboxKind | null;
-  /** Events validated and stored. */
   enqueued: number;
-  /** Event transmissions in normal uploads (a retried event counts again). */
   sent: number;
-  /** Event transmissions via sendBeacon / keepalive on page exit. */
   beaconed: number;
-  /** Events acknowledged by the server (accepted + duplicates + quarantined). */
   acked: number;
   duplicates: number;
   quarantined: number;
-  /** Upload attempts that failed retryably. */
   retries: number;
-  /** Events given up on after a final refusal (kept in the dead-letter list). */
   dropped: number;
-  /** Events refused by client-side validation (never stored). */
   invalid: number;
-  /** Outbox writes that failed (events then kept in memory only). */
   storageErrors: number;
-  /** Events stored and not yet acknowledged. */
   pending: number;
   lastError: TelemetryErrorInfo | null;
-  /** Missing seq ranges reported by the server after the last acknowledged batch. */
   gaps: { fromSeq: number; toSeq: number }[];
-  /** From the last acknowledged batch. */
   persisted: boolean | null;
   nonExperimental: boolean | null;
 }
@@ -101,38 +60,20 @@ export interface TelemetryTrackerOptions {
   appBuild: string;
   mode: TelemetryMode;
   endpoint?: string;
-  /** Defaults to `openDefaultOutbox()` (IndexedDB, localStorage, memory). */
   storage?: Outbox | Promise<Outbox>;
   firstSeq?: number;
-  /**
-   * Hands the seq counter from one tracker of a session to the next one in the same page
-   * (client-side navigation unmounts one provider and mounts another before the first one's
-   * outbox writes have landed). Defaults to a page-wide registry when `storage` is the default
-   * outbox; pass a shared `createSeqHandoff()` to give injected-storage trackers the same link.
-   */
   handoff?: SeqHandoff;
-  /**
-   * Synchronous seq high-water mark that survives a page unload. Events tracked while a page is
-   * being hidden are beaconed, but the page can unload before their asynchronous outbox write
-   * commits; the next page would then reuse their seqs. Defaults to `localStorage` when
-   * `storage` is the default outbox; pass one explicitly to test it.
-   */
   seqMark?: SeqMark | null;
   fetchImpl?: typeof fetch;
-  /** Defaults to `navigator.sendBeacon` when present; `null` disables beacons. */
   sendBeacon?: ((url: string, data: Blob) => boolean) | null;
-  /** Epoch milliseconds (default Date.now). */
   now?: () => number;
-  /** Monotonic milliseconds for `clientMonoMs` (default performance.now). */
   monotonicNow?: () => number;
-  /** [0, 1) for retry jitter (default Math.random). */
   random?: () => number;
   uuid?: () => string;
   batchSize?: number;
   flushIntervalMs?: number;
   baseRetryDelayMs?: number;
   maxRetryDelayMs?: number;
-  /** Page lifecycle sources; defaults to `window` / `document`; `false` disables the listeners. */
   lifecycle?: { window?: EventTarget | null; document?: (EventTarget & { visibilityState?: string }) | null } | false;
   onDrop?: (drop: TelemetryDrop) => void;
   onError?: (error: TelemetryErrorInfo) => void;
@@ -142,39 +83,21 @@ export interface TelemetryTracker extends EventHelpers {
   readonly sessionId: string;
   readonly mode: TelemetryMode;
   track: TrackFn;
-  /**
-   * Content-exposure / navigation intervals (./timing.ts). The only way to emit interval events;
-   * paused on tab hide and window blur (resumed on show / focus), ended on pagehide and dispose;
-   * pause it yourself while a non-content modal is open (`usePauseWhile`).
-   */
   timing: TimeAccountant;
-  /** Starts timers and lifecycle listeners (idempotent; restartable after stop()). */
   start(): void;
-  /** Stops timers and listeners; stored events stay in the outbox. */
   stop(): void;
-  /** stop() and refuse further tracking. */
   dispose(): void;
-  /** Uploads everything that can be sent now (respects an active backoff). */
   flush(): Promise<void>;
-  /**
-   * Delivers now: ignores the client's own backoff for the first attempt, then retries (honouring
-   * Retry-After and the backoff) until the outbox is empty or `deadlineMs` (default 8 s) has
-   * passed. Resolves with the number of events still pending: `flush()` alone resolves without
-   * delivering anything during a backoff or after a failed upload.
-   */
   flushNow(opts?: { deadlineMs?: number }): Promise<{ pending: number }>;
-  /** Synchronous exit flush via sendBeacon / keepalive (what pagehide triggers). */
   flushOnExit(): void;
   getStats(): TelemetryStats;
   subscribe(listener: (stats: TelemetryStats) => void): () => void;
   getDeadLetters(): Promise<DeadLetter[]>;
-  /** Resolves once the outbox is open and the seq counter restored. */
   ready(): Promise<void>;
 }
 
 const RETRYABLE = (status: number) => status === 408 || status === 429 || status >= 500;
 
-/** 64-bit FNV-1a (two 32-bit lanes with different offset bases) as 16 hex characters. */
 function fnv1a64(text: string): string {
   let a = 0x811c9dc5;
   let b = 0x811c9dc5 ^ 0x5bd1e995;
@@ -186,13 +109,6 @@ function fnv1a64(text: string): string {
   return (a >>> 0).toString(16).padStart(8, "0") + (b >>> 0).toString(16).padStart(8, "0");
 }
 
-/**
- * Stable idempotency key of a batch: same events => same key (a retry or a beacon of the same
- * events is deduplicated). The seq range alone is not enough: a second tab of the session can
- * give the same seqs to OTHER events, and the server would answer that batch as a replay and
- * the tab would delete events never stored. The event-id hash makes such a batch a new batch,
- * where an event on a used seq is quarantined as seq_conflict (kept, not lost).
- */
 export function batchIdempotencyKey(sessionId: string, events: readonly TelemetryEvent[]): string {
   const ids = events.map((e) => e.eventId).join(",");
   return `b:${sessionId}:${events[0]!.seq}-${events[events.length - 1]!.seq}:${fnv1a64(ids)}`;
@@ -212,7 +128,6 @@ type SendOutcome =
   | { kind: "too_large" }
   | { kind: "final"; code: string; status: number };
 
-/** Per-session seq high-water mark and the last outbox write, shared by trackers of one page. */
 export type SeqHandoff = Map<string, { nextSeq: number; writes: Promise<unknown> }>;
 export const createSeqHandoff = (): SeqHandoff => new Map();
 
@@ -221,7 +136,6 @@ export interface SeqMark {
   set(sessionId: string, nextSeq: number): void;
 }
 
-/** `localStorage` mark (`ie-telemetry:v1:<sessionId>:mark`); null where storage is unavailable. */
 export function localStorageSeqMark(): SeqMark | null {
   let ls: Storage;
   try {
@@ -244,7 +158,6 @@ export function localStorageSeqMark(): SeqMark | null {
       try {
         ls.setItem(key(s), String(n));
       } catch {
-        // Quota or privacy mode: the asynchronous outbox still carries the counter.
       }
     },
   };
@@ -284,12 +197,9 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
   };
   let outbox: Outbox | null = null;
   let initPromise: Promise<void> | null = null;
-  /** True once the outbox is open and the seq counter restored: events can then be staged synchronously. */
   let initDone = false;
-  /** Track calls waiting in `chain` for init (their seqs are not assigned yet). */
   let waiting = 0;
   let nextSeq = 0;
-  /** In-memory mirror of the outbox (lets the exit flush run synchronously). */
   const pending = new Map<number, TelemetryEvent>();
   let chain: Promise<unknown> = Promise.resolve();
   let disposed = false;
@@ -335,8 +245,6 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
   function init(): Promise<void> {
     initPromise ??= (async () => {
       try {
-        // A previous tracker of this session in this page may still be writing: let it finish,
-        // so its events are in the outbox (or at least its counter is known) before we resume.
         const prior = handoffEntry();
         await prior?.writes.catch(() => undefined);
         nextSeq = Math.max(nextSeq, options.firstSeq ?? 0, prior?.nextSeq ?? 0, seqMark?.get(sessionId) ?? 0);
@@ -357,11 +265,6 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
     return initPromise;
   }
 
-  /**
-   * Validates the event, assigns the next seq and puts it in the in-memory queue SYNCHRONOUSLY,
-   * so an event tracked inside a pagehide / visibilitychange handler is part of the exit flush
-   * that runs right after it. The outbox write follows asynchronously (in order, via `chain`).
-   */
   function stage(type: EventTypeCode, fields: TrackFields<EventTypeCode> | undefined, clientTs: string, mono: number): TelemetryEvent | null {
     const { metadata, ...context } = (fields ?? {}) as TrackFields<EventTypeCode> & { metadata?: Record<string, unknown> };
     const candidate = {
@@ -377,7 +280,6 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
     };
     const parsed = telemetryEventSchema.safeParse(candidate);
     if (!parsed.success) {
-      // The seq is not consumed, so an invalid event never shows up as a server-side gap.
       const issues = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
       update({ invalid: stats.invalid + 1 });
       options.onDrop?.({ reason: "invalid_event", status: null, count: 1, issues });
@@ -419,8 +321,6 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
       return chain.then(() => event);
     }
     waiting++;
-    // Start init now (it captures the previous tracker's writes synchronously), before this
-    // tracker's own write is registered in the handoff, so init never waits on itself.
     const ready = init();
     const p = chain.then(async () => {
       await ready;
@@ -435,7 +335,6 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
     return p;
   };
 
-  /** Public entry point: interval (timing) events are reserved for the time accountant. */
   const track: TrackFn = (type, ...args) => {
     if (isTimingEventType(type)) {
       update({ invalid: stats.invalid + 1 });
@@ -445,8 +344,6 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
     return rawTrack(type, ...args);
   };
 
-  // Interval ids must be unique within the session across page loads and tabs (the metrics match
-  // starts to ends by id): a random per-tracker prefix, not the page's performance.now().
   const intervalPrefix = uuid().replace(/-/g, "").slice(0, 10);
   let intervalCounter = 0;
   const timing = createTimeAccountant({ track: rawTrack, monotonicNow, newId: () => `iv-${intervalPrefix}-${(intervalCounter++).toString(36)}` });
@@ -609,7 +506,6 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
 
   async function flushNow({ deadlineMs = 8_000 }: { deadlineMs?: number } = {}): Promise<{ pending: number }> {
     const until = now() + deadlineMs;
-    // The caller is about to end the session: do not wait out the client's own backoff once.
     attempt = 0;
     nextAttemptAt = 0;
     for (;;) {
@@ -621,12 +517,6 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
     }
   }
 
-  /**
-   * Synchronous exit flush: every event already staged (including intervals closed by the
-   * pagehide / hide handler just before) goes out in successive beacons (fallback: keepalive
-   * fetch), oldest first, until the queue is sent or the browser refuses a beacon. The events
-   * stay in the outbox until a normal upload is acknowledged (server dedups by eventId).
-   */
   function flushOnExit() {
     const queue = takeBatch(pending.size);
     let i = 0;
@@ -637,7 +527,7 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
         events = events.slice(0, Math.ceil(events.length / 2));
         body = payloadOf(events);
       }
-      if (new Blob([body]).size > BEACON_MAX_BYTES) return; // a normal upload will carry it
+      if (new Blob([body]).size > BEACON_MAX_BYTES) return;
       i += events.length;
       let beaconed = false;
       if (beacon) {
@@ -681,10 +571,6 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
     win?.addEventListener("blur", onBlur);
     win?.addEventListener("focus", onFocus);
     doc?.addEventListener("visibilitychange", onVisibility);
-    // A page opened in a background tab (middle click, ctrl-click) loads hidden and gets no
-    // visibilitychange until it is shown: start paused, so its intervals accrue no active time
-    // (final review telemetry-05). Focus is not read here: headless browsers and pages behind
-    // DevTools report hasFocus() false, which would leave timing paused until a focus event.
     if (doc?.visibilityState === "hidden") timing.pause("hidden");
     return () => {
       win?.removeEventListener("pagehide", onPageHide);

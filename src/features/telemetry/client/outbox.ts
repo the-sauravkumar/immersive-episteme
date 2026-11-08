@@ -1,36 +1,17 @@
-/**
- * Persistent telemetry outbox (client only). Events are written here BEFORE any upload and
- * removed only after the server acknowledged them (or after they were moved to the dead-letter
- * list, which is itself persisted and counted). Three implementations:
- *
- *  - IndexedDB (preferred): database `ie-telemetry` v1 with object stores
- *      `events`  keyPath [sessionId, seq]   { sessionId, seq, event }
- *      `meta`    keyPath sessionId          { sessionId, nextSeq }
- *      `dead`    autoIncrement, index `bySession` on sessionId   { sessionId, ...DeadLetter }
- *  - localStorage (fallback): keys `ie-telemetry:v1:<sessionId>:events` (JSON array),
- *      `…:next-seq` (number) and `…:dead` (JSON array);
- *  - memory (last resort: SSR, private mode with storage disabled). Not durable across reloads.
- *
- * `openDefaultOutbox()` picks the first that works. Client-safe: no Node APIs.
- */
 import type { TelemetryEvent } from "@/features/telemetry/contracts";
 
 export type OutboxKind = "indexeddb" | "localstorage" | "memory";
 
 export interface DeadLetter {
   event: TelemetryEvent;
-  /** Error code from the server body (e.g. `invalid_batch`), or `http_<status>`. */
   reason: string;
   status: number | null;
-  /** ISO time the events were given up on. */
   at: string;
 }
 
 export interface Outbox {
   readonly kind: OutboxKind;
-  /** Store events and the session's next seq atomically (where the backend allows). */
   append(sessionId: string, events: readonly TelemetryEvent[], nextSeq: number): Promise<void>;
-  /** All stored (unacknowledged) events of the session, ascending seq. */
   list(sessionId: string): Promise<TelemetryEvent[]>;
   remove(sessionId: string, seqs: readonly number[]): Promise<void>;
   getNextSeq(sessionId: string): Promise<number | null>;
@@ -39,10 +20,6 @@ export interface Outbox {
 }
 
 const bySeq = (a: TelemetryEvent, b: TelemetryEvent) => a.seq - b.seq;
-
-// ---------------------------------------------------------------------------------------
-// Memory
-// ---------------------------------------------------------------------------------------
 
 export class MemoryOutbox implements Outbox {
   readonly kind: OutboxKind = "memory";
@@ -78,10 +55,6 @@ export class MemoryOutbox implements Outbox {
   }
 }
 
-// ---------------------------------------------------------------------------------------
-// localStorage
-// ---------------------------------------------------------------------------------------
-
 export const LOCAL_STORAGE_PREFIX = "ie-telemetry:v1";
 
 type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
@@ -107,7 +80,6 @@ export class LocalStorageOutbox implements Outbox {
     const existing = this.read<TelemetryEvent[]>(k, []);
     const seen = new Set(existing.map((e) => e.seq));
     const merged = [...existing, ...events.filter((e) => !seen.has(e.seq))].sort(bySeq);
-    // setItem throws on quota errors: the tracker catches, counts and keeps the events in memory.
     this.storage.setItem(k, JSON.stringify(merged));
     this.storage.setItem(this.key(sessionId, "next-seq"), String(nextSeq));
   }
@@ -135,10 +107,6 @@ export class LocalStorageOutbox implements Outbox {
   }
 }
 
-// ---------------------------------------------------------------------------------------
-// IndexedDB
-// ---------------------------------------------------------------------------------------
-
 export const IDB_NAME = "ie-telemetry";
 export const IDB_VERSION = 1;
 
@@ -161,7 +129,6 @@ export class IndexedDbOutbox implements Outbox {
   readonly kind: OutboxKind = "indexeddb";
   private constructor(private readonly db: IDBDatabase) {}
 
-  /** Opens (and creates) the database. Rejects when IndexedDB is unavailable or blocked. */
   static async open(factory: IDBFactory = globalThis.indexedDB, name = IDB_NAME): Promise<IndexedDbOutbox> {
     if (!factory) throw new Error("IndexedDB is not available");
     const req = factory.open(name, IDB_VERSION);
@@ -223,10 +190,6 @@ export class IndexedDbOutbox implements Outbox {
   }
 }
 
-// ---------------------------------------------------------------------------------------
-// Selection
-// ---------------------------------------------------------------------------------------
-
 function usableLocalStorage(): StorageLike | null {
   try {
     const ls = globalThis.localStorage;
@@ -240,13 +203,11 @@ function usableLocalStorage(): StorageLike | null {
   }
 }
 
-/** IndexedDB, else localStorage, else memory. Never rejects. */
 export async function openDefaultOutbox(): Promise<Outbox> {
   if (typeof globalThis.indexedDB !== "undefined") {
     try {
       return await IndexedDbOutbox.open();
     } catch {
-      // fall through
     }
   }
   const ls = usableLocalStorage();

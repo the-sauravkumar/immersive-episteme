@@ -1,7 +1,3 @@
-/**
- * The dashboard's definitions table: every citation is verbatim in docs/research/study-decisions.md
- * (whitespace-normalised), every metric shown has a definition, versions match the computing code.
- */
 import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";

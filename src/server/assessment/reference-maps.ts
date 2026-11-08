@@ -1,24 +1,3 @@
-/**
- * Expert reference maps: several raters author a map over the same fixed concept set, the
- * existing scoring library computes inter-rater agreement (`raterAgreement`) and the consensus
- * (`buildConsensus`, strict majority with ties flagged `disputed`), an adjudicator settles the
- * disputes, and finalising writes the adjudicated edges. Versions are rows of `reference_maps`
- * (`(assessment_id, version)`); a locked version is immutable in the database.
- *
- * Storage:
- *  - each rater's map: `reference_map_raters` (role `rater`), `submission = { conceptIds, edges,
- *    editor }` where `edges` are ReferenceEdgeInput objects and `editor` is the raw editor payload
- *    (positions and edit log);
- *  - adjudications: the single adjudicator's row (role `adjudicator`), `submission =
- *    { edges: [], adjudications: [{ key, decision, note, decidedAt }] }`;
- *  - the adjudicated map: `reference_map_edges` (`required` = expected, `notes` =
- *    `consensus:<decision>`, `agreement` = share of raters) and `adjudicated_by/at`.
- *
- * Demo reference maps must stay `draft` (reference_maps_demo_ck), so finalising a demo map sets
- * `adjudicated_by/at` and writes the edges but keeps the status; scoring accepts any map with
- * `adjudicated_at` set. After finalising, the map no longer accepts rater or adjudicator edits:
- * a change is a new version.
- */
 import type { Pool, PoolClient } from "pg";
 import { z } from "zod";
 
@@ -88,7 +67,6 @@ export async function listReferenceMaps(q: Q, assessmentId?: string): Promise<Re
   return r.rows.map(toSummary);
 }
 
-/** Loads the reconstruction assessment's concept-map item and its concept set. */
 export async function reconstructionItem(q: Q, assessmentId: string): Promise<{ itemId: string; status: string; isDemo: boolean; scoring: ScoringConfigInput; set: ConceptSet }> {
   assertUuid(assessmentId, "Assessment");
   const r = await q.query<{ item_id: string; config: unknown; status: string; is_demo: boolean; a_config: { scoring?: ScoringConfigInput } }>(
@@ -104,7 +82,6 @@ export async function reconstructionItem(q: Q, assessmentId: string): Promise<{ 
 
 export const newReferenceSchema = z.object({ title: z.string().trim().min(1).max(300), description: z.string().trim().max(4000).optional() });
 
-/** A new reference-map version for a published reconstruction assessment. */
 export async function createReferenceMap(q: Q, actorId: string, assessmentId: string, input: z.input<typeof newReferenceSchema>): Promise<string> {
   const { title: rawTitle, description } = newReferenceSchema.parse(input);
   const item = await reconstructionItem(q, assessmentId);
@@ -136,15 +113,9 @@ export interface ReferenceWorkspace {
   ownSubmission: MapPayload | null;
   adjudicator: { id: string; name: string } | null;
   adjudications: Array<Adjudication & { decidedAt?: string }>;
-  /** Union universe: positive agreement and per-edge support (kappa is undefined there). */
   agreement: ReturnType<typeof raterAgreement> | null;
-  /**
-   * Kappa over a DEFINED universe (final review scoring-01): every possible edge over the item's
-   * concept set and relationship types. Null when the item has no relationship types.
-   */
   kappaAgreement: ReturnType<typeof raterAgreement> | null;
   consensus: ConsensusResult | null;
-  /** Edges written at finalisation. */
   finalEdges: Array<{ sourceConceptId: string; targetConceptId: string; relationshipTypeCode: string | null; directed: boolean; required: boolean; agreement: number | null; notes: string | null }>;
 }
 
@@ -183,8 +154,6 @@ export async function getReferenceWorkspace(q: Q, id: string, viewerId: string):
     if (relationshipTypes.length > 0) {
       kappaAgreement = raterAgreement(inputs, { ...options, universe: "all_possible", conceptIds: item.set.concepts.map((c) => c.conceptId), relationshipTypes });
     }
-    // A rater may revise their map after an adjudication; decisions on edges no rater proposes
-    // any more are kept in storage but not applied.
     const candidates = new Set(buildConsensus(inputs, options).edges.map((e) => e.key));
     consensus = buildConsensus(inputs, {
       ...options,
@@ -223,7 +192,6 @@ function assertOpen(ref: RefRow): void {
   if (ref.status !== "draft" || ref.adjudicated_at) throw new AssessmentError("immutable", "This reference map is finalised. Create a new version to change it.");
 }
 
-/** A rater's own map (create or revise until finalisation). */
 export async function submitRaterMap(q: Q, raterId: string, referenceMapId: string, payloadInput: unknown): Promise<void> {
   const ref = await loadRef(q, referenceMapId);
   assertOpen(ref);
@@ -255,7 +223,6 @@ export const adjudicationSchema = z.object({
   note: z.string().trim().max(2000).optional(),
 });
 
-/** Records (or replaces) the adjudicator's decision on one candidate edge. One adjudicator per map. */
 export async function recordAdjudication(pool: Pool, adjudicatorId: string, referenceMapId: string, input: z.input<typeof adjudicationSchema>): Promise<void> {
   const adj = adjudicationSchema.parse(input);
   await inTransaction(pool, async (c) => {
@@ -278,7 +245,6 @@ export async function recordAdjudication(pool: Pool, adjudicatorId: string, refe
   });
 }
 
-/** Writes the adjudicated consensus as the reference edges. Refused while any edge is disputed. */
 export async function finaliseReferenceMap(pool: Pool, actorId: string, referenceMapId: string, notes: string | null): Promise<void> {
   await inTransaction(pool, async (c) => {
     await c.query("SELECT id FROM reference_maps WHERE id = $1 FOR UPDATE", [referenceMapId]);
@@ -310,8 +276,6 @@ export async function finaliseReferenceMap(pool: Pool, actorId: string, referenc
   });
 }
 
-/** Locks an adjudicated (non-demo) reference map: immutable in the database from now on. */
-/** Locks an adjudicated map: checked, locked and audited in one transaction on the locked row (database-08). */
 export async function lockReferenceMap(pool: Pool | PoolClient, actorId: string, referenceMapId: string): Promise<void> {
   assertUuid(referenceMapId, "Reference map");
   await inTransaction(pool, async (q) => {

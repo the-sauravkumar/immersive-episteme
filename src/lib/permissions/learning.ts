@@ -1,4 +1,3 @@
-/** The two experimental learning conditions. Dependency-free (shared by server and client). */
 export const LEARNING_CONDITIONS = ["2d", "immersive"] as const;
 
 export type LearningCondition = (typeof LEARNING_CONDITIONS)[number];

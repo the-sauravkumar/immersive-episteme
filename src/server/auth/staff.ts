@@ -1,16 +1,3 @@
-/**
- * Staff principal + server-side permission enforcement (the Data Access Layer for auth).
- *
- * - `getStaffPrincipal()`  -> the signed-in staff member with roles, or null. Deduped per request.
- * - `requireStaff()`       -> principal, or redirect to /sign-in.
- * - `requirePermission()`  -> principal holding (any of) the permission(s), or redirect to
- *                             /sign-in (anonymous) / /forbidden (signed in, not allowed).
- * - `authorizeRequest()`   -> for Route Handlers / Server Actions: returns a 401/403 Response
- *                             instead of redirecting.
- *
- * These read the request (headers/cookies), so with Cache Components they must run inside a
- * <Suspense> boundary (layouts put the gate inside one).
- */
 import "server-only";
 
 import { headers } from "next/headers";
@@ -36,7 +23,6 @@ export type StaffPrincipal = Subject & {
   readonly sessionId: string;
 };
 
-/** The signed-in, non-disabled staff member (with roles), or null. Cached per request. */
 export const getStaffPrincipal = cache(async (): Promise<StaffPrincipal | null> => {
   const session = await getAuth().api.getSession({ headers: await headers() });
   if (!session) return null;
@@ -63,10 +49,6 @@ export async function requireStaff(opts: { next?: string } = {}): Promise<StaffP
   return principal;
 }
 
-/**
- * Any-of semantics when given an array. Never renders protected content for a caller without
- * the permission: `redirect()` throws before the caller's JSX is produced.
- */
 export async function requirePermission(
   permission: Permission | readonly Permission[],
   opts: { next?: string } = {},
@@ -81,7 +63,6 @@ export type AuthorizeResult =
   | { ok: true; principal: StaffPrincipal }
   | { ok: false; response: Response };
 
-/** Route Handler / Server Action variant: JSON 401/403 instead of a redirect. */
 export async function authorizeRequest(permission: Permission | readonly Permission[]): Promise<AuthorizeResult> {
   const principal = await getStaffPrincipal();
   if (!principal) {
@@ -94,7 +75,6 @@ export async function authorizeRequest(permission: Permission | readonly Permiss
   return { ok: true, principal };
 }
 
-/** Throwing variant for server actions/services. */
 export class PermissionError extends Error {
   constructor(
     readonly status: 401 | 403,
