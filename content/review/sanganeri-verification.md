@@ -533,3 +533,14 @@ Study template: `content/study/sanganeri.template.json` was rebuilt with `npm ru
 | 84 | `sanganeri.open_question.pollution-attribution-and-cetp` BELONGS_TO `sanganeri.environmental_condition.effluent-and-water-pollution` | verified | Attribution and treatment status unresolved. | S10 | PDF p. 10, § "Social environmental issues" | Along with them there were some 300 Screen Printing units, which were the main source of the pollution. | yes |
 | 84 | 〃 |  |  | S11 | Abstract (OpenAlex record; DOI full text 404) | Wastewater and groundwater samples of Sanganer were studied to find out the pollution load of wastewater generated from dyeing and printing units | yes |
 | 84 | 〃 |  |  | S12 | § "Textile units served notices in Sanganer yet again" | even after the RSPCB gave the environmental clearance for setting up the CETP plant in 2014, the construction is yet to begin. | yes |
+
+## Alternative Names (DR-124)
+
+Each name in `alt_names` is printed by a recorded source; the quote was re-found verbatim at its locator in `D:/Work/IIT-KGP/Paper_1-artifacts/sources/sanganeri-2026-11-07/`. Names no source prints were removed.
+
+| Name | Source | Locator | Quote |
+|---|---|---|---|
+| Sanganeri print | S1 | PDF p. 15 | Marufacturing and Trading of Sanganeri Print |
+| Sanganer print | S8 | § "page text" | Syahi Begar &#124; Sanganer Print |
+| Sanganeri Hand Block Printing | S1 | PDF p. 2 | SANGANERI HAND BLOCK PRINTING |
+| Syahi Begar | S8 | § "page text" | Syahi Begar &#124; Sanganer Print |

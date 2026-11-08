@@ -332,7 +332,7 @@ The cloth sequence rests on S18 (Rao 2019), whose "The Process" passage names th
 | 〃 |  |  |  | S2 | § "Challenges:" | The ash, which is sprinkled on the cloth fumes in the workspace, is to a certain degree another pertaining hazard to the printer and others working around | yes |
 | `dabu.environmental_condition.water-pollution-and-hazards` | 1 | The craft archive calls for measures to reuse water, and states that residue water from chemical dyes and mordants is polluting local groundwater. | verified | S2 | § "Waste:" | Also, with the advent of chemical dyes and other mordents, the residue water which washes back into the ground is polluting the groundwater of the region, and will be causing damage to the ecosystem in the times to come. | yes |
 | 〃 |  |  |  | S2 | § "Waste:" | There need to be measures to reuse the water for other purposes | yes |
-| `dabu.comparison.mud-resist-vs-wax-and-direct-print` | 0 | Bagru and Sanganeri are other Rajasthani block prints distinct in look and method from Daboo. | verified | S19 | § "Origin & History" | Daboo printing is often grouped together with other Rajasthani hand block prints like Sanganeri and Bagru, but is in fact quite distinct in terms of its look and method. | yes |
+| `dabu.comparison.mud-resist-vs-wax-and-direct-print` | 0 | Bagru and Sanganeri are other Rajasthani block prints distinct in look and method from Daboo. | under_review (DR-124: provenance `unverified`, S19 is unattributed; the database refuses to accept it) | S19 | § "Origin & History" | Daboo printing is often grouped together with other Rajasthani hand block prints like Sanganeri and Bagru, but is in fact quite distinct in terms of its look and method. | yes |
 | `dabu.open_question.paste-recipe` | 0 | Paste is mud, gum and lime. | verified | S1 | § "Dabu printing" | The craftsmen dip the blocks into a viscous paste of mud, gum and lime. | yes |
 | `dabu.open_question.paste-recipe` | 1 | Paste is river-bed silt, gum, lime, sugarcane molasses and water. | verified | S3 | § "Craft Revival Trust New Delhi, India" | The resist Dabu clay paste is made of a complex mixture of silt, from the dried river-bed, a local natural gum, lime, sugar-cane molasses, and water to form the paste. | yes |
 | `dabu.open_question.paste-recipe` | 2 | At Bagru, beden (insect-eaten wheat-flour waste) is used as the dusting powder on wet dabu. | verified | S4 | § "Craft Revival Trust New Delhi, India" | The dusting powder used is beden, the insect eaten waste of wheat flour. The printing of dabu is often the occupation of women, working either in their homes or in the karkhana workshops of the printers. | yes |
@@ -481,7 +481,7 @@ The cloth sequence rests on S18 (Rao 2019), whose "The Process" passage names th
 | 71 | 〃 |  |  | S18 | § "Dabu Printing" | The fabric is now spread under hot sun to get the mud paste to dry out completely. | yes |
 | 72 | `dabu.process_stage.washing-off-resist` AFFECTED_BY `dabu.environmental_condition.river-water` | verified | Washing uses Beduch river water. | S2 | § "Significance:" | the Beduch river provides water and washing grounds on it mighty banks. | yes |
 | 73 | `dabu.material.tar-oil-rogan-resist` CAUSES `dabu.environmental_condition.water-pollution-and-hazards` | verified | Gaatha directly reports tar fumes as hazardous to printers. | S2 | § "Challenges:" | The tar used for resist is continuously heated and the fumes developed, prove hazardous for the printers. | yes |
-| 74 | `dabu.tradition.dabu-mud-resist-printing` CONTRASTS_WITH `dabu.comparison.mud-resist-vs-wax-and-direct-print` | verified | Daboo is described as distinct from Bagru and Sanganeri prints in look and method. | S19 | § "Origin & History" | grouped together with other Rajasthani hand block prints like Sanganeri and Bagru, but is in fact quite distinct in terms of its look and method. | yes |
+| 74 | `dabu.tradition.dabu-mud-resist-printing` CONTRASTS_WITH `dabu.comparison.mud-resist-vs-wax-and-direct-print` | under_review (DR-124: its target concept is under review) | Daboo is described as distinct from Bagru and Sanganeri prints in look and method. | S19 | § "Origin & History" | grouped together with other Rajasthani hand block prints like Sanganeri and Bagru, but is in fact quite distinct in terms of its look and method. | yes |
 | 75 | `dabu.design_principle.layered-colour` DEPENDS_ON `dabu.process_stage.repeat-cycles` | verified | Layered colour requires repeated resist-dye cycles. | S1 | § "Dabu printing" | The application of resist and dye are done several times, painstakingly with great artistry, to get various shades of ground and motif color | yes |
 | 75 | 〃 |  |  | S3 | § "Craft Revival Trust New Delhi, India" | This process of Dabu resist is repeated and the fabric dipped into the next color dye bath, till all the colors required are achieved. | yes |
 | 76 | `dabu.design_principle.reserve-light-on-dark` DEPENDS_ON `dabu.process_stage.resist-printing` | verified | Light motifs are those printed with resist. | S3 | § "Craft Revival Trust New Delhi, India" | The areas of the motif that are white are first stamped with the Dabu paste | yes |
@@ -511,3 +511,15 @@ The cloth sequence rests on S18 (Rao 2019), whose "The Process" passage names th
 | 83 | 〃 |  |  | S23 | PDF p. 4 | In general Dabu is made by mixing: 1. Lime dissolved in water, 2. Natural gum 'Bedhan' or the wheat flour spoiled by worms | yes |
 | 83 | 〃 |  |  | S3 | § "Craft Revival Trust New Delhi, India" | made of a complex mixture of silt, from the dried river-bed, a local natural gum, lime, sugar-cane molasses, and water to form the paste. | yes |
 | 83 | 〃 |  |  | S4 | § "Craft Revival Trust New Delhi, India" | The dusting powder used is beden, the insect eaten waste of wheat flour. | yes |
+
+## Alternative Names (DR-124)
+
+Each name in `alt_names` is printed by a recorded source; the quote was re-found verbatim at its locator in `D:/Work/IIT-KGP/Paper_1-artifacts/sources/dabu-2026-11-07/`. Names no source prints were removed.
+
+| Name | Source | Locator | Quote |
+|---|---|---|---|
+| Dabu | S18 | § "page text" | Dabu Printing - Bindu Gopal Rao |
+| Daboo print | S19 | § "page text" | Daboo Print : An Ancient Printing Technique from Rajasthan |
+| Akola print | S2 | § "Quick questions" | What is Akola print? |
+| Aakola Dabu Prints | S5 | § "Application Details" | Geographical Indications Aakola Dabu Prints |
+| mud-resist printing | S2 | § "Usage:" | The dabu or mud-resist printing of Akola |

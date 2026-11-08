@@ -7,10 +7,10 @@ The project lead (Saurav Kumar) asked the V&A and PARI whether the study's image
 
 The question covered:
 
-- the V&A textile images (`scripts/content/study-photos/*-768.jpg`, at most 768 px, credited "© Victoria and Albert Museum, London"), permitted in `va-image-licence-reply.md`;
+- the V&A textile images (asked about as 768 px renditions; since DR-118 the repository holds the full-size files `scripts/content/study-photos/ajrakh-textile.jpg`, `machilipatnam-kalamkari-textile.jpg` and `sanganeri-textile.jpg`, credited "© Victoria and Albert Museum, London"), permitted in `va-image-licence-reply.md`;
 - the PARI photographs, permitted in `pari-image-permission-reply.md`, credited "Photo: Rahul Maganti / People's Archive of Rural India (PARI). CC BY-NC-ND 4.0, used with permission."
 
-**Status:** confirmed orally. No written confirmation is on file. If either organisation later sends one in writing, add it here word for word.
+**Status, 2026-11-08:** superseded by DR-118: every image is licensed for public use by CXA's approval. **Earlier status:** confirmed orally. No written confirmation is on file. If either organisation later sends one in writing, add it here word for word.
 
 The other image sources need no separate permission for the public repository:
 

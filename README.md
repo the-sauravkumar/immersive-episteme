@@ -121,7 +121,15 @@ docs/{architecture,research,decisions}
 
 ## Content rule
 
-No craft content in this repository is verified. Never fabricate craft facts. Curated,
-source-cited content lives in `content/` (see `content/FORMAT.md`) and is imported as
-`verification_state = under_review`. Fixtures and demo data are flagged `is_demo = true`,
+Never fabricate craft facts. Curated, source-cited content lives in `content/` (see
+`content/FORMAT.md`). In a file, `verified` means the item passed a mechanical source check
+recorded in `content/review/<tradition>-verification.md`: every quote re-found verbatim at its
+locator in an archived copy of a recorded source. It is still imported as `under_review`;
+acceptance in the database is a named curator's transition in the CMS or through
+`scripts/content/verify-concepts.ts` (DR-059, DR-120, DR-124). Fixtures and demo data are flagged `is_demo = true`,
 titled `Demo: …`, and can never be published into a study (enforced by database triggers).
+
+## Deployment
+
+Nothing is deployed: the Vercel project was deleted and the repository handed over (DR-124).
+To deploy, follow `docs/deploy/RUNBOOK.md`.

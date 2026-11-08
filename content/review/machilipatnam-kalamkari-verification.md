@@ -53,7 +53,7 @@ Relationships:
 
 Study template: `npm run content:stage-template` rebuilds `content/study/machilipatnam-kalamkari.template.json` unchanged (stage names, items and captions), so both doors are unchanged.
 
-Not checked here: the tradition-level `alt_names` (not a review item) include 'Masulipatnam kalamkari' and 'Masulipatam chintz', which no recorded source spells that way.
+The tradition-level `alt_names` were checked under DR-124: 'Masulipatnam kalamkari' and 'Masulipatam chintz', which no recorded source spells that way, were replaced by S4's 'Kalamkari Cloth printing of Masulipatnam' and removed (see Alternative Names below).
 
 ## Sources
 
@@ -616,3 +616,14 @@ Not checked here: the tradition-level `alt_names` (not a review item) include 'M
 | 126 | `machilipatnam-kalamkari.process_stage.alum-fixing-dip` SCIENTIFICALLY_EXPLAINED_BY `shared.scientific_mechanism.alum-mordant-complexation` | under_review | Final alum bath fixes colours. | S4 | PDF p. 4 | A mordant is a substance that has the affinity for both fiber and dyestuff and which fixes the color on the material. | yes |
 | 127 | `machilipatnam-kalamkari.tradition.machilipatnam-kalamkari` CONTRASTS_WITH `machilipatnam-kalamkari.historical_context.srikalahasti-style` | verified | Machilipatnam kalamkari is hand-block printed in karkhanas, whereas Srikalahasti kalamkari is drawn freehand with a pen. | S7 | PDF p. 1 | The Srikalahasti style of kalamkari is a freehand drawing using a pen | yes |
 | 127 | 〃 | 〃 | 〃 | S13 | § "Rajarshi Sengupta" | In Machilipatnam, the production is carried out in karkhanas (commercial workshops), where the block makers, washers and printers work under the same roof. | yes |
+
+## Alternative Names (DR-124)
+
+Each name in `alt_names` is printed by a recorded source; the quote was re-found verbatim at its locator in `D:/Work/IIT-KGP/Paper_1-artifacts/sources/machilipatnam-kalamkari-2026-11-08/`. Names no source prints were removed.
+
+| Name | Source | Locator | Quote |
+|---|---|---|---|
+| Pedana Kalamkari | S2 | § "page text" | GI for Pedana Kalamkari Art Form |
+| Machilipatnam Kalamkari | S1 | § "Application Details" | Geographical Indications Machilipatnam Kalamkari |
+| Kalamkari Cloth printing of Masulipatnam | S4 | PDF p. 14 | Kalamkari Cloth printing of Masulipatnam, Census of India Vol II AP Part VIIA Selected Crafts of AP. |
+| qalamkar | S8 | § "Object details" | It also calls the textile Qalamkar |

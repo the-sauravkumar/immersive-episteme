@@ -5,6 +5,8 @@ PARI (Zahra, People's Archive of Rural India) sent three replies to `pari-image-
 - the second restates the permission and asks for the applicable licence information;
 - the third adds photo 07, confirms the exact credit line, and offers the original high-resolution files.
 
+**Status, 2026-11-08: superseded by DR-118.** Licensed for public use by CXA's approval; the files are full size; the credit and alteration rules still apply. The 768 px limit, `licenceExpiresOn` and the ingest gates described below were removed by DR-118 (migration `0027_drop_licence_governance`); the reply itself is kept verbatim.
+
 **Status: permission granted** for photos 04, 06 and 07 by Rahul Maganti, on these conditions, which ingest must follow:
 
 - **Where:** both study conditions and the public demonstration only.

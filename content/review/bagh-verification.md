@@ -544,3 +544,13 @@ and then `--apply`, which takes the concepts this file marks `verified`.
 | bagh.open_question.origin-dating BELONGS_TO bagh.historical_context.khatri-migration-from-sindh | The question concerns when and from where the Bagh printers came. | S3 | § "Hand Block – Printing of Bagh, Madhya Pradesh" | his father (and uncle) decided to settle down in Bagh | verbatim at locator | verified |
 | bagh.open_question.origin-dating BELONGS_TO bagh.historical_context.khatri-migration-from-sindh | The question concerns when and from where the Bagh printers came. | S4 | § "Thappa Chappai" | From Larkana in Sind (today’s Pakistan) to Pali, to the Marwadi Thar, to Manawar in Madhya Pradesh | verbatim at locator | verified |
 | bagh.open_question.origin-dating BELONGS_TO bagh.historical_context.khatri-migration-from-sindh | The question concerns when and from where the Bagh printers came. | S6 | § "This 400-year-old tradition of block printing, using natural ingredients and labour-intensive techniques, is no mean fea" | migrated to Gujarat and Rajasthan four centuries ago from the Larkana district of Sindh (now Pakistan), famed for ajrakh prints. | verbatim at locator | verified |
+
+## Alternative Names (DR-124)
+
+Each name in `alt_names` is printed by a recorded source; the quote was re-found verbatim at its locator in `D:/Work/IIT-KGP/Paper_1-artifacts/sources/bagh-2026-11-07/`. Names no source prints were removed.
+
+| Name | Source | Locator | Quote |
+|---|---|---|---|
+| Bagh Prints of Madhya Pradesh | S1 | PDF p. 3 | GI Applications Bagh Prints of Madhya Pradesh (Logo )- GI Application No.505 |
+| Thappa Chappai | S4 | § "Thappa Chappai" | Also called 'Thappa Chappai' (Thappa means Blocks, Chappai means printing) |
+| alizarin printing | S6 | § "This 400-year-old tradition of block printing, using natural ingredients and labour-intensive techniques, is no mean fea" | Bagh printing, previously known as alizarin printing |

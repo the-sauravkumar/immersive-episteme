@@ -1,5 +1,7 @@
 # Immersive rendering: measured results
 
+> **Superseded, 2026-11-08 (DR-124).** This records the deleted 3D museum (DR-076 deleted the old doors; DR-118 replaced the image gate). Its checks, statuses and CSP finding describe that build, not the current Door 2 walkthrough, whose measurements are in the DRs from DR-095 on (DR-106, DR-109, DR-117). Kept as history.
+
 Companion to `immersive-rendering-quality.md` (the acceptance specification, checks C1–C12).
 This document reports only what was measured, with the command that produced each number.
 **Status: C1-C12 have been run on the high tier (GTX 1650), headless, against the development

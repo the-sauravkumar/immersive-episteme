@@ -3703,7 +3703,7 @@
       "body_md": "Bagru and Sanganeri are other Rajasthani block prints distinct in look and method from Daboo. [S19]",
       "local_terms": [],
       "provenance_kind": "unverified",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "claims": [
         {
           "text": "Bagru and Sanganeri are other Rajasthani block prints distinct in look and method from Daboo.",
@@ -5787,7 +5787,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "unverified",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "source_ids": [
         "S19"
       ],
@@ -6109,17 +6109,6 @@
       "depicts": "dabu.outcome.undyed-motifs-on-indigo",
       "width": 868,
       "height": 1156,
-      "mime": "image/jpeg",
-      "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
-    },
-    {
-      "url": "https://commons.wikimedia.org/wiki/File:Woman_doing_Block_Printing_at_Bagru_village,_Jaipur,_India.jpg",
-      "title": "Woman doing Block Printing at Bagru village, Jaipur, India",
-      "licence": "CC0 1.0",
-      "author": "Anildiggiwal (Wikimedia Commons user)",
-      "depicts": "dabu.tool.carved-wooden-block",
-      "width": 1280,
-      "height": 958,
       "mime": "image/jpeg",
       "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
     }

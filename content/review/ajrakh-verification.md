@@ -608,3 +608,14 @@ Relationships:
 | 157 | 〃 |  |  | S12 | § "Abstract" | in the year 1586, Raja Bharmal I, invited his forefathers, to migrate from Sind and settle in Dhamadka, Kachchh. | yes |
 | 157 | 〃 |  |  | S7 | § "From Sindh to Kachchh" | Among them was Jinda Jeeva, our ancestor who came here in 1650. | yes |
 | 158 | `ajrakh.open_question.thermal-comfort-claim` BELONGS_TO `ajrakh.outcome.four-colour-ajrakh-cloth` | verified | The question concerns a claimed thermal property of the finished natural-dyed cloth. | S1 | GI Journal No. 188 copy (application 1050), PDF p. 9 | The Uniqueness about the Ajrakh printed fabric is that during the day time, when the temperature are high it gives coolness to the wearer | yes |
+
+## Alternative Names (DR-124)
+
+Each name in `alt_names` is printed by a recorded source; the quote was re-found verbatim at its locator in `D:/Work/IIT-KGP/Paper_1-artifacts/sources/ajrakh-2026-11-07/`. Names no source prints were removed.
+
+| Name | Source | Locator | Quote |
+|---|---|---|---|
+| Ajrak | S15 | § "page text" | Ajrak - Wikipedia |
+| Kutch Ajrakh | S1 | § "Application Details" | Geographical Indications Kutch Ajrakh Print of Gujarat |
+| Kutch Ajrakh Print of Gujarat | S1 | § "Application Details" | Geographical Indications Kutch Ajrakh Print of Gujarat |
+| Sindhi Ajrak | S15 | § "Ajrak" | Sindhi ajrak |

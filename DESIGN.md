@@ -354,13 +354,13 @@ Note Section 12 decisions appear here as defaults. Each can change, so build not
 | Labels | Always visible ("the fairer default") | One Door 2 setting |
 | Common questions | Questionnaire items, not reflective prompts | Items are data |
 | Delayed test | Included, per the note's procedure | The step can be switched off |
-| Open content items | The 18 unbacked links and the science layer are not shown until ruled on | Content comes only from checked records |
+| Open content items | One unbacked link remains in `content/review/unsupported-relationships.json` (shared mud-resist barrier CONTRASTS_WITH indigo-vat reduction), owned by the shared craft-science verification (KG206); it and the science layer are not shown until ruled on (DR-124) | Content comes only from checked records |
 
 Raised by this theme, for the lead:
 
-- **Next-stage cue fairness (lead's decision).** Default: Door 2's cloth keeps its current state through the gate, and the gate shows the next number and name; Door 1's Next shows the same. Neither shows the next cloth state early. The Next naming was added so the doors match and the note does not ask for it. It may help both groups on sequence items. Alternative: remove the name from both.
+- **Next-stage cue fairness (settled, DR-124).** Door 2's cloth keeps its current state through the gate, and the gate shows the next number and name; Door 1's Next shows the same. Neither shows the next cloth state early. The name stays in both doors: it is the same string at the same moment in each, so it cannot favour either condition, which is what the study compares; any lift it gives on sequence items is equal across groups, and the paper reports it as a cue present in both.
 - **Product photograph count (settled, DR-118).** The note's "six licensed photographs" are the six study photographs, one V&A textile and one printing-blocks photograph per tradition. Each tradition's product stop shows its two after its finished textiles, identically in both doors, from the gated read model.
-- **Title spelling.** The note prints "Walking the Process"; Rule 17 gives `Walking The Process`. One string to change.
+- **Title spelling (settled, DR-124).** `Walking The Process`, under Rule 17 (every heading and title word capitalised); the note's "Walking the Process" is overridden by the house rule.
 
 Decisions taken while the lead was away are recorded as decision records in `docs/research/design-process/decisions.md` and listed for ruling.
 
@@ -379,16 +379,16 @@ Decisions taken while the lead was away are recorded as decision records in `doc
 | Section 6 | "Each tool and material is a single 3D model (modelled or licensed, with credit recorded like the photographs); the course uses fixed renders of the same models." |
 
 ### 15.2 Literature
-UNVERIFIED IN THIS PASS. Quotes were matched against the earlier notes (`prior-research.json`, which recorded them as checked); the sources were not re-opened. Those notes' design conclusions are not used.
+Checked 2026-11-08 (DR-124): each source was fetched again, archived with its SHA-256 at `D:/Work/IIT-KGP/Paper_1-artifacts/sources/literature-2026-11-08/` (`check.json`), and each quote found verbatim by script (whitespace, quote marks and dashes normalised). The Grossman PDF's text layer renders the degree sign as the letter o ("±55o"); the quote is otherwise verbatim. Those earlier notes' design conclusions are not used.
 
 | Used for | Source and locator | Verbatim quote |
 |---|---|---|
-| Rule 9 | Rey 2012, Educational Research Review 7(3), abstract at eric.ed.gov/?id=EJ986386 | "Seductive details constitute interesting but irrelevant information that are not necessary to achieve the instructional objective." |
+| Rule 9 | Rey 2012, Educational Research Review 7(3), abstract at eric.ed.gov/?id=EJ986386 (read through the ERIC API record) | "Seductive details constitute interesting but irrelevant information that are not necessary to achieve the instructional objective." |
 | 8.5 | Ruddle, Payne and Jones 1997, abstract via OpenAlex, doi:10.1037/1076-898X.3.2.143 | "participants were more accurate in their route finding when familiar objects were used as landmarks than when no landmarks were used." |
-| 8.6 | Darken 1995, CHI doctoral consortium, Background | "The observer's position must always be shown" |
+| 8.6 | Darken 1995, CHI '95 doctoral consortium, Introduction, "Environmental Design" (chi1995.chistatic.hosting.acm.org/proceedings/doctoral/rd_bdy.htm) | "The observer's position must always be shown" |
 | 8.3 | Legge and Bigelow 2011, Journal of Vision 11(5):8, abstract via OpenAlex | "The fluent range extends over a factor of 10 in angular print size (x-height) from approximately 0.2° to 2°." |
-| 8.3 | Grossman et al., CHI 2007, Related Work, reporting Larson et al. 2000; secondary | "They found that reading speed was consistent with yaw of up to ±55°, but that orientations beyond this had a significant effect." |
-| Rule 15 | WCAG 2.2, SC 1.4.3, w3.org/TR/WCAG22 | "The visual presentation of text and images of text has a contrast ratio of at least 4.5:1, except for the following:" |
+| 8.3 | Grossman et al., CHI 2007, Related Work, "Displaying Text in 3D Environments", reporting Larson et al. 2000; secondary | "They found that reading speed was consistent with yaw of up to ±55°, but that orientations beyond this had a significant effect." |
+| Rule 15 | WCAG 2.2, SC 1.4.3, w3.org/TR/WCAG22 (read from the W3C source file `w3c/wcag` `guidelines/sc/20/contrast-minimum.html`, because w3.org answered 403) | "The visual presentation of text and images of text has a contrast ratio of at least 4.5:1, except for the following:" |
 
 ### 15.3 Fonts, Measurements And Reference Images
 - **Fonts, read 4 Nov 2026:** `raw.githubusercontent.com/google/fonts/main/ofl/eczar/OFL.txt` and `.../mukta/OFL.txt`: "This Font Software is licensed under the SIL Open Font License, Version 1.1."

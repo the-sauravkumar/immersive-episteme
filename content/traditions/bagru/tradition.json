@@ -5,8 +5,7 @@
   "alt_names": [
     "Bagru Hand Block Print",
     "Bagru print",
-    "Syahi-Begar print",
-    "Bagru dabu print"
+    "Syahi Begar"
   ],
   "region": {
     "place": "Bagru",
@@ -5781,17 +5780,6 @@
       "width": 1614,
       "height": 3660,
       "mime": "image/jpeg",
-      "dimensions_source": "commons-api imageinfo, 2026-10-14"
-    },
-    {
-      "url": "https://commons.wikimedia.org/wiki/File:Blockprinting_in_Bagru_-_India.webm",
-      "title": "Blockprinting in Bagru - India (video)",
-      "licence": "CC BY 3.0 (as tagged on Commons; originates from a broadcaster/tourism channel — verify licence before use)",
-      "author": "Incredible India (per Commons)",
-      "depicts": "bagru.process_stage.chhapai-mordant-printing",
-      "width": 1920,
-      "height": 1080,
-      "mime": "video/webm",
       "dimensions_source": "commons-api imageinfo, 2026-10-14"
     },
     {

@@ -4,7 +4,7 @@
  * (parity check P19). No component takes a condition-specific style input.
  */
 export { ClaimList, referencesHeadingId, SheetReferences, type ClaimListProps } from "./claim-list";
-export { FigureLightbox, LIGHTBOX_MAX_EDGE, type FigureLightboxProps } from "./figure-lightbox";
+export { FigureLightbox, type FigureLightboxProps } from "./figure-lightbox";
 export { FIGURE_SIZES, KnowledgeFigure, type KnowledgeFigureProps } from "./knowledge-figure";
 export { KnowledgeSheet, SHEET_CLOSE_CLASS, SheetCloseContent, sheetTitleId, type KnowledgeSheetProps, type SheetConcept } from "./knowledge-sheet";
 export { SHEET_DOCK_CLASS, SHEET_DOCK_CLASS_LG, useSheetScrollbar } from "./sheet-dock";

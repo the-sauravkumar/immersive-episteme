@@ -114,6 +114,7 @@ describe.skipIf(files.length === 0)("content/ interchange files", () => {
       if (!table) problems.push(`${f.slug}: no content/review/${f.slug}-verification.md`);
       for (const c of concepts) {
         if (table && !table.includes(c.key)) problems.push(`${c.key}: not in the verification record`);
+        if (c.provenance_kind === "unverified") problems.push(`${c.key}: provenance unverified, which the database refuses to accept`);
         for (const [i, cl] of c.claims.entries()) {
           const located = new Set(cl.evidence.map((e) => e.source_id));
           const missing = cl.source_ids.filter((s) => !located.has(s));
@@ -129,6 +130,28 @@ describe.skipIf(files.length === 0)("content/ interchange files", () => {
         for (const end of [r.source, r.target]) {
           if (state.get(end) !== "verified") problems.push(`${id}: ${end} is ${state.get(end) ?? "missing"}`);
         }
+      }
+    }
+    expect(problems).toEqual([]);
+  });
+
+  it("gives every tradition's alternative names a recorded quote from a cited source that prints it", () => {
+    const problems: string[] = [];
+    for (const f of parseAll()) {
+      const names = existsSync(join(CONTENT, "traditions", f.slug)) ? f.alt_names : [];
+      if (names.length === 0) continue;
+      const record = join(CONTENT, "review", `${f.slug}-verification.md`);
+      const text = existsSync(record) ? readFileSync(record, "utf8") : "";
+      const section = text.split("\n## Alternative Names")[1]?.split("\n## ")[0] ?? "";
+      const rows = section
+        .split("\n")
+        .filter((l) => l.startsWith("| ") && !l.startsWith("| Name |"))
+        .map((l) => l.split(" | ").map((c) => c.replace(/^\| |\s\|$/g, "").replaceAll("&#124;", "|")));
+      const sources = new Set(f.sources.map((s) => s.id));
+      for (const name of names) {
+        const row = rows.find((r) => r[0] === name);
+        if (!row) problems.push(`${f.slug}: alternative name "${name}" has no recorded quote`);
+        else if (!sources.has(row[1]!) || !row[3]?.toLowerCase().includes(name.toLowerCase())) problems.push(`${f.slug}: "${name}" is not in its quote from a recorded source`);
       }
     }
     expect(problems).toEqual([]);

@@ -462,3 +462,33 @@ The `Sample Text` mark follows from these states. The test-item generator (`scri
 | 75 | `bagru.open_question.water-quality-claim EXPLAINS bagru.environmental_condition.water-sanjaria-river` | needs_evidence | S5 | § "Usage:" | Characterized by the sheen given to the finished cloth by the waters of the Sanjara River | verbatim at locator |
 | 76 | `bagru.design_principle.dense-pattern-hides-drips BELONGS_TO bagru.tradition.bagru-hand-block-print` | under_review | S6 | § "Printing" | The abundance of empty spaces in modern patterns tends to reveal the unintentional dye drips | verbatim at locator |
 | 77 | `bagru.tradition.bagru-hand-block-print AFFECTED_BY bagru.environmental_condition.semi-arid-seasonality` | under_review | S6 | § "Place: The Final Process" | During the hot and dry months, workers fill the courtyards with fabrics — until monsoon season brings work to a halt. | verbatim at locator |
+
+## Archive Of 2026-11-08 (DR-124)
+
+The 13 sources were fetched again into `D:/Work/IIT-KGP/Paper_1-artifacts/sources/bagru-2026-11-08/`, one `<cache_id>.bin` per source as `source-manifest.tsv` names it, with `archive.json` (URL, date, SHA-256). `content/review/tools/evidence/verify_from_manifest.py content/traditions/bagru/tradition.json <that folder>` finds 268 of 268 claim passages and 110 of 110 relationship passages verbatim at their locators (`verify-result.json` in the folder).
+
+| Source | Cache id | SHA-256 (first 12) | Equal to manifest |
+|---|---|---|---|
+| S1 | b7ad8eb0b223 | `e63d8ebafe1c` | yes |
+| S2 | f896df0a3b86 | `ed4d5fffd8e5` | no |
+| S3 | 9cf5a8dd74f1 | `7b588259e0bc` | yes |
+| S4 | f3ef062a367e | `34100398c940` | yes |
+| S5 | 8b78dcd3bccd | `21f095d04e15` | no |
+| S6 | 3c0a3bd8ea5e | `280467e41605` | no |
+| S7 | 49ca496a46e7 | `9f0b35503d06` | no |
+| S8 | 2f0c3689a03f | `512070568af5` | no |
+| S9 | 6c9b40e133ff | `374dfb60b1aa` | no (Wayback 20230106084822, read decompressed) |
+| S10 | 913d22a6872a | `e235246f25d1` | no |
+| S11 | 61ea18a5b39e | `45c480cfc864` | no |
+| S12 | 9af3a06e3ff0 | `b12162a98ba4` | no |
+| S13 | 11fe2cc85e55 | `ea219b5fcfb6` | no |
+
+## Alternative Names (DR-124)
+
+Each name in `alt_names` is printed by a recorded source; the quote was re-found verbatim at its locator in `D:/Work/IIT-KGP/Paper_1-artifacts/sources/bagru-2026-11-08/`. Names no source prints were removed.
+
+| Name | Source | Locator | Quote |
+|---|---|---|---|
+| Bagru Hand Block Print | S11 | § "page text" | Bagru Hand Block Print – Global InCH |
+| Bagru print | S8 | § "page text" | Bagru print - Wikipedia |
+| Syahi Begar | S7 | § "page text" | Kaisori discovers : The art of Syahi Begar |

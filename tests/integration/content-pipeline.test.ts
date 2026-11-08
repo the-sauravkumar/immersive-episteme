@@ -254,6 +254,18 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
       await run();
     });
 
+    it("archives an edge it imported that the files dropped while a snapshot holds it, so no later snapshot carries it", async () => {
+      const gone = loaded.model.relationships.find((r) => r.type === "PRECEDES" && r.verificationState !== "verified")!;
+      const state = async () =>
+        (await one<{ s: string }>(t.pool, "SELECT r.verification_state::text AS s FROM relationships r JOIN concepts s ON s.id = r.source_concept_id JOIN concepts tc ON tc.id = r.target_concept_id WHERE s.key = $1 AND tc.key = $2 AND r.type_code = 'PRECEDES'", [gone.source, gone.target])).s;
+      const s = await run({ ...loaded.model, relationships: loaded.model.relationships.filter((r) => r !== gone) });
+      expect(s.stale.relationships).toContain(`${gone.source} PRECEDES ${gone.target}`);
+      expect(s.archived.relationships).toBe(1);
+      expect(await state()).toBe("archived");
+      await run();
+      expect(await state()).not.toBe("archived");
+    });
+
     it("leaves an accepted tradition's GI evidence alone, and any change to it reopens review (knowledge-09)", async () => {
       const curator = await createUser(t.pool);
       const pkg = loaded.model.packages.find((p) => p.kind === "tradition" && (p.gi?.sourceRefs.length ?? 0) > 0)!;

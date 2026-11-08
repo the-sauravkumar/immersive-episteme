@@ -2,7 +2,16 @@
 
 One folder per tradition: `content/traditions/<slug>/tradition.json`, plus a
 shared `content/shared/craft-science.json` and `content/comparisons.json`.
-The platform importer (built later) maps these into the knowledge schema.
+The platform importer (`npm run content:import`, `src/server/content/import-content.ts`, loading through
+`src/features/knowledge/graph/loader.ts`) maps these into the knowledge schema.
+
+`alt_names` lists other names of a tradition. Each must be printed by a source the file records, with
+its quote and locator in the Alternative Names table of `content/review/<slug>-verification.md`
+(DR-124); a content test refuses a name with no recorded quote.
+
+`compares` (comparison concepts only, optional) lists the concept keys the comparison sets side by
+side, in any file; the contract refuses it on any other type and refuses an unknown key
+(`src/features/knowledge/contracts.ts`), and the loader carries it into the model.
 
 ## Provenance rules (non-negotiable)
 
@@ -20,7 +29,8 @@ The platform importer (built later) maps these into the knowledge schema.
   mechanical source check: every evidence quote was re-found verbatim at its locator in the
   archived source by the check script its `content/review/<slug>-verification.md` names
   (in `content/review/tools/evidence/`), every claim and
-  explanation says no more than its quotes, and every cited source has a passage. It is not
+  explanation says no more than its quotes, and every cited source has a passage; a concept whose
+  `provenance_kind` is `"unverified"` is never `"verified"`, because the database refuses to accept it. It is not
   an acceptance: the loader and the importer read it as `"under_review"`, and only the CMS
   review (`scripts/content/verify-concepts.ts`, DR-059) accepts content into a release. The
   test-item generator reads it, so a transfer item built only from checked content carries
@@ -50,6 +60,7 @@ The platform importer (built later) maps these into the knowledge schema.
       "category": "tradition_identity|geography_history|artisan_knowledge|tacit_decisions|materials|tools|process_stages|design_principles|production_outcomes|scientific_mechanisms|environmental_conditions|cross_tradition_comparisons|supporting_evidence|open_questions",
       "title": "...", "summary": "1–2 sentences", "body_md": "short paragraph(s), plain markdown",
       "local_terms": ["hindi/local name if sourced"],
+      "compares": ["concept key", "..."],
       "provenance_kind": "same enum as source.kind",
       "verification_state": "under_review|needs_evidence|verified",
       "claims": [ { "text": "...", "source_ids": ["S1"], "quote": "optional ≤25 words",

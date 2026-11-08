@@ -180,19 +180,13 @@ Keep Dabu as a reserve if the study wants a resist-focused contrast. **Do not pi
 
 ## (f) Media licence status
 
-- **Ajrakh (3) and Bagh (4):** Wikimedia Commons, CC BY-SA 4.0. Licences were confirmed in the fact-check.
-- **Bagru (4):** licences were not checked in the fact-check.
-  - Two images are CC0; one is CC BY-SA 4.0.
-  - **"Blockprinting in Bagru – India" (.webm)** is tagged CC BY 3.0 on Commons but originates from a broadcaster/tourism channel (Incredible India). Verify the uploader's right to license it before any use.
-- **Dabu (2):** the CC BY-SA 4.0 fabric photo, plus a CC0 photo of *Bagru* village reused to depict an Akola tool. That is a location mismatch; replace it or relabel it. Licences were not re-checked in the log.
-- **Machilipatnam (4):**
-  - CC BY 3.0 ×2, CC BY-SA 4.0, and a **Met rumal (CC0, via Commons)**. Confirm the Met Open Access status on the Met record itself.
-  - One Srikalahasti image is for contrast only.
-  - Licences were not re-checked in the log.
-- **Sanganeri (9):** licences were not checked in the fact-check.
-  - CC BY 4.0, CC BY-SA 4.0 ×7, and one Free Art Licence.
-  - Seven are Anokhi/Jaipur images that are **not Sanganer-specific**, and the FAL image's location is unconfirmed.
-- **Met content read from cache:** the Met Perspectives essay (Dabu S24) is a text source, not a media item. It was read from cache (see e.7). No Met image was fetched from cache.
+Checked on 2026-11-08 (DR-124) against each file's Wikimedia Commons page through the Commons API (`imageinfo`, `extmetadata`: `LicenseShortName`, `Artist`, `Credit`); the responses are archived at `D:/Work/IIT-KGP/Paper_1-artifacts/dr-124/media-licences/commons-extmetadata-2026-11-08.json`. Every remaining candidate's recorded licence equals the licence its Commons page states.
 
-No media item has been downloaded or cleared for study use. Every candidate needs licence
-confirmation on its file page and an attribution record before publication.
+- **Ajrakh (3) and Bagh (4):** CC BY-SA 4.0, each "Own work" of the named uploader.
+- **Bagru (3):** two CC0 ("Own work" of Anildiggiwal; the Honolulu Museum of Art sari, "Own work" of Hiart) and one CC BY-SA 4.0 (Raworiya). The broadcaster video "Blockprinting in Bagru – India" (.webm, CC BY 3.0 per Commons, credit "Vimeo: Blockprinting in Bagru - India") was removed from the file: no recorded quote shows the uploader's right to license it.
+- **Dabu (1):** the CC BY-SA 4.0 fabric photo (Aayushimundada, "Own work"). The CC0 photo of *Bagru* village that was tagged as an Akola block was removed from the Dabu file (a location mismatch); it stays in Bagru's.
+- **Machilipatnam (4):** CC BY 3.0 ×2, CC BY-SA 4.0, and the Met rumal, CC0, whose Commons credit reads "This file was donated to Wikimedia Commons as part of a project by the Metropolitan Museum of Art. See the Image and Data Resources Open Access Policy". The Srikalahasti image is for contrast only.
+- **Sanganeri (9):** CC BY 4.0 (CTC Sanganer Official), CC BY-SA 4.0 ×7 and one Free Art Licence (A.Savin). Seven are Anokhi/Jaipur images that are **not Sanganer-specific**, and the FAL image's location is unconfirmed; their titles say so.
+- **Met content read from cache:** the Met Perspectives essay (Dabu S24) is a text source, not a media item.
+
+No media candidate has been downloaded or used in the study; the study photographs are a separate set (DR-118, `docs/image-credits.md`). Each candidate's licence is confirmed above; an attribution record is still made at ingest.
