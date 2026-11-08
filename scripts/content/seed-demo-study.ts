@@ -47,7 +47,7 @@ async function main(): Promise<void> {
       nonExperimental: true,
       consent: { version: "demo-walking-1", text: "Demo: consent text for a demonstration study, reference CXA/ETH/01. This is not a real study and nothing is kept as study data." },
       participantInformation: "Demo: information sheet for a demonstration study of two ways of learning a craft process.",
-      webglFailurePolicy: "retry",
+      webglFailurePolicy: option("webgl-failure-policy", "retry") as "exclude" | "retry" | "reassign",
       resume: { allowed: true },
       retentionDays: 30,
     };

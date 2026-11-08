@@ -5,6 +5,8 @@ import type { Page } from "@playwright/test";
 import { config as loadEnv } from "dotenv";
 import { Pool } from "pg";
 
+import { hardwareGpu } from "./gpu-mode";
+
 loadEnv({ quiet: true });
 
 const BATTERY_VERSION = 9;
@@ -55,7 +57,7 @@ export async function signInStaff(page: Page, email: string, password: string, a
 }
 
 export function ensureDemoStudy(slug: string, capMinutes: number): void {
-  const run = spawnSync("npx", ["tsx", "scripts/content/seed-demo-study.ts", `--slug=${slug}`, `--cap-minutes=${capMinutes}`, `--battery-version=${BATTERY_VERSION}`], { encoding: "utf8", shell: true });
+  const run = spawnSync("npx", ["tsx", "scripts/content/seed-demo-study.ts", `--slug=${slug}`, `--cap-minutes=${capMinutes}`, `--battery-version=${BATTERY_VERSION}`, `--webgl-failure-policy=${hardwareGpu() ? "retry" : "reassign"}`], { encoding: "utf8", shell: true });
   if (run.status !== 0) throw new Error(`Demo study ${slug} could not be seeded: ${run.stderr}`);
 }
 
