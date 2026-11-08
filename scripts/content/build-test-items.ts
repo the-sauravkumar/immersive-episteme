@@ -11,25 +11,28 @@ const TOOL_TYPES = new Set(["tool", "material"]);
 
 interface TraditionFile {
   name: string;
-  concepts: { key: string; type: string; title: string; summary: string }[];
-  relationships: { type: string; source: string; target: string }[];
+  concepts: { key: string; type: string; title: string; summary: string; verification_state: string }[];
+  relationships: { type: string; source: string; target: string; verification_state: string }[];
 }
+
+const isChecked = (entry: { verification_state: string }) => entry.verification_state === "verified";
 
 const readTradition = (key: string): TraditionFile => JSON.parse(readFileSync(join(CONTENT, "traditions", key, "tradition.json"), "utf8")) as TraditionFile;
 
 function unseenFrom(key: string, file: TraditionFile): UnseenTradition {
   const byKey = new Map(file.concepts.map((concept) => [concept.key, concept]));
-  const stages: UnseenStage[] = file.concepts
-    .filter((concept) => concept.type === "process_stage")
-    .map((concept) => ({
-      key: concept.key,
-      title: concept.title.replace(/^\d+\.\s*/, ""),
-      summary: concept.summary,
-      tools: file.relationships.filter((link) => link.type === "USES" && link.source === concept.key && TOOL_TYPES.has(byKey.get(link.target)?.type ?? "")).map((link) => byKey.get(link.target)!.title),
-    }));
+  const stageConcepts = file.concepts.filter((concept) => concept.type === "process_stage");
+  const toolLinks = file.relationships.filter((link) => link.type === "USES" && byKey.get(link.source)?.type === "process_stage" && TOOL_TYPES.has(byKey.get(link.target)?.type ?? ""));
+  const stages: UnseenStage[] = stageConcepts.map((concept) => ({
+    key: concept.key,
+    title: concept.title.replace(/^\d+\.\s*/, ""),
+    summary: concept.summary,
+    tools: toolLinks.filter((link) => link.source === concept.key).map((link) => byKey.get(link.target)!.title),
+  }));
   const stageKeys = new Set(stages.map((stage) => stage.key));
-  const precedes = file.relationships.filter((link) => link.type === "PRECEDES" && stageKeys.has(link.source) && stageKeys.has(link.target)).map((link) => [link.source, link.target] as const);
-  return { key, name: file.name, stages, precedes };
+  const precedeLinks = file.relationships.filter((link) => link.type === "PRECEDES" && stageKeys.has(link.source) && stageKeys.has(link.target));
+  const checked = [...stageConcepts, ...toolLinks, ...toolLinks.map((link) => byKey.get(link.target)!), ...precedeLinks].every(isChecked);
+  return { key, name: file.name, stages, precedes: precedeLinks.map((link) => [link.source, link.target] as const), checked };
 }
 
 function main(): void {

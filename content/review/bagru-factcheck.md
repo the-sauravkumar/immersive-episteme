@@ -1,5 +1,7 @@
 # Fact-check: bagru/tradition.json
 
+Superseded for verification states by `bagru-verification.md` (DR-120, 2026-11-07): every Bagru item has since been checked against the archived sources, and the needs_evidence items below were resolved there.
+
 Date: 2026-10-14. Scope: 175 claims in 65 concepts, 78 relationships and 13 sources. I checked every claim against the source it cites. Source texts were re-fetched as follows:
 - GI dossier, Kathju & Kashyap and Raj: text extracted with pdftotext.
 - Gaatha: fetched with both curl and WebFetch.

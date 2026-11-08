@@ -19,6 +19,7 @@ import { RELATIONSHIP_TYPES } from "../../db/seeds/reference-data";
 import {
   checkCrossFileReferences,
   contentPackageFileSchema,
+  importedState,
   slugFromConceptKey,
   type ContentPackageFile,
 } from "../../src/features/knowledge/contracts";

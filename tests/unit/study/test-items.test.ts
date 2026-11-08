@@ -30,6 +30,7 @@ const unseen = (key: string): UnseenTradition => ({
   name: `${key} Name`,
   stages: (["a", "b", "c", "d", "e"] as const).map((s) => ({ key: `${key}.${s}`, title: UNSEEN_TITLES[s], summary: `Summary ${s}.`, tools: [`Tool ${s}`] })),
   precedes: [[`${key}.a`, `${key}.b`], [`${key}.b`, `${key}.c`], [`${key}.c`, `${key}.d`], [`${key}.d`, `${key}.e`]],
+  checked: false,
 });
 
 const templates = [template("ajrakh"), template("sanganeri"), template("machilipatnam-kalamkari")];
@@ -220,6 +221,7 @@ describe("no option can be found from the question's wording", () => {
         { key: "dabu.e", title: "Washing", summary: "Summary e.", tools: ["Stone slab"] },
       ],
       precedes: [["dabu.c", "dabu.d"], ["dabu.d", "dabu.e"], ["dabu.b", "dabu.c"], ["dabu.a", "dabu.b"]],
+      checked: false,
     };
     const items = transferItems(leaky);
     const tool = items.find((item) => item.itemKey === "transfer.dabu.tool")!;
@@ -263,6 +265,20 @@ describe("Sample Text items never reach a real study", () => {
 
   it("holds for the generated battery, where unchecked colours and the unchecked transfer traditions carry the mark", () => {
     for (const assessment of generated) expect(assessment.code.startsWith("demo-") && assessment.title.startsWith("Demo: "), assessment.code).toBe(carriesSampleText(assessment));
-    expect(generated.filter(carriesSampleText).map((a) => a.code)).toEqual(expect.arrayContaining(["demo-test-transfer", "demo-test-transfer-delayed"]));
+    const stagesChecked = (tradition: string) =>
+      (JSON.parse(readFileSync(join(process.cwd(), "content", "traditions", tradition, "tradition.json"), "utf8")) as { concepts: { type: string; verification_state: string }[] }).concepts
+        .filter((concept) => concept.type === "process_stage")
+        .every((concept) => concept.verification_state === "verified");
+    for (const item of generated.flatMap((a) => a.items).filter((i) => i.itemKey.startsWith("transfer."))) {
+      const tradition = (item.config.target as { tradition: string }).tradition;
+      if (!stagesChecked(tradition)) expect(item.config.sampleText, item.itemKey).toBe(true);
+      if (item.config.sampleText !== true) expect(stagesChecked(tradition), item.itemKey).toBe(true);
+    }
+  });
+
+  it("drops the mark from the transfer items of a tradition whose stages, tools and links passed the source check", () => {
+    const items = transferItems({ ...unseen("bagru"), checked: true });
+    expect(items.length).toBeGreaterThan(0);
+    for (const item of items) expect(item.config.sampleText, item.itemKey).toBeUndefined();
   });
 });

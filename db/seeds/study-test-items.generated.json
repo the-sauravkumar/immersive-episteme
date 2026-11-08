@@ -2701,11 +2701,11 @@
     ]
   },
   {
-    "code": "demo-test-transfer",
+    "code": "test-transfer",
     "kind": "transfer",
     "phase": "post",
     "position": 5,
-    "title": "Demo: A Tradition You Have Not Seen",
+    "title": "A Tradition You Have Not Seen",
     "description": null,
     "testType": "transfer",
     "paged": false,
@@ -2763,7 +2763,6 @@
             }
           ],
           "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.\nMordant printing (chhapai) with syahi and begar: The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar.\nResist printing with dabu (dabu chhapai)\nWashing off excess mordant (khulai)\nFinal washing (dhulai) and finishing\nAlum after-mordanting (fitkari rangai)\nYellow over-dyeing by sponging (haldi-naspal putai / potai)\nScouring (hari sarana / teluni): Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water.\nIndigo dyeing (neel rangai): The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly.\nHarda treatment (peela karna)\nDyeing in alizarin/madder (rangai, bhatti): The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous).\nAgeing / drying (sukhai): Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
-          "sampleText": true,
           "target": {
             "tradition": "bagru"
           }
@@ -2811,7 +2810,6 @@
           ],
           "shuffle": true,
           "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.\nMordant printing (chhapai) with syahi and begar: The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar.\nResist printing with dabu (dabu chhapai)\nWashing off excess mordant (khulai)\nFinal washing (dhulai) and finishing\nAlum after-mordanting (fitkari rangai)\nYellow over-dyeing by sponging (haldi-naspal putai / potai)\nScouring (hari sarana / teluni): Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water.\nIndigo dyeing (neel rangai): The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly.\nHarda treatment (peela karna)\nDyeing in alizarin/madder (rangai, bhatti): The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous).\nAgeing / drying (sukhai): Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
-          "sampleText": true,
           "target": {
             "tradition": "bagru"
           }

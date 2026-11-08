@@ -15,16 +15,15 @@ The platform importer (built later) maps these into the knowledge schema.
   IDC IIT Bombay, NID), museum collections (V&A, Met, Anokhi Museum, Calico Museum),
   established craft organisations (Craft Revival Trust, Gaatha, Dastkar).
   Blogs/e-commerce only as a last resort, marked `reliability: "low"`.
-- `verification_state` is `"under_review"` (or `"needs_evidence"` when sources are
-  weak/conflicting) until a source check is recorded. `"verified"` means a recorded
-  mechanical source check passed: every claim passage, and for a relationship one passage
-  per cited source, was found verbatim at its locator in an archived copy of that source
-  by `content/review/tools/evidence/verify_tradition.py`, and the claim or explanation says
-  no more than its passages. The check is written up in `content/review/<slug>-verification.md`,
-  which names every verified item. A relationship is verified only when both of its concepts
-  are. The loader reads `"verified"` as `"under_review"`, so the importer and every snapshot
-  still treat the item as unaccepted until a named curator accepts it in the CMS (or through
-  `scripts/content/verify-concepts.ts`). Never `"published"`.
+- `verification_state` is `"under_review"` (or `"needs_evidence"` when sources
+  are weak/conflicting). `"verified"` records that a concept or relationship passed the
+  mechanical source check: every evidence quote was re-found verbatim at its locator in the
+  archived source by `content/review/tools/evidence/verify_tradition.py`, every claim and
+  explanation says no more than its quotes, and every cited source has a passage. It is not
+  an acceptance: the loader and the importer read it as `"under_review"`, and only the CMS
+  review (`scripts/content/verify-concepts.ts`, DR-059) accepts content into a release. The
+  test-item generator reads it, so a transfer item built only from checked content carries
+  no `Sample Text` mark (DR-120). Never `"published"`.
 - Do not record personal data about private individuals. Communities (e.g. Chhipa,
   Khatri) and publicly honoured master artisans named in published sources are fine.
 - Paraphrase; quotes ≤ 25 words.
@@ -78,8 +77,9 @@ The platform importer (built later) maps these into the knowledge schema.
 Each claim carries `evidence[]`: for every source it cites, at least one verbatim passage
 from that source with a locator (`PDF p. N` for PDFs, `§ "<nearest heading>"` for web pages,
 with `(occurrence k of n)` when a heading repeats on the page). `source_id` must be one of the
-claim's `source_ids`. A passage supports the claim; it does not by itself verify it — claims
-stay `under_review` until a recorded source check or a curator verifies them. `note` marks a passage that could not be
+claim's `source_ids`. A passage supports the claim; it does not by itself verify it — a
+concept is marked `verified` only after the source check above, and stays under review in the
+database until the CMS review accepts it. `note` marks a passage that could not be
 extracted cleanly and must be checked against the original. See
 docs/research/citation-policy.md and content/review/verification.md §V11.
 
