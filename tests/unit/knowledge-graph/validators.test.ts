@@ -47,7 +47,7 @@ describe("baseline fixture", () => {
 describe("loader (FORMAT contract)", () => {
   it("rejects a file that breaks the contract (KG100) and unreadable JSON (KG101)", () => {
     const bad = alphaFile();
-    conceptsOf(bad)[1]!.verification_state = "verified"; // interchange files may never carry verified
+    conceptsOf(bad)[1]!.verification_state = "published";
     const { issues } = loadContentFiles([...files(bad), { path: "content/broken.json", text: "{ nope" }]);
     expect(codes(issues)).toEqual(["KG100", "KG101"]);
   });

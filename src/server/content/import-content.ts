@@ -12,11 +12,12 @@
  *    (package slug, tradition slug, concept key, (package, local source id), (concept,
  *    claim position), (source, target, type)), and an update only happens when a column
  *    actually differs. A second import of unchanged files writes nothing but the audit entry.
- *  - Review states are copied from the files (`under_review` / `needs_evidence`; sources, which
- *    carry no state in FORMAT v1, are `under_review`) only while the importer itself set the
- *    current state: once a curator has decided a row's state (the latest verification_records
- *    row has a user actor: needs evidence, rejected, archived, withdrawn, resubmitted), the next
- *    import keeps it and reports it as `keptCurated` (final review knowledge-04). The importer
+ *  - Review states are copied from the files (`under_review` / `needs_evidence`; a file's
+ *    `verified` is stored as `under_review`, because only a curator's recorded transition accepts
+ *    a row; sources, which carry no state in FORMAT v1, are `under_review`) only while the
+ *    importer itself set the current state: once a curator has decided a row's state (the latest
+ *    verification_records row has a user actor: needs evidence, rejected, archived, withdrawn,
+ *    resubmitted), the next import keeps it and reports it as `keptCurated` (final review knowledge-04). The importer
  *    never sets `verified` or `published`, and it never touches a row a curator has already
  *    accepted (verified/published): such rows, and their claims and evidence (including a
  *    tradition's GI sources, knowledge-09), are reported as `keptAccepted` and left as they are.
@@ -41,6 +42,7 @@ import { nameBasedUuid, type Sha256Hasher } from "@/features/knowledge/graph/has
 import { relationshipId } from "@/features/knowledge/graph/validate";
 import type { GraphPackage, IntegrityIssue, KnowledgeGraphModel } from "@/features/knowledge/graph/types";
 import { slugFromConceptKey } from "@/features/knowledge/contracts";
+import type { VerificationState } from "@/lib/validation/enums";
 
 type Q = Pick<PoolClient, "query">;
 
@@ -90,6 +92,13 @@ export class ContentImportRefused extends Error {
 }
 
 const ACCEPTED = ["verified", "published"];
+const importedState = (fileState: VerificationState): VerificationState => (ACCEPTED.includes(fileState) ? "under_review" : fileState);
+
+export const asImported = (model: KnowledgeGraphModel): KnowledgeGraphModel => ({
+  ...model,
+  concepts: model.concepts.map((c) => ({ ...c, verificationState: importedState(c.verificationState) })),
+  relationships: model.relationships.map((r) => ({ ...r, verificationState: importedState(r.verificationState) })),
+});
 const zero = (): TableCounts => ({ inserted: 0, updated: 0, unchanged: 0, keptAccepted: 0, keptCurated: 0 });
 
 /**
@@ -172,7 +181,7 @@ export async function importContent(client: PoolClient, input: ImportInput): Pro
   await client.query("BEGIN");
   try {
     await client.query("SELECT set_config('app.change_reason', $1, true)", ["content import (content/ interchange files)"]);
-    const summary = await importInTransaction(client, model, ids, pkgUuid, hasher, input.invokedBy ?? "content importer");
+    const summary = await importInTransaction(client, asImported(model), ids, pkgUuid, hasher, input.invokedBy ?? "content importer");
     await client.query("COMMIT");
     return summary;
   } catch (err) {
